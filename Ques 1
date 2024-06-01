@@ -29,7 +29,7 @@
 // Numelements: Should be at least 1 and at most 200,000.
 // input_vector: Each element should be between 1 and 1,000,000,000 (10^9) inclusive.
 // Numqueries: Should be at least 1 and at most 200,000.
-// Queries: Each query should have valid starting indices (between 1 and Numelements) and a non-negative energy value, with the energy being at most 1,000,000,000 (10^9).
+// input_Queries: Each query should have valid starting indices (between 1 and Numelements) and a non-negative energy value, with the energy being at most 1,000,000,000 (10^9).
 
 // Output:
 // A vector of integers Result representing the answers to the queries. Each element of the vector corresponds to a query and contains:
