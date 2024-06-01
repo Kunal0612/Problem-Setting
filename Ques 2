@@ -2,19 +2,23 @@
 // Create a C++ function named FindIntegersInLongestIncreasingSubsequence that helps Raj to find out all integers that could be a part of Longest Increasing Subsequence.
 
 
-// Raj with his friend Ritika is playing a game of integers. So Raj in his turn ask Ritika to find the longest increasing subsequence that would be formed from the given integers. Ritika found it but won't say the length of longest increasing subsequence and again she ask raj to find out which are the number that could be a part of longest increasing subsequence.
+// Raj with his friend Ritika is playing a game of integers. 
+//So Raj in his turn ask Ritika to find the longest increasing subsequence 
+//that would be formed from the given integers. Ritika found it but won't say the 
+//length of longest increasing subsequence and again she ask raj to 
+//find out which are the number that could be a part of longest increasing subsequence.
 
 // So you have to help raj to find which are the integers which could be the part of the longest increasing subsequence. 
 
-// You are given an integer sequence Vector Arr of length N.
+// You are given an integer sequence Vector vec of length N.
 
-// For each t=1,2,…,N, determine whether Arr[t] is included in a longest increasing subsequence of Arr.
+// For each t=1,2,…,N, determine whether vec[t] is included in a longest increasing subsequence of vec.
 
-// Here, Arr[t] ​is included in a longest increasing subsequence of A if and only if the following holds:
+// Here, vec[t] ​is included in a longest increasing subsequence of A if and only if the following holds:
 
-// Let L be the length of a longest increasing subsequence of Arr. There exists a strictly increasing integer sequence i=(i1,i2,…,iL) and (i1 < i2 <⋯< iL), where each element is between 1 and N, inclusive, that satisfies all of the following conditions:
+// Let L be the length of a longest increasing subsequence of vec. There exists a strictly increasing integer sequence i=(i1,i2,…,iL) and (i1 < i2 <⋯< iL), where each element is between 1 and N, inclusive, that satisfies all of the following conditions:
 
-// -> Arr[i1] < Arr[i2] <⋯<Arr[iL] .
+// -> vec[i1] < vec[i2] <⋯<vec[iL] .
 
 // -> ik=t for some k (1≤k≤L).
 
@@ -30,8 +34,8 @@
 // increasing subsequence.
 
 // Constraints : 
-// 1≤N≤2*1e5
-// 1≤Ai≤1e9
+// vec_length: Should be at least 1 and at most 200,000.
+// vec: Each element should be between 1 and 1,000,000,000 (10^9) inclusive.
 
 
 
@@ -159,8 +163,8 @@ std::vector<int> FindIntegersInLongestIncreasingSubsequence(int vec_length, std:
     segment_tree_reverse.Build(values);
 
     long long max_value = 0;
-    for (long long value : arr) {
-        max_value = std::max(max_value, value);
+    for (int i=1;i<=vec_length;i++) {
+        max_value = std::max(max_value, arr[i]);
     }
 
     std::vector<long long> left_max(vec_length + 1, 1), right_max(vec_length + 1, 1);
@@ -196,30 +200,30 @@ std::vector<int> FindIntegersInLongestIncreasingSubsequence(int vec_length, std:
 int main()
 {
     //TEST
-        int num_1 = 5;
+        int vec_length_1 = 5;
         std::vector<int> vec_1 = {15, 14, 17, 42, 34};
         std::vector<int> expected_1 = {1,2,3,4,5};
-        std::vector<int> result_1 = FindIntegersInLongestIncreasingSubsequence(num_1, vec_1);
+        std::vector<int> result_1 = FindIntegersInLongestIncreasingSubsequence(vec_length_1, vec_1);
         assert(result_1 == expected_1);
     //TEST_END
 
     // TEST
-        int num_2 = 5;
+        int vec_length_2 = 5;
         std::vector<int> vec_2 = {2,1,4,5,3};
         std::vector<int> expected_2 = {1,2,3,4};
-        std::vector<int> result_2 = FindIntegersInLongestIncreasingSubsequence(num_2, vec_2);
+        std::vector<int> result_2 = FindIntegersInLongestIncreasingSubsequence(vec_length_2, vec_2);
         assert(result_2 == expected_2);
     // TEST_END
 
     
 
     // TEST
-        long long num_3 = -4;
+        long long vec_length_3 = -4;
         std::vector<int> vec_3 = {-15, 14, 17,-42};
         std::vector<int> expected_3;
         try
         {
-            FindIntegersInLongestIncreasingSubsequence(num_3, vec_3);
+            FindIntegersInLongestIncreasingSubsequence(vec_length_3, vec_3);
             assert(false);
         }
         catch (const std::invalid_argument &e)
@@ -229,43 +233,43 @@ int main()
     // TEST_END
 
     // TEST 
-    int num_4 = 6;
+    int vec_length_4 = 6;
     std::vector<int> vec_4 = {2, 5, 3, 4, 3, 4};
     std::vector<int> expected_4 = {1,3,4,5,6};
-    std::vector<int> result_4 = FindIntegersInLongestIncreasingSubsequence(num_4, vec_4);
+    std::vector<int> result_4 = FindIntegersInLongestIncreasingSubsequence(vec_length_4, vec_4);
     assert(result_4 == expected_4);
     // TEST_END
 
     // TEST 
-    int num_5 = 5;
+    int vec_length_5 = 5;
     std::vector<int> vec_5 = {10000, 1000, 100, 1, 10};
     std::vector<int> expected_5 = {4,5};
-    std::vector<int> result_5 = FindIntegersInLongestIncreasingSubsequence(num_5, vec_5);
+    std::vector<int> result_5 = FindIntegersInLongestIncreasingSubsequence(vec_length_5, vec_5);
     assert(result_5 == expected_5);
     // TEST_END
 
     // TEST 
-    int num_6 = 7;
+    int vec_length_6 = 7;
     std::vector<int> vec_6 = {1, 2, 7, 8, 1, 2, 6};
     std::vector<int> expected_6 = {1,2,3,4};
-    std::vector<int> result_6 = FindIntegersInLongestIncreasingSubsequence(num_6, vec_6);
+    std::vector<int> result_6 = FindIntegersInLongestIncreasingSubsequence(vec_length_6, vec_6);
     assert(result_6 == expected_6);
     // TEST_END
 
     // TEST 
-    int num_7 = 6;
+    int vec_length_7 = 6;
     std::vector<int> vec_7 = {2, 5, 8, 4, 3, 4};
     std::vector<int> expected_7 = {1,2,3,5,6};
-    std::vector<int> result_7 = FindIntegersInLongestIncreasingSubsequence(num_7, vec_7);
+    std::vector<int> result_7 = FindIntegersInLongestIncreasingSubsequence(vec_length_7, vec_7);
     assert(result_7 == expected_7);
     // TEST_END
     // TEST
-        long long num_8 = 0;
+        long long vec_length_8 = 0;
         std::vector<int> vec_8 = {-15, 14, 4 ,-42};
         std::vector<int> expected_8;
         try
         {
-            FindIntegersInLongestIncreasingSubsequence(num_8, vec_8);
+            FindIntegersInLongestIncreasingSubsequence(vec_length_8, vec_8);
             assert(false);
         }
         catch (const std::invalid_argument &e)
@@ -275,12 +279,12 @@ int main()
     // TEST_END
 
     // TEST
-        long long num_9 = 8;
+        long long vec_length_9 = 8;
         std::vector<int> vec_9 = {-15, 14, 4 ,-42};
         std::vector<int> expected_9;
         try
         {
-            FindIntegersInLongestIncreasingSubsequence(num_9, vec_9);
+            FindIntegersInLongestIncreasingSubsequence(vec_length_9, vec_9);
             assert(false);
         }
         catch (const std::invalid_argument &e)
@@ -290,12 +294,12 @@ int main()
     // TEST_END
 
     // TEST
-        long long num_10 = -10;
+        long long vec_length_10 = -10;
         std::vector<int> vec_10 = {-100, 14, -400 ,-42};
         std::vector<int> expected_10;
         try
         {
-            FindIntegersInLongestIncreasingSubsequence(num_10, vec_10);
+            FindIntegersInLongestIncreasingSubsequence(vec_length_10, vec_10);
             assert(false);
         }
         catch (const std::invalid_argument &e)
