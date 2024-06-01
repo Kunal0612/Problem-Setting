@@ -17,9 +17,9 @@
 
 // Input:
 
-// An integer Num_elements representing the number of elements in the array.
+// An integer num_elements representing the number of elements in the array.
 // A vector of long long integers input_vector containing the elements of the vector.
-// An integer Num_queries representing the number of queries.
+// An integer num_queries representing the number of queries.
 // A vector of pairs of long long integers input_Queries, each representing a query. Each pair consists of:
 // The starting index Start.
 // The value K.
