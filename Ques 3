@@ -1,0 +1,245 @@
+//https://leetcode.com/problems/greatest-common-divisor-traversal/description/
+
+// Create a C++ function named CanTraverseAllPairs that check if you can traverse through 
+// all pairs of indicies or not. 
+
+
+// In the quaint town of Numerica, there lies an intriguing challenge for those adept in 
+//the art of numbers. The town is built upon a series of numbered stones scattered across 
+//the landscape, each representing a unique integer value. However, the townsfolk have discovered an intriguing property about these numbers: they can traverse between stones if and only if their greatest common divisor (gcd) is greater than 1.
+
+// Your task, as a keen explorer, is to determine whether it's possible to navigate between 
+//every pair of stones within the town. To achieve this, you must analyze the arrangement 
+//of stones and devise a strategy to connect them, ensuring that every stone can be reached 
+//from any other stone through a series of traversals.
+
+// Each traversal between stones i and j is only permitted if gcd(nums[i], nums[j]) > 1. 
+//In simpler terms, you can hop from one stone to another if their corresponding numbers share 
+//a common factor greater than 1.
+
+// Your solution should evaluate whether it's feasible to traverse between all pairs of stones 
+//within the town. If there exists a valid sequence of hops that connects every pair of stones, 
+//return true; otherwise, return false.
+
+// Input Format
+
+// An integer num_length representing the number of elements in the vector.
+// A vector nums of integers containing the elements of the Sequence.
+
+// Output Format
+
+// Return true if it is possible to traverse between all such pairs of indices, or false otherwise.
+
+// Constraints : 
+// num_length: Should be at least 1 and at most 200,000.
+// nums: Each element should be between 1 and 1,000,000,000 (10^9) inclusive.
+
+
+
+
+#include <iostream>
+#include <vector>
+#include <algorithm>
+#include <map>
+#include <cassert>
+
+class Dsu
+{
+public:
+    std::vector<long long int> parent, size;
+    Dsu(int length)
+    {
+        parent.resize(length + 1);
+        size.resize(length + 1);
+        for (int i = 0; i <= length; i++)
+        {
+            parent[i] = i;
+            size[i] = i;
+        }
+    }
+    int Find(int node)
+    {
+        if (node == parent[node])
+        {
+            return node;
+        }
+        return parent[node] = Find(parent[node]);
+    }
+    void Union(int node_1, int node_2)
+    {
+        node_1 = Find(node_1);
+        node_2 = Find(node_2);
+        if (node_1 != node_2)
+        {
+            if (size[node_1] < size[node_2])
+                std::swap(node_1, node_2);
+            parent[node_2] = node_1;
+            size[node_1] += size[node_2] + 0LL;
+        }
+    }
+};
+
+bool CanTraverseAllPairs(int num_length, std::vector<int> &nums)
+{
+    if (num_length <= 0) {
+        throw std::invalid_argument("vec length must be positive.");
+    }
+    for (int i = 0; i < num_length; ++i)
+    {
+        if (nums[i] < 1 || nums[i] > 1000000000)
+        {
+            throw std::invalid_argument("Invalid element value");
+        }
+    }
+    
+    
+    if (num_length == 1)
+        return true;
+    std::map<int, std::vector<int>> hash;
+    for (int i = 0; i < num_length; i++)
+    {
+        if (nums[i] == 1)
+        {
+            return false;
+        }
+        for (int j = 2; j * j <= nums[i]; j++)
+        {
+            if (nums[i] % j == 0)
+            {
+                hash[j].push_back(i);
+                int ind = nums[i] / j;
+                if (ind == j)
+                {
+                    continue;
+                }
+                hash[ind].push_back(i);
+            }
+        }
+        hash[nums[i]].push_back(i);
+    }
+    Dsu dsu(num_length);
+    for (auto &x : hash)
+    {
+        for (int i = 0; i < x.second.size() - 1; i++)
+        {
+            dsu.Union(dsu.Find(x.second[i]), dsu.Find(x.second[i + 1]));
+        }
+    }
+    int find = dsu.Find(0);
+    for (int i = 1; i < num_length; i++)
+    {
+        if (dsu.Find(i) != find)
+            return false;
+    }
+    return true;
+}
+
+int main()
+{
+    //TEST
+    int num_length_1 = 3;
+    std::vector<int> nums_1 = {2, 3, 6};
+    int expected_1 = 1;
+    int result_1 = CanTraverseAllPairs(num_length_1, nums_1);
+    assert(result_1 == expected_1);
+    // TEST_END
+
+    //TEST
+    int num_length_2 = 5;
+    std::vector<int> nums_2 = {1, 2, 2, 3, 3};
+    int expected_2 = 0;
+    int result_2 = CanTraverseAllPairs(num_length_2, nums_2);
+    assert(result_2 == expected_2);
+    // TEST_END
+
+    //TEST
+    int num_length_3 = 6;
+    std::vector<int> nums_3 = {1, 2, 2, 2, 3, 3};
+    int expected_3 = 0;
+    int result_3 = CanTraverseAllPairs(num_length_3, nums_3);
+    assert(result_3 == expected_3);
+    // TEST_END
+
+    //TEST
+    int num_length_4 = 4;
+    std::vector<int> nums_4 = {5, 5, 5, 5};
+    int expected_4 = 1;
+    int result_4 = CanTraverseAllPairs(num_length_4, nums_4);
+    assert(result_4 == expected_4);
+    // TEST_END
+
+    //TEST
+    int num_length_5 = 1;
+    std::vector<int> nums_5 = {10};
+    int expected_5 = 1;
+    int result_5 = CanTraverseAllPairs(num_length_5, nums_5);
+    assert(result_5 == expected_5);
+    // TEST_END
+
+    //TEST
+    int num_length_6 = 10;
+    std::vector<int> nums_6 = {1, 2, 3, 4, 5, 6, 7, 8, 9, 10};
+    int expected_6 = 0;
+    int result_6 = CanTraverseAllPairs(num_length_6, nums_6);
+    assert(result_6 == expected_6);
+    // TEST_END
+
+    //TEST
+    int num_length_7 = 7;
+    std::vector<int> nums_7 = {1, 2, 3, 4, 5, 5, 5};
+    int expected_7 = 0;
+    int result_7 = CanTraverseAllPairs(num_length_7, nums_7);
+    assert(result_7 == expected_7);
+    // TEST_END
+
+    //TEST
+    int num_length_8 = 8;
+    std::vector<int> nums_8 = {1, 2, 1, 2, 1, 2, 1, 2};
+    int expected_8 = 0;
+    int result_8 = CanTraverseAllPairs(num_length_8, nums_8);
+    assert(result_8 == expected_8);
+    // TEST_END
+
+    //TEST
+    int num_length_9 = 10;
+    std::vector<int> nums_9 = {1, 1, 1, 1, 1, 1, 1, 1, 1, 2};
+    int expected_9 = 0;
+    int result_9 = CanTraverseAllPairs(num_length_9, nums_9);
+    assert(result_9 == expected_9);
+    // TEST_END
+
+    //TEST
+    int num_length_10 = -10;
+    std::vector<int> nums_10 = {1, 2, 3, 4, 5, 6, 7, 8, 9, 10};
+    int expected_10 = 0;
+    int result_10;
+        try
+        {
+            CanTraverseAllPairs(num_length_10, nums_10);
+            assert(false);
+        }
+        catch (const std::invalid_argument &e)
+        {
+            assert(true);
+        }
+    // TEST_END
+    //TEST
+    int num_length_11 = -5;
+    std::vector<int> nums_11 = {1, 2, -3, -4, 5, 6, -7, 8, 9, 10};
+    int expected_11 = 0;
+    int result_11;
+        try
+        {
+            CanTraverseAllPairs(num_length_11, nums_11);
+            assert(false);
+        }
+        catch (const std::invalid_argument &e)
+        {
+            assert(true);
+        }
+    // TEST_END
+
+    std::cout << "All test cases passed!\n";
+    return 0;
+}
+
