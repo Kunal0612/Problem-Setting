@@ -20,7 +20,7 @@
 // An integer num_elements representing the number of elements in the array.
 // A vector of long long integers input_vector containing the elements of the vector.
 // An integer num_queries representing the number of queries.
-// A vector of pairs of long long integers input_Queries, each representing a query. Each pair consists of:
+// A vector of pairs of long long integers input_queries, each representing a query. Each pair consists of:
 // The starting index Start.
 // The value K.
 
@@ -29,7 +29,7 @@
 // num_elements: Should be at least 1 and at most 200,000.
 // input_vector: Each element should be between 1 and 1,000,000,000 (10^9) inclusive.
 // num_queries: Should be at least 1 and at most 200,000.
-// input_Queries: Each query should have valid starting indices (between 1 and num_elements) and a non-negative energy value, with the energy being at most 1,000,000,000 (10^9).
+// input_queries: Each query should have valid starting indices (between 1 and num_elements) and a non-negative energy value, with the energy being at most 1,000,000,000 (10^9).
 
 // Output:
 // A vector of integers Result representing the answers to the queries. Each element of the vector corresponds to a query and contains:
