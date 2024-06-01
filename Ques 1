@@ -310,7 +310,7 @@ int main()
         long long num_17 = 5;
         std::vector<long long> vector_17 = {15, 14, 17, 42, 34};
         long long num_query_17 = -3;
-        std::vector<std::pair<long long, long long>> queries_17 = {{1, 7}, {2, 15}, {4, 1000000001}}; // Change one value to be greater than
+        std::vector<std::pair<long long, long long>> queries_17 = {{1, 7}, {2, 15}, {4, 1000000001}}; 
         std::vector<int> expected_17;
         try
         {
@@ -327,7 +327,7 @@ int main()
         long long num_18 = -9;
         std::vector<long long> vector_18 = {-15, 14, 17, -42, 34};
         long long num_query_18 = -3;
-        std::vector<std::pair<long long, long long>> queries_18 = {{1, -7}, {2, 15}, {4, -1000000001}}; // Change one value to be greater than
+        std::vector<std::pair<long long, long long>> queries_18 = {{1, -7}, {2, 15}, {4, -1000000001}};
         std::vector<int> expected_18;
         try
         {
@@ -343,7 +343,7 @@ int main()
         long long num_19 = -9;
         std::vector<long long> vector_19 = {15, -14, 17, -42, 34};
         long long num_query_19 = -4;
-        std::vector<std::pair<long long, long long>> queries_19 = {{1, -7}, {2, 15}, {4, -1000000001}}; // Change one value to be greater than
+        std::vector<std::pair<long long, long long>> queries_19 = {{1, -7}, {2, 15}, {4, -1000000001}}; 
         std::vector<int> expected_19;
         try
         {
