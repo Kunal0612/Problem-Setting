@@ -1,11 +1,11 @@
-// Create a C++ function named Findintegersinlongestincreasingsubsequence that helps Raj to find out all integers that could be a part of Longest Increasing Subsequence.
+// Create a C++ function named FindIntegersInLongestIncreasingSubsequence that helps Raj to find out all integers that could be a part of Longest Increasing Subsequence.
 
 
 // Raj with his friend Ritika is playing a game of integers. So Raj in his turn ask Ritika to find the longest increasing subsequence that would be formed from the given integers. Ritika found it but won't say the length of longest increasing subsequence and again she ask raj to find out which are the number that could be a part of longest increasing subsequence.
 
 // So you have to help raj to find which are the integers which could be the part of the longest increasing subsequence. 
 
-// You are given an integer sequence Arr of length N.
+// You are given an integer sequence Vector Arr of length N.
 
 // For each t=1,2,…,N, determine whether Arr[t] is included in a longest increasing subsequence of Arr.
 
@@ -20,13 +20,13 @@
 
 // Input Format
 
-// The first line contains a single integer N — the length of the sequence.
-// The second line contains N space-separated integers A1, A2 ,A3....AN— the sequence of integers.
+// An integer vec_length representing the number of elements in the vector.
+// A vector vec of integers containing the elements of the Sequence.
 
 // Output Format
 
-// let there be m indices t such that Arr[t] is included in a 
-//longest increasing subsequence of Arr, which are i1, i2,…,im in ascending order.
+// A vector of integers containing the indices of the elements that could be a part of longest 
+// increasing subsequence.
 
 // Constraints : 
 // 1≤N≤2*1e5
@@ -50,12 +50,12 @@ public:
 
 class SegmentTree {
 public:
-    std::vector<Node> segmenttree;
+    std::vector<Node> segment_tree;
     long long size;
 
     SegmentTree(long long size) {
         this->size = size;
-        segmenttree.resize(4 * (size + 1));
+        segment_tree.resize(4 * (size + 1));
     }
 
     Node Combine(Node &a, Node &b) {
@@ -76,19 +76,19 @@ public:
         return result;
     }
 
-    void BuildSegment(long long index, long long left, long long right, std::vector<long long> &array) {
+    void BuildSegment(long long index, long long left, long long right, std::vector<long long> &vec) {
         if (left == right) {
-            segmenttree[index] = Assign(array[left]);
+            segment_tree[index] = Assign(vec[left]);
             return;
         }
         long long mid = left + ((right - left) >> 1);
-        BuildSegment(2 * index, left, mid, array);
-        BuildSegment(2 * index + 1, mid + 1, right, array);
-        segmenttree[index] = Combine(segmenttree[2 * index], segmenttree[2 * index + 1]);
+        BuildSegment(2 * index, left, mid, vec);
+        BuildSegment(2 * index + 1, mid + 1, right, vec);
+        segment_tree[index] = Combine(segment_tree[2 * index], segment_tree[2 * index + 1]);
     }
 
     Node QuerySegment(long long index, long long left, long long right, long long &query_left, long long &query_right) {
-        if (left >= query_left && right <= query_right) return segmenttree[index];
+        if (left >= query_left && right <= query_right) return segment_tree[index];
         if (right < query_left || left > query_right) return NoOverlapReturn();
         long long mid = left + ((right - left) >> 1);
         Node left_node = QuerySegment(2 * index, left, mid, query_left, query_right);
@@ -98,17 +98,17 @@ public:
 
     void UpdateSegment(long long index, long long left, long long right, long long &position, long long &value) {
         if (left == right) {
-            segmenttree[index] = Assign(value);
+            segment_tree[index] = Assign(value);
             return;
         }
         long long mid = left + ((right - left) >> 1);
         if (position <= mid) UpdateSegment(2 * index, left, mid, position, value);
         else UpdateSegment(2 * index + 1, mid + 1, right, position, value);
-        segmenttree[index] = Combine(segmenttree[2 * index], segmenttree[2 * index + 1]);
+        segment_tree[index] = Combine(segment_tree[2 * index], segment_tree[2 * index + 1]);
     }
 
-    void Build(std::vector<long long> &array) {
-        BuildSegment(1, 1, size, array);
+    void Build(std::vector<long long> &vec) {
+        BuildSegment(1, 1, size, vec);
     }
 
     Node Query(long long left, long long right) {
@@ -120,70 +120,70 @@ public:
     }
 };
 
-std::vector<long long> Compress(std::vector<long long> &array) {
-    int arraysize = array.size(), value = 1;
-    std::vector<long long> sortedarray = array;
-    std::sort(sortedarray.begin(), sortedarray.end());
+std::vector<long long> Compress(std::vector<long long> &vec) {
+    int vec_size = vec.size(), value = 1;
+    std::vector<long long> sorted_vec = vec;
+    std::sort(sorted_vec.begin(), sorted_vec.end());
     std::map<int, int> mapping;
-    for (int i = 1; i < sortedarray.size(); i++) {
-        if (!mapping.count(sortedarray[i])) mapping[sortedarray[i]] = value++;
+    for (int i = 1; i < sorted_vec.size(); i++) {
+        if (!mapping.count(sorted_vec[i])) mapping[sorted_vec[i]] = value++;
     }
-    for (int i = 1; i < array.size(); i++) {
-        array[i] = mapping[array[i]];
+    for (int i = 1; i < vec.size(); i++) {
+        vec[i] = mapping[vec[i]];
     }
-    return array;
+    return vec;
 }
 
-std::vector<int> Findintegersinlongestincreasingsubsequence(int arraylength, std::vector<int> &array) {
-    if (arraylength <= 0) {
-        throw std::invalid_argument("Array length must be positive.");
+std::vector<int> FindIntegersInLongestIncreasingSubsequence(int vec_length, std::vector<int> &vec) {
+    if (vec_length <= 0) {
+        throw std::invalid_argument("vec length must be positive.");
     }
-    for (int i = 0; i < arraylength; ++i)
+    for (int i = 0; i < vec_length; ++i)
     {
-        if (array[i] < 1 || array[i] > 1000000000)
+        if (vec[i] < 1 || vec[i] > 1000000000)
         {
             throw std::invalid_argument("Invalid element value");
         }
     }
 
-    std::vector<long long> arr(arraylength + 1, 0);
-    for (long long i = 1; i <= arraylength; i++) {
-        arr[i] = array[i - 1];
+    std::vector<long long> arr(vec_length + 1, 0);
+    for (long long i = 1; i <= vec_length; i++) {
+        arr[i] = vec[i - 1];
     }
     Compress(arr);
 
-    SegmentTree segmenttree(arraylength), segmenttreereverse(arraylength);
-    std::vector<long long> values(arraylength + 1, 0);
-    segmenttree.Build(values);
-    segmenttreereverse.Build(values);
+    SegmentTree segment_tree(vec_length), segment_tree_reverse(vec_length);
+    std::vector<long long> values(vec_length + 1, 0);
+    segment_tree.Build(values);
+    segment_tree_reverse.Build(values);
 
-    long long maxvalue = 0;
+    long long max_value = 0;
     for (long long value : arr) {
-        maxvalue = std::max(maxvalue, value);
+        max_value = std::max(max_value, value);
     }
 
-    std::vector<long long> leftmax(arraylength + 1, 1), rightmax(arraylength + 1, 1);
+    std::vector<long long> left_max(vec_length + 1, 1), right_max(vec_length + 1, 1);
 
-    for (long long i = 1; i <= arraylength; i++) {
-        Node nodevalue = segmenttree.Query(1, arr[i] - 1);
-        leftmax[i] = std::max(leftmax[i], nodevalue.value + 1);
-        segmenttree.Update(arr[i], leftmax[i]);
+    for (long long i = 1; i <= vec_length; i++) {
+        Node node_value = segment_tree.Query(1, arr[i] - 1);
+        left_max[i] = std::max(left_max[i], node_value.value + 1);
+        segment_tree.Update(arr[i], left_max[i]);
     }
 
-    for (int i = arraylength; i >= 1; i--) {
-        Node nodevalue = segmenttreereverse.Query(arr[i] + 1, maxvalue);
-        rightmax[i] = std::max(rightmax[i], nodevalue.value + 1);
-        segmenttreereverse.Update(arr[i], rightmax[i]);
+    for (int i = vec_length; i >= 1; i--) {
+        Node node_value = segment_tree_reverse.Query(arr[i] + 1, max_value);
+        right_max[i] = std::max(right_max[i], node_value.value + 1);
+        segment_tree_reverse.Update(arr[i], right_max[i]);
     }
 
-    long long maxlength = 1;
-    for (int i = 1; i <= arraylength; i++) {
-        maxlength = std::max(maxlength, leftmax[i] + rightmax[i] - 1);
+    long long max_length = 1;
+    for (int i = 1; i <= vec_length; i++) {
+        max_length = std::max(max_length, left_max[i] + right_max[i] - 1);
     }
 
     std::vector<int> result;
-    for (int i = 1; i <= arraylength; i++) {
-        if (leftmax[i] + rightmax[i] - 1 == maxlength) {
+    for (int i = 1; i <= vec_length; i++) {
+        if (left_max[i] + right_max[i] - 1 == max_length) {
             result.push_back(i);
         }
     }
@@ -196,17 +196,17 @@ int main()
 {
     //Test
         int num_1 = 5;
-        std::vector<int> array_1 = {15, 14, 17, 42, 34};
+        std::vector<int> vec_1 = {15, 14, 17, 42, 34};
         std::vector<int> expected_1 = {1,2,3,4,5};
-        std::vector<int> result_1 = Findintegersinlongestincreasingsubsequence(num_1, array_1);
+        std::vector<int> result_1 = FindIntegersInLongestIncreasingSubsequence(num_1, vec_1);
         assert(result_1 == expected_1);
     //TEST_END
 
     // Test
         int num_2 = 5;
-        std::vector<int> array_2 = {2,1,4,5,3};
+        std::vector<int> vec_2 = {2,1,4,5,3};
         std::vector<int> expected_2 = {1,2,3,4};
-        std::vector<int> result_2 = Findintegersinlongestincreasingsubsequence(num_2, array_2);
+        std::vector<int> result_2 = FindIntegersInLongestIncreasingSubsequence(num_2, vec_2);
         assert(result_2 == expected_2);
     // TEST_END
 
@@ -214,11 +214,11 @@ int main()
 
     // Test
         long long num_3 = -4;
-        std::vector<int> array_3 = {-15, 14, 17,-42};
+        std::vector<int> vec_3 = {-15, 14, 17,-42};
         std::vector<int> expected_3;
         try
         {
-            Findintegersinlongestincreasingsubsequence(num_3, array_3);
+            FindIntegersInLongestIncreasingSubsequence(num_3, vec_3);
             assert(false);
         }
         catch (const std::invalid_argument &e)
@@ -229,42 +229,42 @@ int main()
 
     // Test 
     int num_4 = 6;
-    std::vector<int> array_4 = {2, 5, 3, 4, 3, 4};
+    std::vector<int> vec_4 = {2, 5, 3, 4, 3, 4};
     std::vector<int> expected_4 = {1,3,4,5,6};
-    std::vector<int> result_4 = Findintegersinlongestincreasingsubsequence(num_4, array_4);
+    std::vector<int> result_4 = FindIntegersInLongestIncreasingSubsequence(num_4, vec_4);
     assert(result_4 == expected_4);
     // TEST_END
 
     // Test 
     int num_5 = 5;
-    std::vector<int> array_5 = {10000, 1000, 100, 1, 10};
+    std::vector<int> vec_5 = {10000, 1000, 100, 1, 10};
     std::vector<int> expected_5 = {4,5};
-    std::vector<int> result_5 = Findintegersinlongestincreasingsubsequence(num_5, array_5);
+    std::vector<int> result_5 = FindIntegersInLongestIncreasingSubsequence(num_5, vec_5);
     assert(result_5 == expected_5);
     // TEST_END
 
     // Test 
     int num_6 = 7;
-    std::vector<int> array_6 = {1, 2, 7, 8, 1, 2, 6};
+    std::vector<int> vec_6 = {1, 2, 7, 8, 1, 2, 6};
     std::vector<int> expected_6 = {1,2,3,4};
-    std::vector<int> result_6 = Findintegersinlongestincreasingsubsequence(num_6, array_6);
+    std::vector<int> result_6 = FindIntegersInLongestIncreasingSubsequence(num_6, vec_6);
     assert(result_6 == expected_6);
     // TEST_END
 
     // Test 
     int num_7 = 6;
-    std::vector<int> array_7 = {2, 5, 8, 4, 3, 4};
+    std::vector<int> vec_7 = {2, 5, 8, 4, 3, 4};
     std::vector<int> expected_7 = {1,2,3,5,6};
-    std::vector<int> result_7 = Findintegersinlongestincreasingsubsequence(num_7, array_7);
+    std::vector<int> result_7 = FindIntegersInLongestIncreasingSubsequence(num_7, vec_7);
     assert(result_7 == expected_7);
     // TEST_END
     // Test
         long long num_8 = 0;
-        std::vector<int> array_8 = {-15, 14, 4 ,-42};
+        std::vector<int> vec_8 = {-15, 14, 4 ,-42};
         std::vector<int> expected_8;
         try
         {
-            Findintegersinlongestincreasingsubsequence(num_8, array_8);
+            FindIntegersInLongestIncreasingSubsequence(num_8, vec_8);
             assert(false);
         }
         catch (const std::invalid_argument &e)
@@ -275,11 +275,26 @@ int main()
 
     // Test
         long long num_9 = 8;
-        std::vector<int> array_9 = {-15, 14, 4 ,-42};
+        std::vector<int> vec_9 = {-15, 14, 4 ,-42};
         std::vector<int> expected_9;
         try
         {
-            Findintegersinlongestincreasingsubsequence(num_9, array_9);
+            FindIntegersInLongestIncreasingSubsequence(num_9, vec_9);
+            assert(false);
+        }
+        catch (const std::invalid_argument &e)
+        {
+            assert(true);
+        }
+    // TEST_END
+
+    // Test
+        long long num_10 = -10;
+        std::vector<int> vec_10 = {-100, 14, -400 ,-42};
+        std::vector<int> expected_10;
+        try
+        {
+            FindIntegersInLongestIncreasingSubsequence(num_10, vec_10);
             assert(false);
         }
         catch (const std::invalid_argument &e)
