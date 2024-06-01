@@ -101,12 +101,12 @@ std::vector<int> FindLargestIndex(int num_elements, std::vector<long long> &inpu
 
     std::vector<int> result;
     for (int i = 0; i < num_queries; i++) {
-        long long start = input_queries[i].first, k = input_queries[i].second;
+        long long start = input_queries[i].first, ener = input_queries[i].second;
         long long low = start - 1, high = num_elements - 1;
         long long answer = -1;
         while (low <= high) {
             long long middle = low + (high - low) / 2;
-            if (CheckRange(segment_tree, middle, num_elements, start) >= k) {
+            if (CheckRange(segment_tree, middle, num_elements, start) >= ener) {
                 low = middle + 1;
                 answer = std::max(answer, middle);
             } else {
@@ -310,7 +310,7 @@ int main()
         long long num_17 = 5;
         std::vector<long long> vector_17 = {15, 14, 17, 42, 34};
         long long num_query_17 = -3;
-        std::vector<std::pair<long long, long long>> queries_17 = {{1, 7}, {2, 15}, {4, 1000000001}}; 
+        std::vector<std::pair<long long, long long>> queries_17 = {{1, 7}, {2, 15}, {4, 1000000001}}; // Change one value to be greater than
         std::vector<int> expected_17;
         try
         {
@@ -327,7 +327,7 @@ int main()
         long long num_18 = -9;
         std::vector<long long> vector_18 = {-15, 14, 17, -42, 34};
         long long num_query_18 = -3;
-        std::vector<std::pair<long long, long long>> queries_18 = {{1, -7}, {2, 15}, {4, -1000000001}};
+        std::vector<std::pair<long long, long long>> queries_18 = {{1, -7}, {2, 15}, {4, -1000000001}}; // Change one value to be greater than
         std::vector<int> expected_18;
         try
         {
@@ -343,7 +343,7 @@ int main()
         long long num_19 = -9;
         std::vector<long long> vector_19 = {15, -14, 17, -42, 34};
         long long num_query_19 = -4;
-        std::vector<std::pair<long long, long long>> queries_19 = {{1, -7}, {2, 15}, {4, -1000000001}};
+        std::vector<std::pair<long long, long long>> queries_19 = {{1, -7}, {2, 15}, {4, -1000000001}}; // Change one value to be greater than
         std::vector<int> expected_19;
         try
         {
