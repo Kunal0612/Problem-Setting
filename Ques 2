@@ -30,7 +30,7 @@
 
 // Output Format
 
-// A vector of integers containing the indices of the elements that could be a part of longest 
+// A vector of integers result containing the indices of the elements that could be a part of longest 
 // increasing subsequence.
 
 // Constraints : 
