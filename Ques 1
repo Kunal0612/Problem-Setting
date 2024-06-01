@@ -1,0 +1,362 @@
+// Create a C++ function named Findlargestindex that helps Rahul to find the largest index r. 
+
+// In a quaint town named Bitwiseville, nestled between lush green hills and flowing rivers, lived a brilliant young lad named Rahul. Rahul, with his sharp intellect and knack for solving puzzles, found himself faced with an intriguing problem.
+
+// In Bitwiseville, the townsfolk were fascinated by the bitwise AND operation, a magical process where two numbers intertwined their bits, revealing hidden patterns and secrets. Rahul's task was to delve into the heart of arrays, where each element held a piece of this mystical power.
+
+// Imagine a tranquil morning in Bitwiseville, as the sun gently rose over the horizon, casting a golden hue upon the town. Rahul sat in his cozy study, surrounded by shelves of dusty tomes and scrolls, pondering the mysteries of arrays.
+
+// His challenge was to handle a series of queries, each a tale of its own. Picture a curious traveler, arriving in town with a parchment in hand, containing two numbers, k and l. These travelers sought the wisdom of Rahul to guide them through the labyrinth of arrays.
+
+// For each query, Rahul's task was to embark on a journey through the array, tracing a path from index l onwards, seeking the point where the bitwise AND operation revealed its true power. He sought not just any index r, but the largest index r, where the magic of bitwise AND equaled or surpassed the traveler's query value, k.
+
+// In his quest, Rahul wandered through the array, his mind alive with the dance of bits and the whispers of ancient algorithms. With each query, he unearthed the secrets hidden within the array's depths, guiding the travelers to their destination with wisdom and grace.
+
+// And so, in the heart of Bitwiseville, Rahul's tale unfolded—a story of arrays, queries, and the timeless magic of bitwise AND.
+
+// Input:
+
+// An integer Numelements representing the number of elements in the array.
+// A vector of long long integers Array containing the elements of the array.
+// An integer Numqueries representing the number of queries.
+// A vector of pairs of long long integers Queries, each representing a query. Each pair consists of:
+// The starting index Start.
+// The value K.
+
+// Constraints:
+
+// Numelements: Should be at least 1 and at most 200,000.
+// Array: Each element should be between 1 and 1,000,000,000 (10^9) inclusive.
+// Numqueries: Should be at least 1 and at most 200,000.
+// Queries: Each query should have valid starting indices (between 1 and Numelements) and a non-negative energy value, with the energy being at most 1,000,000,000 (10^9).
+
+// Output:
+// A vector of integers Result representing the answers to the queries. Each element of the vector corresponds to a query and contains:
+
+// The largest index that can be reached from the starting index with at least the specified energy, or -1 if it's not possible to reach any index.
+// For example:
+
+// If it's possible to reach the largest index m from the starting index a with at least energy e, the corresponding element in the Result vector should be m.
+// If it's not possible, the corresponding element should be -1.
+
+
+
+#include <iostream>
+#include <vector>
+#include <stdexcept>
+#include <algorithm>
+#include <cassert>
+#include <limits>
+
+class Segmenttree
+{
+public:
+    std::vector<long long> segmenttree;
+
+    void Build(long long start, long long end, long long index, std::vector<long long> &array)
+    {
+        if (start == end)
+        {
+            segmenttree[index] = array[start];
+            return;
+        }
+        long long mid = start + (end - start) / 2;
+        Build(start, mid, 2 * index + 1, array);
+        Build(mid + 1, end, 2 * index + 2, array);
+        segmenttree[index] = segmenttree[2 * index + 1] & segmenttree[2 * index + 2];
+    }
+
+    long long Range(int start, int end, int index, int querystart, int queryend)
+    {
+        if (querystart <= start && queryend >= end)
+            return segmenttree[index];
+        if (querystart > end || queryend < start)
+            return std::numeric_limits<long long>::max();
+        long long mid = start + (end - start) / 2;
+        long long left = Range(start, mid, 2 * index + 1, querystart, queryend);
+        long long right = Range(mid + 1, end, 2 * index + 2, querystart, queryend);
+        return left & right;
+    }
+};
+
+long long Check(Segmenttree &segmenttree, long long middle, long long numelements, long long start)
+{
+    return segmenttree.Range(0, numelements - 1, 0, start - 1, middle);
+}
+
+std::vector<int> Findlargestindex(int numelements, std::vector<long long> &array, int numqueries, std::vector<std::pair<long long, long long>> &queries)
+{
+    if (numelements < 1 || numelements > 200000)
+    {
+        throw std::invalid_argument("Invalid number of elements");
+    }
+    for (int i = 0; i < numelements; ++i)
+    {
+        if (array[i] < 1 || array[i] > 1000000000)
+        {
+            throw std::invalid_argument("Invalid element value");
+        }
+    }
+
+    if (numqueries < 1 || numqueries > 200000)
+    {
+        throw std::invalid_argument("Invalid number of queries");
+    }
+    for (long long i = 0; i < numqueries; i++)
+    {
+        if (queries[i].first < 1 || queries[i].first > numelements || queries[i].second < 1 || queries[i].second > 1000000000)
+        {
+            throw std::invalid_argument("Invalid query parameters");
+        }
+    }
+    Segmenttree segmenttree;
+    segmenttree.segmenttree.resize(4 * numelements);
+    segmenttree.Build(0, numelements - 1, 0, array);
+    std::vector<int> result;
+    for (int i = 0; i < numqueries; i++)
+    {
+        long long start = queries[i].first, k = queries[i].second;
+        long long low = start - 1, high = numelements - 1;
+        long long answer = -1;
+        while (low <= high)
+        {
+            long long middle = low + (high - low) / 2;
+            if (Check(segmenttree, middle, numelements, start) >= k)
+            {
+                low = middle + 1;
+                answer = std::max(answer, middle);
+            }
+            else
+            {
+                high = middle - 1;
+            }
+        }
+        if (answer > -1)
+            answer++;
+        result.push_back(answer);
+    }
+    return result;
+}
+
+
+int main()
+{
+    // Test
+        int num_1 = 5;
+        std::vector<long long> array_1 = {15, 14, 17, 42, 34};
+        int numquery_1 = 3;
+        std::vector<std::pair<long long, long long>> queries_1 = {{1, 7}, {2, 15}, {4, 5}};
+        std::vector<int> expected_1 = {2, -1, 5};
+        std::vector<int> result_1 = Findlargestindex(num_1, array_1, numquery_1, queries_1);
+        assert(result_1 == expected_1);
+    // TEST_END
+
+    // Test
+        int num_2 = 5;
+        std::vector<long long> array_2 = {7, 5, 3, 1, 7};
+        int numquery_2 = 4;
+        std::vector<std::pair<long long, long long>> queries_2 = {{1, 7}, {5, 7}, {2, 3}, {2, 2}};
+        std::vector<int> expected_2 = {1, 5, 2, 2};
+        std::vector<int> result_2 = Findlargestindex(num_2, array_2, numquery_2, queries_2);
+        assert(result_2 == expected_2);
+    // TEST_END
+
+    // Test
+        int num_3 = 7;
+        std::vector<long long> array_3 = {19, 20, 15, 12, 21, 7, 11};
+        int numquery_3 = 4;
+        std::vector<std::pair<long long, long long>> queries_3 = {{1, 15}, {4, 4}, {7, 12}, {5, 7}};
+        std::vector<int> expected_3 = {2, 6, -1, 5};
+        std::vector<int> result_3 = Findlargestindex(num_3, array_3, numquery_3, queries_3);
+        assert(result_3 == expected_3);
+    // TEST_END
+
+    // Test
+        int num_4 = 2;
+        std::vector<long long> array_4 = {5, 7};
+        int numquery_4 = 5;
+        std::vector<std::pair<long long, long long>> queries_4 = {{1, 4}, {1, 7}, {1, 1}, {2, 7}, {1, 6}};
+        std::vector<int> expected_4 = {2, -1, 2, 2, -1};
+        std::vector<int> result_4 = Findlargestindex(num_4, array_4, numquery_4, queries_4);
+        assert(result_4 == expected_4);
+    // TEST_END
+
+    // Test
+        int num_5 = 4;
+        std::vector<long long> array_5 = {7, 4, 6, 1};
+        int numquery_5 = 5;
+        std::vector<std::pair<long long, long long>> queries_5 = {{4, 1}, {1, 3}, {2, 3}, {3, 2}, {4, 8}};
+        std::vector<int> expected_5 = {4, 3, 3, 3, -1};
+        std::vector<int> result_5 = Findlargestindex(num_5, array_5, numquery_5, queries_5);
+        assert(result_5 == expected_5);
+    // TEST_END
+
+    // Test
+        int num_6 = 3;
+        std::vector<long long> array_6 = {7, 4, 4};
+        int numquery_6 = 5;
+        std::vector<std::pair<long long, long long>> queries_6 = {{2, 1}, {1, 6}, {3, 4}, {3, 4}, {1, 2}};
+        std::vector<int> expected_6 = {3, 1, 3, 3, 3};
+        std::vector<int> result_6 = Findlargestindex(num_6, array_6, numquery_6, queries_6);
+        assert(result_6 == expected_6);
+    // TEST_END
+
+    // Test
+        int num_7 = 4;
+        std::vector<long long> array_7 = {2, 1, 1, 6};
+        int numquery_7 = 5;
+        std::vector<std::pair<long long, long long>> queries_7 = {{4, 2}, {1, 7}, {3, 3}, {2, 3}, {4, 3}};
+        std::vector<int> expected_7 = {4, -1, -1, -1, 4};
+        std::vector<int> result_7 = Findlargestindex(num_7, array_7, numquery_7, queries_7);
+        assert(result_7 == expected_7);
+    // TEST_END
+
+    // Test
+        int num_8 = 4;
+        std::vector<long long> array_8 = {5, 5, 5, 4};
+        int numquery_8 = 5;
+        std::vector<std::pair<long long, long long>> queries_8 = {{1, 8}, {1, 3}, {2, 1}, {4, 6}, {1, 7}};
+        std::vector<int> expected_8 = {-1, 4, 4, -1, -1};
+        std::vector<int> result_8 = Findlargestindex(num_8, array_8, numquery_8, queries_8);
+        assert(result_8 == expected_8);
+    // TEST_END
+
+    // Test
+        int num_9 = 2;
+        std::vector<long long> array_9 = {1, 3};
+        int numquery_9 = 5;
+        std::vector<std::pair<long long, long long>> queries_9 = {{2, 8}, {1, 3}, {2, 4}, {2, 6}, {2, 2}};
+        std::vector<int> expected_9 = {-1, -1, -1, -1, 2};
+        std::vector<int> result_9 = Findlargestindex(num_9, array_9, numquery_9, queries_9);
+        assert(result_9 == expected_9);
+    // TEST_END
+
+    // Test
+        int num_10 = 2;
+        std::vector<long long> array_10 = {1, 5};
+        int numquery_10 = 5;
+        std::vector<std::pair<long long, long long>> queries_10 = {{1, 1}, {1, 4}, {2, 5}, {1, 5}, {1, 5}};
+        std::vector<int> expected_10 = {2, -1, 2, -1, -1};
+        std::vector<int> result_10 = Findlargestindex(num_10, array_10, numquery_10, queries_10);
+        assert(result_10 == expected_10);
+    // TEST_END
+
+    // Test
+        int num_11 = 3;
+        std::vector<long long> array_11 = {5, 7, 4};
+        int numquery_11 = 5;
+        std::vector<std::pair<long long, long long>> queries_11 = {{3, 4}, {3, 1}, {3, 7}, {3, 6}, {2, 2}};
+        std::vector<int> expected_11 = {3, 3, -1, -1, 3};
+        std::vector<int> result_11 = Findlargestindex(num_11, array_11, numquery_11, queries_11);
+        assert(result_11 == expected_11);
+    // TEST_END
+
+    // Test
+
+        int num_12 = 3;
+        std::vector<long long> array_12 = {2, 4, 1};
+        int numquery_12 = 5;
+        std::vector<std::pair<long long, long long>> queries_12 = {{3, 1}, {2, 5}, {1, 7}, {3, 4}, {3, 7}};
+        std::vector<int> expected_12 = {3, -1, -1, -1, -1};
+        std::vector<int> result_12 = Findlargestindex(num_12, array_12, numquery_12, queries_12);
+        assert(result_12 == expected_12);
+    // TEST_END
+
+    // Test
+        int num_13 = 3;
+        std::vector<long long> array_13 = {4, 7, 1};
+        int numquery_13 = 5;
+        std::vector<std::pair<long long, long long>> queries_13 = {{1, 4}, {2, 2}, {2, 2}, {3, 6}, {3, 6}};
+        std::vector<int> expected_13 = {2, 2, 2, -1, -1};
+        std::vector<int> result_13 = Findlargestindex(num_13, array_13, numquery_13, queries_13);
+        assert(result_13 == expected_13);
+    // TEST_END
+
+    // Test
+
+        long long num_14 = 0;
+        std::vector<long long> array_14(num_14);
+        std::vector<std::pair<long long, long long>> queries_14;
+        try
+        {
+            Findlargestindex(num_14, array_14, 0, queries_14);
+            assert(false);
+        }
+        catch (const std::invalid_argument &e)
+        {
+            assert(true);
+        }
+    // TEST_END
+
+    // Test
+
+        long long num_15 = 5;
+        std::vector<long long> array_15 = {15, 14, 17, 1000000001, 34};
+        std::vector<std::pair<long long, long long>> queries_15;
+        try
+        {
+            Findlargestindex(num_15, array_15, 0, queries_15);
+            assert(false);
+        }
+        catch (const std::invalid_argument &e)
+        {
+            assert(true);
+        }
+
+    // TEST_END
+
+    // Test
+
+        long long num_16 = 5;
+        std::vector<long long> array_16 = {15, 14, 17, 42, 34};
+        long long numquery_16 = 0;
+        std::vector<std::pair<long long, long long>> queries_16;
+        try
+        {
+            Findlargestindex(num_16, array_16, numquery_16, queries_16);
+            assert(false);
+        }
+        catch (const std::invalid_argument &e)
+        {
+            assert(true);
+        }
+
+    // TEST_END
+
+    // Test
+        long long num_17 = 5;
+        std::vector<long long> array_17 = {15, 14, 17, 42, 34};
+        long long numquery_17 = 3;
+        std::vector<std::pair<long long, long long>> queries_17 = {{1, 7}, {2, 15}, {4, 1000000001}}; // Change one value to be greater than
+        std::vector<int> expected_17;
+        try
+        {
+            Findlargestindex(num_17, array_17, numquery_17, queries_17);
+            assert(false);
+        }
+        catch (const std::invalid_argument &e)
+        {
+            assert(true);
+        }
+    // TEST_END
+
+    // Test
+        long long num_18 = -9;
+        std::vector<long long> array_18 = {-15, 14, 17, -42, 34};
+        long long numquery_18 = 3;
+        std::vector<std::pair<long long, long long>> queries_18 = {{1, -7}, {2, 15}, {4, -1000000001}}; // Change one value to be greater than
+        std::vector<int> expected_18;
+        try
+        {
+            Findlargestindex(num_18, array_18, numquery_18, queries_18);
+            assert(false);
+        }
+        catch (const std::invalid_argument &e)
+        {
+            assert(true);
+        }
+    // TEST_END
+
+    std::cout << "All test cases passed!\n";
+    return 0;
+}
