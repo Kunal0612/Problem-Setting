@@ -1,0 +1,229 @@
+// // https://leetcode.com/problems/count-prefix-and-suffix-pairs-ii/description/
+
+// Create a C++ function CountPairs which finds return an integer denoting the count of number of index pairs (i, j) .
+
+// In the village of Lexiconia, a curious puzzle intrigued the locals: the mystery of prefixes and suffixes.
+
+// The challenge was simple: given an array of words, villagers sought to find pairs where one word's beginning matched another word's end.
+
+// Excitement filled the air as villagers delved into the task. With each word they examined, they scoured for hidden connections, searching for instances where the start of one word mirrored the conclusion of another.
+
+// As they sifted through the array, patterns began to emerge. Some words fit together seamlessly, their beginnings and endings aligning perfectly. These were the pairs that sparked joy, where the puzzle pieces of language interlocked in harmony.
+
+// But not every pair shared this symmetry. Some words stood alone, their beginnings and endings refusing to align with those of their peers.
+
+// Undeterred, the villagers pressed on, driven by the thrill of discovery. With each matched pair they found, they celebrated the magic of language, where even the smallest connection could hold the key to a world of wonder.
+
+// And so, the quest for prefix-suffix pairs became a test of wit and observation, a challenge that united the villagers in their shared love for the mysteries of words.
+
+// In the village of Lexiconia, the puzzle of prefixes and suffixes captivated hearts and minds, inspiring a quest for connection and discovery.
+
+
+// Input:
+
+// An integer len representing the number of strings in the vector.
+// A vector of string words containing the string of the words.
+
+// Output : 
+
+// A integer answer denoting the number of index pairs (i, j) such that i < j, and CountPairs(words[i], words[j]) is true.
+
+// Constraint :
+
+// len: Should be at least 1 and at most 100,000.
+// words : Each string should be of length from 1 and 100,000 and contain lowercase English alphabet.
+
+
+
+#include <iostream>
+#include <vector>
+#include <string>
+#include <climits>
+#include <cassert>
+
+struct Trie {
+    struct Trie* child[26];
+    int cnt;
+    Trie() {
+        for(int i=0; i<26; ++i) child[i] = NULL;
+        cnt = 0;
+    }
+};
+
+std::vector<int> ZFunction(std::string str) {
+    int len = str.size();
+    std::vector<int> z_values(len);
+    int left = 0, right = 0;
+    for(int i = 1; i < len; i++) {
+        if(i < right) {
+            z_values[i] = std::min(right - i, z_values[i - left]);
+        }
+        while(i + z_values[i] < len && str[z_values[i]] == str[i + z_values[i]]) {
+            z_values[i]++;
+        }
+        if(i + z_values[i] > right) {
+            left = i;
+            right = i + z_values[i];
+        }
+    }
+    return z_values;
+}
+
+void Insert(struct Trie* root, std::string word, std::vector<int> &z_values) {
+    Trie* current = root;
+    for(int i=0; i<word.length(); ++i) {
+        if(current->child[word[i]-'a']) {
+            current = current->child[word[i]-'a'];
+            if(z_values[i]) current->cnt++;
+        } else {
+            struct Trie* temp = new Trie();
+            current->child[word[i]-'a'] = temp;
+            temp->cnt = z_values[i];
+            current = temp;
+        }
+    }
+}
+
+int FindCount(struct Trie* root, std::string word) {
+    Trie* current = root;
+    for(int i=0; i<word.length(); ++i) {
+        if(current->child[word[i]-'a']) {
+            current = current->child[word[i]-'a'];
+        } else return 0;
+    }
+    return current->cnt;
+}
+
+long long CountPairs(int len, std::vector<std::string>& words) {
+    if (len < 1 || len > 100000) {
+        throw std::invalid_argument("Number of words must be between 1 and 100000.");
+    }
+    for (const std::string& word : words) {
+        if (len < 1 || len > 100000) {
+            throw std::invalid_argument("Length of each word must be between 1 and 100000.");
+        }
+        for (char c : word) {
+            if (c < 'a' || c > 'z') {
+                throw std::invalid_argument("Words can only consist of lowercase English letters.");
+            }
+        }
+    }
+    long long answer = 0;
+    struct Trie* root = new Trie();
+    for(int i=0; i<len/2; i++) {
+        std::swap(words[i], words[len-i-1]);
+    }
+    for(int i=0; i<len; ++i) {
+        std::vector<int> brr = ZFunction(words[i]);
+        int len = words[i].length();
+        std::vector<int> zz_values(len, 0);
+        zz_values[len-1] = 1;
+        for(int j=0; j<len-1; ++j) {
+            if(brr[len-1-j] == j+1) {
+                zz_values[j] = 1;
+            }
+        }
+        answer = answer + FindCount(root, words[i]);
+        Insert(root, words[i], zz_values);
+    }
+    return answer;
+}
+
+
+
+int main() {
+    // TEST
+    int len_1 = 4;
+    std::vector<std::string> words_1 = {"a", "aba", "ababa", "aa"};
+    int expected_1 = 4;
+    int result_1 = CountPairs(len_1, words_1);
+    assert(result_1 == expected_1);
+    // TEST_END
+
+    // TEST
+    int len_2 = 3;
+    std::vector<std::string> words_2 = {"abc", "def", "ghi"};
+    int expected_2 = 0;
+    int result_2 = CountPairs(len_2, words_2);
+    assert(result_2 == expected_2);
+    // TEST_END
+
+    // TEST
+    int len_3 = 3;
+    std::vector<std::string> words_3 = {"aa", "aaa", "aaaa"};
+    int expected_3 = 3; 
+    int result_3 = CountPairs(len_3, words_3);
+    assert(result_3 == expected_3);
+    // TEST_END
+
+    // TEST
+    int len_4 = 5;
+    std::vector<std::string> words_4 = {"ab", "aba", "abab", "ababa", "ababab"};
+    int expected_4 = 4;
+    int result_4 = CountPairs(len_4, words_4);
+    assert(result_4 == expected_4);
+    // TEST_END
+
+    // TEST
+    int len_5 = 3;
+    std::vector<std::string> words_5 = {"abc", "bcd", "cde"};
+    int expected_5 = 0;
+    int result_5 = CountPairs(len_5, words_5);
+    assert(result_5 == expected_5);
+    // TEST_END
+
+    // TEST
+    int len_6 = 4;
+    std::vector<std::string> words_6 = {"ab", "abc", "abcd", "abcde"};
+    int expected_6 = 0; 
+    int result_6 = CountPairs(len_6, words_6);
+    assert(result_6 == expected_6);
+    // TEST_END
+
+    // TEST
+    int len_7 = 5;
+    std::vector<std::string> words_7 = {"a", "aa", "aaa", "aaaa", "aaaaa"};
+    int expected_7 = 10; 
+    int result_7 = CountPairs(len_7, words_7);
+    assert(result_7 == expected_7);
+    // TEST_END
+
+    // TEST
+    int len_8 = 2;
+    std::vector<std::string> words_8 = {"xy", "yx"};
+    int expected_8 = 0;
+    int result_8 = CountPairs(len_8, words_8);
+    assert(result_8 == expected_8);
+    // TEST_END
+
+    // TEST
+    int len_9 = 4;
+    std::vector<std::string> words_9 = {"ab", "bc", "cd", "de"};
+    int expected_9 = 0;
+    int result_9 = CountPairs(len_9, words_9);
+    assert(result_9 == expected_9);
+    // TEST_END
+
+    // TEST
+    int len_10 = 5;
+    std::vector<std::string> words_10 = {"a", "b", "c", "d", "e"};
+    int expected_10 = 0;
+    int result_10 = CountPairs(len_10, words_10);
+    assert(result_10 == expected_10);
+    // TEST_END
+
+    // TEST
+    int len_11 = -5;
+    std::vector<std::string> words_11 = {"a", "b", "c", "d", "e"};
+    int expected_11 = 0; 
+    try {
+        CountPairs(len_11, words_11);
+        assert(false);
+    } catch (const std::invalid_argument &e) {
+        assert(true);
+    }
+    // TEST_END
+
+    std::cout << "All test cases passed!\n";
+    return 0;
+}
