@@ -1,0 +1,301 @@
+// // https://leetcode.com/problems/similar-string-groups/description/
+
+// Write a function NumSimilarGroups to solve this problem and return the total number of groups formed.
+
+// In a village filled with word-loving friends, a challenge emerged: 
+// to group similar words. Words were considered similar if they could 
+// be transformed into each other by swapping at most two letters. 
+// Each word in their list was an anagram of every other word. T
+// heir task: count the number of groups formed based on these similarities. 
+// Thus began their quest to uncover 
+// the hidden connections between words, revealing the intricate beauty of language along the way.
+
+// Two strings, X and Y, are considered similar if either they are identical or we can make 
+//them equivalent by swapping at most two letters (in distinct positions) within the string X.
+
+// For example, "tars" and "rats" are similar (swapping at positions 0 and 2), and "rats" 
+//and "arts" are similar. However, "star" is not similar to "tars", "rats", or "arts".
+
+// Formally, each group is such that a word is in the group if and only if it is similar 
+// to at least one other word in the group.
+
+
+
+
+// Input:
+
+// An integer len representing the number of strings in the vector.
+// A vector of string words containing the string of the words.
+
+// Output : 
+
+// A integer answer denoting the How many groups are there?
+
+// Constraint :
+
+// len: Should be at least 1 and at most 300.
+// words : Each string should be of length from 1 and 300 and contain lowercase English alphabet.
+// All string in words have the same length and are anagrams of each other.
+
+
+
+#include <iostream>
+#include <vector>
+#include <string>
+#include <climits>
+#include <cassert>
+#include <numeric>
+
+class DisjointSet {
+    std::vector<int> vector_data;
+    int size_;
+
+public:
+    DisjointSet(int num_elements) { MakeSet(num_elements); }
+
+    void MakeSet(int num_elements) {
+        vector_data.resize(num_elements);
+        std::iota(vector_data.begin(), vector_data.end(), 0);
+        size_ = num_elements;
+    }
+
+    int Find(int index) {
+        if (index != vector_data[index])
+            vector_data[index] = Find(vector_data[index]);
+        return vector_data[index];
+    }
+
+    void Join(int index1, int index2) {
+        int root_index1 = Find(index1), root_index2 = Find(index2);
+        if (root_index1 != root_index2) {
+            vector_data[root_index1] = root_index2;
+            size_--;
+        }
+    }
+
+    int Size() { return size_; }
+};
+
+bool Similar(std::string &a, std::string &b)
+{
+    int diff_count = 0;
+    for (int i = 0; i < a.size(); i++)
+        if (a[i] != b[i] && ++diff_count > 2)
+            return false;
+    return true;
+}
+
+void ManualSort(std::string& word) {
+    for (int i = 0; i < word.size() - 1; i++) {
+        for (int j = i + 1; j < word.size(); j++) {
+            if (word[i] > word[j]) {
+                char temp = word[i];
+                word[i] = word[j];
+                word[j] = temp;
+            }
+        }
+    }
+}
+
+int NumSimilarGroups(int len, std::vector<std::string> &words)
+{
+    int n = words.size();
+    if (n < 1 || n > 300) {
+        throw std::invalid_argument("Invalid number of words");
+    }
+
+    int wordLength = words[0].size();
+    if (wordLength < 1 || wordLength > 300) {
+        throw std::invalid_argument("Invalid word length");
+    }
+
+    std::string reference = words[0];
+    ManualSort(reference);
+
+    for (const std::string& word : words) {
+        if (word.size() != wordLength) {
+            throw std::invalid_argument("All words must have the same length");
+        }
+        if (wordLength != reference.size()) {
+            throw std::invalid_argument("All words must have the same length as the first word");
+        }
+        std::string sortedWord = word;
+        ManualSort(sortedWord);
+        if (sortedWord != reference) {
+            throw std::invalid_argument("All words must be anagrams of each other");
+        }
+        for (char c : word) {
+            if (c < 'a' || c > 'z') {
+                throw std::invalid_argument("Words must consist of lowercase letters only");
+            }
+        }
+    }
+    DisjointSet ds(len);
+    for (int i = 0; i < len; i++)
+        for (int j = i + 1; j < len; j++)
+            if (Similar(words[i], words[j]))
+                ds.Join(i, j);
+    return ds.Size();
+}
+
+int main() {
+    
+    // TEST
+    int len_1 = 4;
+    std::vector<std::string> words_1 = {"abcd", "bcda", "cdab", "dabc"};
+    int expected_1 = 4;
+    int result_1 = NumSimilarGroups(len_1, words_1);
+    assert(result_1 == expected_1);
+    // TEST_END
+
+    // TEST
+    int len_2 = 4;
+    std::vector<std::string> words_2 = {"abcde", "bcdea", "cdeab", "deabc"};
+    int expected_2 = 4;
+    int result_2 = NumSimilarGroups(len_2, words_2);
+    assert(result_2 == expected_2);
+    // TEST_END
+
+    // TEST 3
+    int len_3 = 3;
+    std::vector<std::string> words_3 = {"asb", "sba", "abs"};
+    int expected_3 = 1;
+    int result_3 = NumSimilarGroups(len_3, words_3);
+    assert(result_3 == expected_3);
+    // TEST_END
+
+    // TEST 4
+    int len_4 = 4;
+    std::vector<std::string> words_4 = {"abcd", "bcda", "dbca", "dcba"};
+    int expected_4 = 1;
+    int result_4 = NumSimilarGroups(len_4, words_4);
+    assert(result_4 == expected_4);
+    // TEST_END
+
+    // TEST 5
+    int len_5 = 4;
+    std::vector<std::string> words_5 = {"aaaa", "aaaa", "aaaa", "aaaa"};
+    int expected_5 = 1;
+    int result_5 = NumSimilarGroups(len_5, words_5);
+    assert(result_5 == expected_5);
+    // TEST_END
+
+    // TEST 6
+    int len_6 = 2;
+    std::vector<std::string> words_6 = {"ab", "ba"};
+    int expected_6 = 1;
+    int result_6 = NumSimilarGroups(len_6, words_6);
+    assert(result_6 == expected_6);
+    // TEST_END
+
+    // TEST 7
+    int len_7 = 3;
+    std::vector<std::string> words_7 = {"abc", "cab", "bca"};
+    int expected_7 = 3;
+    int result_7 = NumSimilarGroups(len_7, words_7);
+    assert(result_7 == expected_7);
+    // TEST_END
+
+    // TEST 8
+    int len_8 = 5;
+    std::vector<std::string> words_8 = {"abcde", "edcba", "bcdea", "decba", "acbde"};
+    int expected_8 = 3;
+    int result_8 = NumSimilarGroups(len_8, words_8);
+    assert(result_8 == expected_8);
+    // TEST_END
+
+    // TEST 9
+    int len_9 = 4;
+    std::vector<std::string> words_9 = {"abcd", "bcda", "cdab", "dabc"};
+    int expected_9 = 4;
+    int result_9 = NumSimilarGroups(len_9, words_9);
+    assert(result_9 == expected_9);
+    // TEST_END
+
+    // TEST 10
+    int len_10 = 3;
+    std::vector<std::string> words_10 = {"aaa", "aaa", "aaa"};
+    int expected_10 = 1;
+    int result_10 = NumSimilarGroups(len_10, words_10);
+    assert(result_10 == expected_10);
+    // TEST_END
+
+    // TEST
+    int len_11 = -5;
+    std::vector<std::string> words_11 = {"a", "b", "c", "d", "e"};
+    int expected_11 = 0; 
+    try {
+        NumSimilarGroups(len_11, words_11);
+        assert(false);
+    } catch (const std::invalid_argument &e) {
+        assert(true);
+    }
+    // TEST_END
+
+    // TEST
+    int len_12 = 4;
+    std::vector<std::string> words_12 = {"tars","rats","arts","star"};
+    int expected_12 = 2;
+    int result_12 = NumSimilarGroups(len_12, words_12);
+    assert(result_12 == expected_12);
+    // TEST_END
+
+    // TEST
+    int len_13 = 2;
+    std::vector<std::string> words_13 = {"omv","ovm"};
+    int expected_13 = 1;
+    int result_13 = NumSimilarGroups(len_13, words_13);
+    assert(result_13 == expected_13);
+    // TEST_END
+
+    // TEST
+    int len_15 = 5;
+    std::vector<std::string> words_15 = {"a", "ba", "cdd", "d", "e"};
+    int expected_15 = 0; 
+    try {
+        NumSimilarGroups(len_15, words_15);
+        assert(false);
+    } catch (const std::invalid_argument &e) {
+        assert(true);
+    }
+    // TEST_END
+
+    // TEST
+    int len_16 = 1;
+    std::vector<std::string> words_16 = {""};
+    int expected_16 = 0; 
+    try {
+        NumSimilarGroups(len_16, words_16);
+        assert(false);
+    } catch (const std::invalid_argument &e) {
+        assert(true);
+    }
+    // TEST_END
+
+    // TEST
+    int len_17 = 0;
+    std::vector<std::string> words_17 = {"a","bb"};
+    int expected_17 = 0; 
+    try {
+        NumSimilarGroups(len_17, words_17);
+        assert(false);
+    } catch (const std::invalid_argument &e) {
+        assert(true);
+    }
+    // TEST_END
+
+    // TEST
+    int len_18 = 2;
+    std::vector<std::string> words_18 = {"aa","ba"};
+    int expected_18 = 0; 
+    try {
+        NumSimilarGroups(len_18, words_18);
+        assert(false);
+    } catch (const std::invalid_argument &e) {
+        assert(true);
+    }
+    // TEST_END
+
+    std::cout << "All test cases passed!\n";
+    return 0;
+}
