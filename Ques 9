@@ -1,0 +1,318 @@
+// https://codeforces.com/contest/1771/problem/F
+
+// Write a C++ Function CSmallestNumberOccurOddTimes to find smallest number that occurs an odd number of times on the given segment of the sequence.
+
+// Hossam gives you a sequence of integers a[1],a[2],…,a[n] of length n. Moreover, he will give you q queries of type (l,r). For each query, consider the elements a[l],a[l+1],…,a[r].
+// Hossam wants to know the smallest number in this sequence, such that it occurs in this sequence an odd number of times.
+
+// You need to compute the answer for each query before process the next query.
+
+// Input:
+
+// A vector of long long integers nums containing the elements of the vector.
+// A integer number_queries denoting number of queries.
+// A vector of pair queries denoting the l and r of the each query.
+
+// Constraints:
+
+// nums: Each element should be between 1 and 1,000,000,000 (10^9) inclusive.
+// number_queries: Should be at least 1 and at most 200,000.
+// queries : Each l and r should be between 1 and 2,000,000,000 (10^9) inclusive.
+
+// Output:
+
+// A vector of integer which contain smallest number that occurs an odd number of times on the given segment of the sequence..
+
+
+
+
+#include <iostream>
+#include <vector>
+#include <algorithm>
+#include <map>
+#include <stack>
+#include <cassert>
+
+struct Node
+{
+    unsigned long long hash_value = 0;
+    Node *left = 0, *right = 0;
+    bool was_visited = false;
+};
+
+const int prime1 = 31;
+const int prime2 = 53;
+unsigned long long power1[32];
+unsigned long long power2[32];
+
+const int max_memory = 130000000;
+int memory_position = 0;
+char memory[max_memory];
+
+void *operator new(size_t size)
+{
+    char *result = memory + memory_position;
+    memory_position += size;
+    assert(memory_position <= max_memory);
+    return (void *)result;
+}
+
+void operator delete(void *) {}
+
+Node *Update(Node *node, unsigned long long value, int index = 18)
+{
+    if (index == -1)
+    {
+        Node *new_node = new Node();
+        if (!node || (node && !node->was_visited))
+        {
+            new_node->hash_value = ((1000000000 + 345) ^ value) * (3 * value + 654);
+            new_node->was_visited = true;
+        }
+        return new_node;
+    }
+
+    if (value & (1 << index))
+    {
+        Node *result = new Node();
+        result->left = (node ? node->left : 0);
+        result->right = Update((node ? node->right : 0), value, index - 1);
+        unsigned long long left_hash = (result->left ? result->left->hash_value * power1[index + 1] : 0);
+        unsigned long long right_hash = (result->right ? result->right->hash_value * power2[index + 1] : 0);
+        result->hash_value = left_hash + right_hash;
+        return result;
+    }
+    else
+    {
+        Node *result = new Node();
+        result->left = Update((node ? node->left : 0), value, index - 1);
+        result->right = (node ? node->right : 0);
+        unsigned long long left_hash = (result->left ? result->left->hash_value * power1[index + 1] : 0);
+        unsigned long long right_hash = (result->right ? result->right->hash_value * power2[index + 1] : 0);
+        result->hash_value = left_hash + right_hash;
+        return result;
+    }
+}
+
+int Get(Node *left_node, Node *right_node, int index = 18, int current = 0)
+{
+    if ((left_node ? left_node->hash_value : 0) == (right_node ? right_node->hash_value : 0))
+    {
+        return -1;
+    }
+
+    if (index == -1)
+    {
+        return current;
+    }
+
+    if ((left_node && left_node->left ? left_node->left->hash_value : 0) == (right_node && right_node->left ? right_node->left->hash_value : 0))
+    {
+        return Get((left_node ? left_node->right : 0), (right_node ? right_node->right : 0), index - 1, current + (1 << index));
+    }
+
+    return Get((left_node ? left_node->left : 0), (right_node ? right_node->left : 0), index - 1, current);
+}
+
+std::vector<int> SmallestNumberOccurOddTimes(std::vector<int> nums, int number_queries, std::vector<std::pair<int, int>> queries)
+{
+    int number_nums = nums.size();
+    if (number_nums < 1 || number_nums > 200000)
+    {
+        throw std::invalid_argument("Number of nums must be between 1 and 200000");
+    }
+
+    for (const int &element : nums)
+    {
+        if (element < 1 || element > 1000000000)
+        {
+            throw std::invalid_argument("nums must be between 1 and 1000000000");
+        }
+    }
+
+    if (number_queries < 1 || number_queries > 200000)
+    {
+        throw std::invalid_argument("Number of queries must be between 1 and 200000");
+    }
+    if (queries.size() < 1 || queries.size() > 200000)
+    {
+        throw std::invalid_argument("Number of queries must be between 1 and 200000");
+    }
+
+    for (const auto &query : queries)
+    {
+        if (query.first < 0 || query.first > 2000000000 || query.second < 0 || query.second > 2000000000)
+        {
+            throw std::invalid_argument("Query values must be between 0 and 2000000000");
+        }
+    }
+    power1[0] = 1;
+    power2[0] = 1;
+    for (int i = 1; i <= 31; i++)
+    {
+        power1[i] = prime1 * power1[i - 1];
+        power2[i] = prime2 * power2[i - 1];
+    }
+
+    std::vector<std::pair<int, int>> indexed_nums(number_nums);
+    std::vector<int> mapped_nums(number_nums + 1);
+
+    for (int i = 0; i < number_nums; i++)
+    {
+        indexed_nums[i].first = nums[i];
+        indexed_nums[i].second = i;
+    }
+
+    std::sort(indexed_nums.begin(), indexed_nums.end());
+
+    std::map<int, int> element_map;
+    int current_index = 0;
+    for (int i = 0; i < number_nums; i++)
+    {
+        if (indexed_nums[i].first != (i ? indexed_nums[i - 1].first : -1))
+        {
+            current_index++;
+        }
+        element_map[indexed_nums[i].first] = current_index;
+    }
+
+    std::sort(indexed_nums.begin(), indexed_nums.end(), [](std::pair<int, int> x, std::pair<int, int> y)
+              { return x.second < y.second; });
+
+    for (int i = 0; i < number_nums; i++)
+    {
+        int element_value = element_map[indexed_nums[i].first];
+        mapped_nums[element_value] = indexed_nums[i].first;
+        indexed_nums[i].first = element_value;
+    }
+
+    std::vector<Node *> nodes(number_nums + 1);
+    nodes[0] = new Node();
+
+    for (int i = 1; i <= number_nums; i++)
+    {
+        int element_value = indexed_nums[i - 1].first;
+        nodes[i] = Update(nodes[i - 1], element_value);
+    }
+
+    int last_result = 0;
+    std::vector<int> answer;
+    for (const auto &query : queries)
+    {
+        int query_a = query.first;
+        int query_b = query.second;
+        int left = (last_result ^ query_a);
+        int right = (last_result ^ query_b);
+
+        if (left < 1 || right > number_nums)
+        {
+            throw std::invalid_argument("Query out of bounds");
+        }
+
+        int result_index = Get(nodes[left - 1], nodes[right]);
+        int result_value = (result_index != -1 ? mapped_nums[result_index] : 0);
+        answer.push_back(result_value);
+        last_result = result_value;
+    }
+    return answer;
+}
+
+int main()
+{
+    // TEST
+    std::vector<int> nums_1 = {1, 2, 1, 2, 2};
+    int number_queries_1 = 6;
+    std::vector<std::pair<int, int>> queries_1 = {{1, 2}, {0, 2}, {0, 6}, {0, 5}, {2, 2}, {3, 7}};
+    std::vector<int> expected_1 = {1, 2, 1, 0, 2, 2};
+    std::vector<int> result_1 = SmallestNumberOccurOddTimes(nums_1, number_queries_1, queries_1);
+    assert(result_1 == expected_1);
+    // TEST_END
+
+    // TEST
+    std::vector<int> nums_2 = {51, 43, 69, 48, 23, 52, 48, 76, 19, 55};
+    int number_queries_2 = 10;
+    std::vector<std::pair<int, int>> queries_2 = {{1, 1}, {57, 57}, {54, 62}, {20, 27}, {56, 56}, {79, 69}, {16, 21}, {18, 30}, {25, 25}, {62, 61}};
+    std::vector<int> expected_2 = {51, 55, 19, 48, 76, 19, 23, 19, 55, 19};
+    std::vector<int> result_2 = SmallestNumberOccurOddTimes(nums_2, number_queries_2, queries_2);
+    assert(result_2 == expected_2);
+    // TEST_END
+    // TEST
+    std::vector<int> nums_3 = {51, 44, 68, 48, 23, 52, 48, 76, 19, 55};
+    int number_queries_3 = 10;
+    std::vector<std::pair<int, int>> queries_3 = {{1, 1}, {57, 57}, {54, 62}, {20, 27}, {56, 56}, {79, 69}, {16, 21}, {18, 30}, {25, 25}, {62, 61}};
+    std::vector<int> expected_3 = {51, 55, 19, 48, 76, 19, 23, 19, 55, 19};
+    std::vector<int> result_3 = SmallestNumberOccurOddTimes(nums_3, number_queries_3, queries_3);
+    assert(result_3 == expected_3);
+    // TEST_END
+    // TEST
+    std::vector<int> nums_4 = {51, 44, 69, 48, 23, 52, 48, 76, 19, 55};
+    int number_queries_4 = 10;
+    std::vector<std::pair<int, int>> queries_4 = {{1, 1}, {57, 57}, {54, 62}, {20, 27}, {56, 56}, {79, 69}, {16, 21}, {18, 30}, {25, 25}, {62, 61}};
+    std::vector<int> expected_4 = {51, 55, 19, 48, 76, 19, 23, 19, 55, 19};
+    std::vector<int> result_4 = SmallestNumberOccurOddTimes(nums_4, number_queries_4, queries_4);
+    assert(result_4 == expected_4);
+    // TEST_END
+
+    // TEST
+        std::vector<int> nums_5 = {};
+        int number_queries_5= 10;
+        std::vector<std::pair<int, int>> queries_5= {{1, 1}, {57, 57}, {54, 62}, {20, 27}, {56, 56}, {79, 69}, {16, 21}, {18, 30}, {25, 25}, {62, 61}};
+        std::vector<int> expected_5;
+        try
+        {
+            SmallestNumberOccurOddTimes(nums_5, number_queries_5, queries_5);
+            assert(false);
+        }
+        catch (const std::invalid_argument &e)
+        {
+            assert(true);
+        }
+    // TEST_END
+    // TEST
+        std::vector<int> nums_6 = {1,2};
+        int number_queries_6= -10;
+        std::vector<std::pair<int, int>> queries_6= {{1, 1}, {57, 57}, {54, 62}, {20, 27}, {56, 56}, {79, 69}, {16, 21}, {18, 30}, {25, 25}, {62, 61}};
+        std::vector<int> expected_6;
+        try
+        {
+            SmallestNumberOccurOddTimes(nums_6, number_queries_6, queries_6);
+            assert(false);
+        }
+        catch (const std::invalid_argument &e)
+        {
+            assert(true);
+        }
+    // TEST_END
+    // TEST
+        std::vector<int> nums_7 = {1,2};
+        int number_queries_7= 10;
+        std::vector<std::pair<int, int>> queries_7= {{-1, 1}, {-57, 57}, {54, 62}, {20, 27}, {56, 56}, {79, 69}, {16, 21}, {18, 30}, {25, 25}, {62, 61}};
+        std::vector<int> expected_7;
+        try
+        {
+            SmallestNumberOccurOddTimes(nums_7, number_queries_7, queries_7);
+            assert(false);
+        }
+        catch (const std::invalid_argument &e)
+        {
+            assert(true);
+        }
+    // TEST_END
+    // TEST
+        std::vector<int> nums_8 = {1,2};
+        int number_queries_8= 10;
+        std::vector<std::pair<int, int>> queries_8= {};
+        std::vector<int> expected_8;
+        try
+        {
+            SmallestNumberOccurOddTimes(nums_8, number_queries_8, queries_8);
+            assert(false);
+        }
+        catch (const std::invalid_argument &e)
+        {
+            assert(true);
+        }
+    // TEST_END
+    std::cout << "All test cases passed!\n";
+    return 0;
+}
