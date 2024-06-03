@@ -1,0 +1,261 @@
+// Write a C++ Function CalculateSecondsForEach to find the time taken for each slimes.
+
+// In a bustling slime neighborhood, slimes of various sizes are lined up 
+// in a row, each with its unique appetite. Every second, one of these slimes
+// indulges in a hearty meal, devouring its neighboring slime and growing in size.
+
+// Imagine a scenario where a group of slimes, numbered from 1 to n, eagerly
+// awaits their turn to feast. Each slime, denoted by its size ai, eagerly
+// eyes its neighbors, ready to devour any that are smaller.
+
+// Here's how the spectacle unfolds: A slime can only consume its neighbor
+// if it surpasses it in size. Once a slime finds a smaller neighbor, it
+// promptly engulfs it, adding the neighbor's size to its own. This feeding
+// frenzy continues until no slime can find a smaller neighbor to devour.
+
+// For instance, consider a row of slimes with sizes [2, 2, 3, 1, 4]. The spectacle unfolds as follows:
+
+// First, the third slime (size 3) devours its second neighbor (size 2), growing to a size
+// of 5 while the second slime vanishes.
+// Next, the third slime continues its feast, devouring its first neighbor (size 1),
+// expanding to a size of 7 as the first slime disappears.
+// The feeding continues as the fifth slime (size 4) consumes its fourth neighbor (size 1),
+// swelling to a size of 5 while the fourth slime fades away.
+// Lastly, the third slime, now a formidable size of 7, makes its final move, consuming its
+// fifth neighbor (size 4), growing to an impressive size of 12 as the fifth slime vanishes.
+// Each slime's fate hinges on its size and the appetite of its neighbors. For every slime,
+// determine the minimum number of seconds it takes to become a meal for another slime—or
+// declare it invincible if no larger slime lurks nearby.
+
+// Input:
+
+// A vector of long long integers nums containing the elements of the vector.
+
+// Constraints:
+
+// size: Should be at least 1 and at most 200,000.
+// nums: Each element should be between 1 and 1,000,000,000 (10^9) inclusive.
+
+// Output:
+
+// A vector of integer which contain the time take to each slimes to eat all other slimes.
+
+
+
+#include <iostream>
+#include <vector>
+#include <climits>
+#include <cassert>
+
+using namespace std;
+
+vector<long long> Prev(vector<long long> &vec)
+{
+    vector<long long> prev_diff(vec.size());
+    for (long long idx = 0; idx < vec.size(); idx++)
+    {
+        if (idx == 0)
+        {
+            prev_diff[idx] = -1;
+        }
+        else if (vec[idx] != vec[idx - 1])
+        {
+            prev_diff[idx] = idx - 1;
+        }
+        else
+        {
+            prev_diff[idx] = prev_diff[idx - 1];
+        }
+    }
+    return prev_diff;
+}
+
+vector<long long> Next(vector<long long> &vec)
+{
+    vector<long long> next_diff(vec.size());
+    int size = vec.size();
+    for (long long idx = size - 1; idx >= 0; idx--)
+    {
+        if (idx == size - 1)
+        {
+            next_diff[idx] = size;
+        }
+        else if (vec[idx] != vec[idx + 1])
+        {
+            next_diff[idx] = idx + 1;
+        }
+        else
+        {
+            next_diff[idx] = next_diff[idx + 1];
+        }
+    }
+    return next_diff;
+}
+
+vector<int> CalculateSecondsForEach(vector<long long int> &nums)
+{
+    if (nums.size() <= 0)
+    {
+        throw std::invalid_argument("nums length must be positive.");
+    }
+    for (int i = 0; i < nums.size(); ++i)
+    {
+        if (nums[i] < 1 || nums[i] > 1000000000)
+        {
+            throw std::invalid_argument("Invalid element value");
+        }
+    }
+    int num_elements = nums.size();
+    vector<long long> prefix_sum(num_elements + 1);
+    for (long long idx = 0; idx < num_elements; idx++)
+    {
+        prefix_sum[idx + 1] = prefix_sum[idx] + nums[idx];
+    }
+    vector<long long> next_diff = Next(nums);
+    vector<long long> prev_diff = Prev(nums);
+    vector<int> ans;
+    for (long long idx = 0; idx < num_elements; idx++)
+    {
+        if ((idx > 0 && nums[idx - 1] > nums[idx]) || (idx + 1 < num_elements && nums[idx + 1] > nums[idx]))
+        {
+            ans.push_back(1);
+            continue;
+        }
+
+        long long left_val = LONG_MAX;
+        if (idx > 0)
+        {
+            long long lo = 0, hi = prev_diff[idx - 1];
+            while (lo <= hi)
+            {
+                long long mid = (hi + lo) / 2;
+                if (prefix_sum[idx] - prefix_sum[mid] > nums[idx])
+                {
+                    left_val = idx - mid;
+                    lo = mid + 1;
+                }
+                else
+                {
+                    hi = mid - 1;
+                }
+            }
+        }
+
+        long long right_val = LONG_MAX;
+        if (idx + 1 < num_elements)
+        {
+            long long lo = next_diff[idx + 1], hi = num_elements - 1;
+            while (lo <= hi)
+            {
+                long long mid = (hi + lo) / 2;
+                if (prefix_sum[mid + 1] - prefix_sum[idx + 1] > nums[idx])
+                {
+                    right_val = mid - idx;
+                    hi = mid - 1;
+                }
+                else
+                {
+                    lo = mid + 1;
+                }
+            }
+        }
+        if (min(left_val, right_val) == LONG_MAX)
+            ans.push_back(-1);
+        else
+            ans.push_back(min(left_val, right_val));
+    }
+    return ans;
+}
+
+int main()
+{
+
+    // Test
+    std::vector<long long int> nums_1 = {3, 2, 4, 2};
+    std::vector<int> expected_1 = {2, 1, 2, 1};
+    std::vector<int> result_1 = CalculateSecondsForEach(nums_1);
+    assert(result_1 == expected_1);
+    // TEST_END
+
+    // Test
+    std::vector<long long int> nums_2 = {1, 2, 3};
+    std::vector<int> expected_2 = {1, 1, -1};
+    std::vector<int> result_2 = CalculateSecondsForEach(nums_2);
+    assert(result_2 == expected_2);
+    // TEST_END
+
+    // Test
+    std::vector<long long int> nums_3 = {2, 2, 3, 1, 1};
+    std::vector<int> expected_3 = {2, 1, -1, 1, 2};
+    std::vector<int> result_3 = CalculateSecondsForEach(nums_3);
+    assert(result_3 == expected_3);
+    // TEST_END
+
+    // Test
+    std::vector<long long int> nums_4 = {4, 2, 3, 6, 1, 1, 8};
+    std::vector<int> expected_4 = {2, 1, 1, 3, 1, 1, 4};
+    std::vector<int> result_4 = CalculateSecondsForEach(nums_4);
+    assert(result_4 == expected_4);
+    // TEST_END
+    // TEST
+    std::vector<long long int> nums_5 = {5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5};
+    std::vector<int> expected_5 = {-1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1};
+    std::vector<int> result_5 = CalculateSecondsForEach(nums_5);
+    assert(result_5 == expected_5);
+
+    // TEST
+    std::vector<long long int> nums_6 = {9, 9, 9, 7, 9, 9, 9, 3, 3, 9, 9};
+    std::vector<int> expected_6 = {3, 2, 2, 1, 2, 2, 3, 1, 1, 3, 2};
+    std::vector<int> result_6 = CalculateSecondsForEach(nums_6);
+    assert(result_6 == expected_6);
+
+    // TEST
+    std::vector<long long int> nums_7 = {4, 10, 10, 4, 3, 7, 5, 10, 10, 10, 1, 1, 7, 6, 10, 10, 9, 9, 2, 2};
+    std::vector<int> expected_7 = {1, 2, 2, 1, 1, 2, 1, 2, 2, 3, 1, 1, 2, 1, 2, 2, 1, 2, 1, 2};
+    std::vector<int> result_7 = CalculateSecondsForEach(nums_7);
+    assert(result_7 == expected_7);
+
+    // TEST
+    std::vector<long long int> nums_8 = {10, 4, 4, 1, 1, 6, 6, 4, 4, 4, 4, 4, 8, 8, 8, 8, 8, 7, 7, 3, 3, 7, 8, 8, 8, 8, 9, 9, 8, 8, 8, 8, 1, 1, 1, 1, 1, 1, 3, 3, 3, 3, 3, 3};
+    std::vector<int> expected_8 = {5, 1, 2, 1, 1, 2, 2, 1, 2, 3, 2, 1, 5, 2, 3, 2, 3, 1, 2, 1, 1, 1, 2, 2, 2, 1, 2, 2, 1, 2, 2, 4, 1, 2, 3, 3, 2, 1, 7, 2, 3, 4, 5, 6};
+    std::vector<int> result_8 = CalculateSecondsForEach(nums_8);
+    assert(result_8 == expected_8);
+
+    // TEST
+    std::vector<long long int> nums_9 = {8, 5, 8, 3, 2, 9, 7, 5, 9, 5, 1, 6, 8, 2, 3, 9, 10, 8, 4, 2, 9, 5, 8};
+    std::vector<int> expected_9 = {2, 1, 2, 1, 1, 2, 1, 1, 2, 1, 1, 1, 3, 1, 1, 1, 2, 1, 1, 1, 2, 1, 2};
+    std::vector<int> result_9 = CalculateSecondsForEach(nums_9);
+    assert(result_9 == expected_9);
+    // TEST_END
+
+    // Test
+    std::vector<long long int> nums_10 = {-15, 14, 4, -42};
+    std::vector<int> expected_10;
+    try
+    {
+        CalculateSecondsForEach(nums_10);
+        assert(false);
+    }
+    catch (const std::invalid_argument &e)
+    {
+        assert(true);
+    }
+    // TEST_END
+
+    // Test
+    std::vector<long long int> nums_11 = {};
+    std::vector<int> expected_11;
+    try
+    {
+        CalculateSecondsForEach(nums_11);
+        assert(false);
+    }
+    catch (const std::invalid_argument &e)
+    {
+        assert(true);
+    }
+    // TEST_END
+
+    std::cout << "All test cases passed!\n";
+    return 0;
+}
