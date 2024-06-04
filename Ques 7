@@ -31,7 +31,6 @@
 #include <stack>
 #include <cassert>
 
-const long long int neg_inf = -1e15;
 
 std::vector<int> NextGreater(std::vector<long long int>& nums, int size) {
     std::stack<int> stk;    
@@ -60,7 +59,7 @@ std::vector<int> PrevGreater(std::vector<long long int>& nums, int size) {
 }
 
 long long int Query(std::vector<long long int> &segment_tree, int node, int start, int end, int query_start, int query_end) {
-    if (query_end < start || query_start > end) return neg_inf;
+    if (query_end < start || query_start > end) return -1e15;
     if (query_start <= start && end <= query_end) return segment_tree[node];
 
     int mid = start + (end - start) / 2;
