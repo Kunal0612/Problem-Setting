@@ -1,3 +1,4 @@
+
 // // https://leetcode.com/problems/count-prefix-and-suffix-pairs-ii/description/
 
 // Create a C++ function CountPairs which finds return an integer denoting the count of number of index pairs (i, j) .
@@ -21,7 +22,6 @@
 
 // Input:
 
-// An integer len representing the number of strings in the vector.
 // A vector of string words containing the string of the words.
 
 // Output : 
@@ -30,7 +30,7 @@
 
 // Constraint :
 
-// len: Should be at least 1 and at most 100,000.
+// words.size(): Should be at least 1 and at most 100,000.
 // words : Each string should be of length from 1 and 100,000 and contain lowercase English alphabet.
 
 
@@ -94,7 +94,8 @@ int FindCount(struct Trie* root, std::string word) {
     return current->cnt;
 }
 
-long long CountPairs(int len, std::vector<std::string>& words) {
+long long CountPairs(std::vector<std::string>& words) {
+    int len=words.size();
     if (len < 1 || len > 100000) {
         throw std::invalid_argument("Number of words must be between 1 and 100000.");
     }
@@ -133,91 +134,80 @@ long long CountPairs(int len, std::vector<std::string>& words) {
 
 int main() {
     // TEST
-    int len_1 = 4;
     std::vector<std::string> words_1 = {"a", "aba", "ababa", "aa"};
     int expected_1 = 4;
-    int result_1 = CountPairs(len_1, words_1);
+    int result_1 = CountPairs(words_1);
     assert(result_1 == expected_1);
     // TEST_END
 
     // TEST
-    int len_2 = 3;
     std::vector<std::string> words_2 = {"abc", "def", "ghi"};
     int expected_2 = 0;
-    int result_2 = CountPairs(len_2, words_2);
+    int result_2 = CountPairs(words_2);
     assert(result_2 == expected_2);
     // TEST_END
 
     // TEST
-    int len_3 = 3;
     std::vector<std::string> words_3 = {"aa", "aaa", "aaaa"};
     int expected_3 = 3; 
-    int result_3 = CountPairs(len_3, words_3);
+    int result_3 = CountPairs(words_3);
     assert(result_3 == expected_3);
     // TEST_END
 
     // TEST
-    int len_4 = 5;
     std::vector<std::string> words_4 = {"ab", "aba", "abab", "ababa", "ababab"};
     int expected_4 = 4;
-    int result_4 = CountPairs(len_4, words_4);
+    int result_4 = CountPairs(words_4);
     assert(result_4 == expected_4);
     // TEST_END
 
     // TEST
-    int len_5 = 3;
     std::vector<std::string> words_5 = {"abc", "bcd", "cde"};
     int expected_5 = 0;
-    int result_5 = CountPairs(len_5, words_5);
+    int result_5 = CountPairs(words_5);
     assert(result_5 == expected_5);
     // TEST_END
 
     // TEST
-    int len_6 = 4;
     std::vector<std::string> words_6 = {"ab", "abc", "abcd", "abcde"};
     int expected_6 = 0; 
-    int result_6 = CountPairs(len_6, words_6);
+    int result_6 = CountPairs(words_6);
     assert(result_6 == expected_6);
     // TEST_END
 
     // TEST
-    int len_7 = 5;
     std::vector<std::string> words_7 = {"a", "aa", "aaa", "aaaa", "aaaaa"};
     int expected_7 = 10; 
-    int result_7 = CountPairs(len_7, words_7);
+    int result_7 = CountPairs(words_7);
     assert(result_7 == expected_7);
     // TEST_END
 
     // TEST
-    int len_8 = 2;
     std::vector<std::string> words_8 = {"xy", "yx"};
     int expected_8 = 0;
-    int result_8 = CountPairs(len_8, words_8);
+    int result_8 = CountPairs(words_8);
     assert(result_8 == expected_8);
     // TEST_END
 
     // TEST
-    int len_9 = 4;
     std::vector<std::string> words_9 = {"ab", "bc", "cd", "de"};
     int expected_9 = 0;
-    int result_9 = CountPairs(len_9, words_9);
+    int result_9 = CountPairs(words_9);
     assert(result_9 == expected_9);
     // TEST_END
 
     // TEST
-    int len_10 = 5;
     std::vector<std::string> words_10 = {"a", "b", "c", "d", "e"};
     int expected_10 = 0;
-    int result_10 = CountPairs(len_10, words_10);
+    int result_10 = CountPairs(words_10);
     assert(result_10 == expected_10);
     // TEST_END
 
     // TEST
-    int len_11 = -5;
     std::vector<std::string> words_11 = {"a", "b", "c", "d", "e"};
     int expected_11 = 0; 
     try {
-        CountPairs(len_11, words_11);
+        CountPairs(words_11);
         assert(false);
     } catch (const std::invalid_argument &e) {
         assert(true);
