@@ -81,8 +81,9 @@ int CountPairs(std::vector<int> &nums, int low, int high)
     {
         throw std::invalid_argument("Invalid length of nums vector.");
     }
-    for (int num : nums)
+    for (int i=0;i<nums.size();i++)
     {
+        int num=nums[i];
         if (num < 1 || num > 2 * 104)
         {
             throw std::invalid_argument("Invalid element value in nums vector.");
@@ -94,8 +95,9 @@ int CountPairs(std::vector<int> &nums, int low, int high)
     }
     TrieNode *root = new TrieNode();
     int count = 0;
-    for (auto &num : nums)
+    for (int i=0;i<nums.size();i++)
     {
+        int num=nums[i];
         count += CountSmallerPairs(root, num, high + 1) - CountSmallerPairs(root, num, low);
         InsertTrie(root, num);
     }
