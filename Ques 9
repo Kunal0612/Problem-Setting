@@ -77,8 +77,8 @@ Node *Update(Node *node, unsigned long long value, int index = 18)
         Node *result = new Node();
         result->left = (node ? node->left : 0);
         result->right = Update((node ? node->right : 0), value, index - 1);
-        unsigned long long left_hash = (result->left ? result->left->hash_value * power1[index + 1] : 0);
-        unsigned long long right_hash = (result->right ? result->right->hash_value * power2[index + 1] : 0);
+        unsigned long long left_hash = (result->left ? result->left->hash_value * power_1[index + 1] : 0);
+        unsigned long long right_hash = (result->right ? result->right->hash_value * power_2[index + 1] : 0);
         result->hash_value = left_hash + right_hash;
         return result;
     }
@@ -87,8 +87,8 @@ Node *Update(Node *node, unsigned long long value, int index = 18)
         Node *result = new Node();
         result->left = Update((node ? node->left : 0), value, index - 1);
         result->right = (node ? node->right : 0);
-        unsigned long long left_hash = (result->left ? result->left->hash_value * power1[index + 1] : 0);
-        unsigned long long right_hash = (result->right ? result->right->hash_value * power2[index + 1] : 0);
+        unsigned long long left_hash = (result->left ? result->left->hash_value * power_1[index + 1] : 0);
+        unsigned long long right_hash = (result->right ? result->right->hash_value * power_2[index + 1] : 0);
         result->hash_value = left_hash + right_hash;
         return result;
     }
