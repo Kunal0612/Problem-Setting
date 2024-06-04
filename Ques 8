@@ -127,18 +127,18 @@ vector<int> CalculateSecondsForEach(vector<long long int> &nums)
         long long left_val = LONG_MAX;
         if (idx > 0)
         {
-            long long lo = 0, hi = prev_diff[idx - 1];
-            while (lo <= hi)
+            long long low = 0, high = prev_diff[idx - 1];
+            while (low <= high)
             {
-                long long mid = (hi + lo) / 2;
+                long long mid = (high + low) / 2;
                 if (prefix_sum[idx] - prefix_sum[mid] > nums[idx])
                 {
                     left_val = idx - mid;
-                    lo = mid + 1;
+                    low = mid + 1;
                 }
                 else
                 {
-                    hi = mid - 1;
+                    high = mid - 1;
                 }
             }
         }
@@ -146,18 +146,18 @@ vector<int> CalculateSecondsForEach(vector<long long int> &nums)
         long long right_val = LONG_MAX;
         if (idx + 1 < num_elements)
         {
-            long long lo = next_diff[idx + 1], hi = num_elements - 1;
-            while (lo <= hi)
+            long long low = next_diff[idx + 1], high = num_elements - 1;
+            while (low <= high)
             {
-                long long mid = (hi + lo) / 2;
+                long long mid = (high + low) / 2;
                 if (prefix_sum[mid + 1] - prefix_sum[idx + 1] > nums[idx])
                 {
                     right_val = mid - idx;
-                    hi = mid - 1;
+                    high = mid - 1;
                 }
                 else
                 {
-                    lo = mid + 1;
+                    low = mid + 1;
                 }
             }
         }
@@ -172,28 +172,28 @@ vector<int> CalculateSecondsForEach(vector<long long int> &nums)
 int main()
 {
 
-    // Test
+    // TEST
     std::vector<long long int> nums_1 = {3, 2, 4, 2};
     std::vector<int> expected_1 = {2, 1, 2, 1};
     std::vector<int> result_1 = CalculateSecondsForEach(nums_1);
     assert(result_1 == expected_1);
     // TEST_END
 
-    // Test
+    // TEST
     std::vector<long long int> nums_2 = {1, 2, 3};
     std::vector<int> expected_2 = {1, 1, -1};
     std::vector<int> result_2 = CalculateSecondsForEach(nums_2);
     assert(result_2 == expected_2);
     // TEST_END
 
-    // Test
+    // TEST
     std::vector<long long int> nums_3 = {2, 2, 3, 1, 1};
     std::vector<int> expected_3 = {2, 1, -1, 1, 2};
     std::vector<int> result_3 = CalculateSecondsForEach(nums_3);
     assert(result_3 == expected_3);
     // TEST_END
 
-    // Test
+    // TEST
     std::vector<long long int> nums_4 = {4, 2, 3, 6, 1, 1, 8};
     std::vector<int> expected_4 = {2, 1, 1, 3, 1, 1, 4};
     std::vector<int> result_4 = CalculateSecondsForEach(nums_4);
@@ -230,7 +230,7 @@ int main()
     assert(result_9 == expected_9);
     // TEST_END
 
-    // Test
+    // TEST
     std::vector<long long int> nums_10 = {-15, 14, 4, -42};
     std::vector<int> expected_10;
     try
@@ -244,7 +244,7 @@ int main()
     }
     // TEST_END
 
-    // Test
+    // TEST
     std::vector<long long int> nums_11 = {};
     std::vector<int> expected_11;
     try
