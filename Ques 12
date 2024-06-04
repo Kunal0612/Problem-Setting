@@ -1,0 +1,206 @@
+// https://leetcode.com/problems/create-sorted-array-through-instructions/
+// Write a C++ Function SortedArray to calculate total cost to insert all elements from instructions into nums.
+
+// Given an integer array called instructions, your task is to create a sorted array from 
+//its elements. Start with an empty container, nums. For each element in instructions, 
+//insert it into nums from left to right. The cost of each insertion is determined by the following criteria:
+
+// The number of elements currently in nums that are strictly less than instructions[i].
+// The number of elements currently in nums that are strictly greater than instructions[i].
+// The cost of insertion is the minimum of these two numbers.
+
+// For example, if you are inserting the element 3 into nums = [1, 2, 3, 5], 
+//the cost of insertion is min(2, 1) because there are two elements less than 3 
+//(1 and 2) and one element greater than 3 (5). After insertion, nums becomes [1, 2, 3, 3, 5].
+
+// Your goal is to return the total cost to insert all elements from instructions into nums. 
+//Since the total cost may be very large, return it modulo 10^9+7.
+
+// Input:
+
+// A vector of integers instructions containing the elements of the vector.
+
+// Constraints:
+
+// instructions.size() : Range from 1 to 100000
+// instructions: Each element should be between 1 and 100000 inclusive.
+
+// Output:
+
+// A Integer ans total cost to insert all elements from instructions into nums.
+
+
+#include <iostream>
+#include <vector>
+#include <algorithm>
+#include <map>
+#include <cassert>
+
+void UpdateTree(int index, int start, int end, int position, std::vector<int> &segment_tree)
+{
+    long long modulus = 1e9 + 7;
+    if (start == end)
+    {
+        segment_tree[index]++;
+        return;
+    }
+
+    int middle = (start + end) / 2;
+    if (middle < position)
+    {
+        UpdateTree(2 * index + 1, middle + 1, end, position, segment_tree);
+    }
+    else
+    {
+        UpdateTree(2 * index, start, middle, position, segment_tree);
+    }
+
+    segment_tree[index] = (segment_tree[2 * index] + segment_tree[2 * index + 1]) % modulus;
+}
+
+std::pair<int, int> GetMinElements(int index, int start, int end, int position, std::vector<int> &segment_tree)
+{
+    if (start == end)
+    {
+        return std::make_pair(0, 0);
+    }
+
+    int middle = (start + end) / 2;
+    if (middle >= position)
+    {
+        std::pair<int, int> temp = GetMinElements(2 * index, start, middle, position, segment_tree);
+        temp.second += segment_tree[2 * index + 1];
+        return temp;
+    }
+    else
+    {
+        std::pair<int, int> temp = GetMinElements(2 * index + 1, middle + 1, end, position, segment_tree);
+        temp.first += segment_tree[2 * index];
+        return temp;
+    }
+}
+
+int SortedArray(std::vector<int> &instructions)
+{
+    int instructions_length = instructions.size();
+    if (instructions_length <= 0) {
+        throw std::invalid_argument("Array length must be positive.");
+    }
+    for (int i = 0; i < instructions_length; ++i)
+    {
+        if (instructions[i] < 1 || instructions[i] > 1000000000)
+        {
+            throw std::invalid_argument("Invalid element value");
+        }
+    }
+    long long modulus = 1e9 + 7;
+    int max_value = *std::max_element(instructions.begin(), instructions.end());
+    std::vector<int> segment_tree(4 * max_value + 10, 0);
+    long long total_cost = 0;
+    for (int i = 0; i < instructions_length; i++)
+    {
+        std::pair<int, int> min_elements = GetMinElements(1, 0, max_value + 1, instructions[i], segment_tree);
+        total_cost = (total_cost % modulus + (std::min(min_elements.first, min_elements.second)) % modulus) % modulus;
+        UpdateTree(1, 0, max_value + 1, instructions[i], segment_tree);
+    }
+    return total_cost;
+}
+
+
+int main()
+{
+    //TEST
+    std::vector<int> instructions_1 = {1,5,6,2};
+    int expected_1 = 1;
+    int result_1 = SortedArray(instructions_1);
+    assert(result_1 == expected_1);
+    // TEST_END
+
+    //TEST
+    std::vector<int> instructions_2 = {1,2,3,6,5,4};
+    int expected_2 = 3;
+    int result_2 = SortedArray(instructions_2);
+    assert(result_2 == expected_2);
+    // TEST_END
+
+    //TEST
+    std::vector<int> instructions_3 = {1,3,3,3,2,4,2,1,2};
+    int expected_3 = 4;
+    int result_3 = SortedArray(instructions_3);
+    assert(result_3 == expected_3);
+    // TEST_END
+
+    //TEST
+    std::vector<int> instructions_4 = {5, 5, 5, 5};
+    int expected_4 = 0;
+    int result_4 = SortedArray(instructions_4);
+    assert(result_4 == expected_4);
+    // TEST_END
+
+    //TEST
+    std::vector<int> instructions_5 = {1,2,3,4,5};
+    int expected_5 = 0;
+    int result_5 = SortedArray(instructions_5);
+    assert(result_5 == expected_5);
+    // TEST_END
+
+    //TEST
+    std::vector<int> instructions_6 = {1, 2, 3, 4, 5, 6, 7, 8, 9, 10};
+    int expected_6 = 0;
+    int result_6 = SortedArray(instructions_6);
+    assert(result_6 == expected_6);
+    // TEST_END
+
+    //TEST
+    std::vector<int> instructions_7 = {5, 2, 3, 4, 5, 5, 5};
+    int expected_7 = 2;
+    int result_7 = SortedArray(instructions_7);
+    assert(result_7 == expected_7);
+    // TEST_END
+
+    //TEST
+    std::vector<int> instructions_8 = {1, 2, 1, 2, 1, 2, 1, 2};
+    int expected_8 = 0;
+    int result_8 = SortedArray(instructions_8);
+    assert(result_8 == expected_8);
+    // TEST_END
+
+    //TEST
+    std::vector<int> instructions_9 = {1, 5, 1, 1, 1, 1, 1, 1, 1, 2};
+    int expected_9 = 1;
+    int result_9 = SortedArray(instructions_9);
+    assert(result_9 == expected_9);
+    // TEST_END
+
+    //TEST
+    std::vector<int> instructions_10 = {1, -2, 3, 4, 5, 6, 7, 8, 9, 10};
+    int expected_10 = 0;
+    int result_10;
+        try
+        {
+            SortedArray(instructions_10);
+            assert(false);
+        }
+        catch (const std::invalid_argument &e)
+        {
+            assert(true);
+        }
+    // TEST_END
+    //TEST
+    std::vector<int> instructions_11 = {1, 2, -3, -4, 5, 6, -7, 8, 9, 10};
+    int expected_11 = 0;
+    int result_11;
+        try
+        {
+            SortedArray(instructions_11);
+            assert(false);
+        }
+        catch (const std::invalid_argument &e)
+        {
+            assert(true);
+        }
+    // TEST_END
+
+    std::cout << "All test cases passed!\n";
+    return 0;
+}
