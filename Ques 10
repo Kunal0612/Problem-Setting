@@ -1,3 +1,5 @@
+// https://leetcode.com/problems/count-pairs-with-xor-in-a-range/description/
+
 // Write a C++ Function CountSmallerPairs that count the number of nice pairs of the vector.
 
 // In the realm of integers, there existed an array named nums, filled with enigmatic values. Two sentinels, low and high, stood guard, defining the boundaries of magic pairs within nums. A magic pair, conjured by indices i and j, possessed an XOR that dwelled within the mystical confines set by low and high.
