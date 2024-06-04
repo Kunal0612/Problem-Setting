@@ -120,7 +120,7 @@ bool CheckIfExists(std::vector<long long int> &nums) {
 
 int main(){
 
-    //Test
+    //TEST
         std::vector<long long int> nums_1 = {-1,1,-1,2};
         bool expected_1=1;
         bool result_1 = CheckIfExists(nums_1);
@@ -183,7 +183,7 @@ int main(){
     assert(result_9 == expected_9);
     //TEST_END
 
-    // Test
+    //TEST
         std::vector<long long int> nums_10 = {};
         int expected_10;
         try
@@ -197,7 +197,7 @@ int main(){
         }
     // TEST_END
 
-    // Test
+    //TEST
         std::vector<long long int> nums_11 = {-10000000002,10000000002};
         int expected_11;
         try
