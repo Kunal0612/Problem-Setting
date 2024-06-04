@@ -21,7 +21,6 @@
 
 // Input:
 
-// An integer num_length representing the number of elements in the vector.
 // A vector of integers nums containing the elements of the vector.
 // An integer and_value representing the subarray and value to be close with.
 
@@ -88,8 +87,9 @@ int SegmentTreeQuery(SegmentTree &segment_tree, int start, int end)
 {
     return segment_tree.Query(start, end);
 }
-int MinimumDifference(int num_length, std::vector<int> &nums, int and_value)
+int MinimumDifference(std::vector<int> &nums, int and_value)
 {
+    int num_length=nums.size();
     if (num_length < 1 || num_length > 200000 || nums.size() != num_length || and_value < 1 || and_value > 1000000000)
     {
         throw std::invalid_argument("Invalid input parameters");
@@ -131,92 +131,82 @@ int MinimumDifference(int num_length, std::vector<int> &nums, int and_value)
 
 int main() {
     // TEST
-    int num_length_1 = 4;
     std::vector<int> nums_1 = {1, 2, 4, 5};
     int and_value_1 = 3;
     int expected_1 = 1;
-    int result_1 = MinimumDifference(num_length_1, nums_1, and_value_1);
+    int result_1 = MinimumDifference(nums_1, and_value_1);
     assert(result_1 == expected_1);
     // TEST_END
 
     // TEST
-    int num_length_2 = 5;
     std::vector<int> nums_2 = {8, 1, 6, 7, 9};
     int and_value_2 = 2;
     int expected_2 = 1;
-    int result_2 = MinimumDifference(num_length_2, nums_2, and_value_2);
+    int result_2 = MinimumDifference(nums_2, and_value_2);
     assert(result_2 == expected_2);
     // TEST_END
 
     // TEST
-    int num_length_3 = 3;
     std::vector<int> nums_3 = {5, 8, 12};
     int and_value_3 = 10;
     int expected_3 = 2;
-    int result_3 = MinimumDifference(num_length_3, nums_3, and_value_3);
+    int result_3 = MinimumDifference(nums_3, and_value_3);
     assert(result_3 == expected_3);
     // TEST_END
 
     // TEST
-    int num_length_4 = 2;
     std::vector<int> nums_4 = {3, 7};
     int and_value_4 = 6;
     int expected_4 = 1;
-    int result_4 =MinimumDifference(num_length_4, nums_4, and_value_4);
+    int result_4 =MinimumDifference(nums_4, and_value_4);
     assert(result_4 == expected_4);
     // TEST_END
 
     // TEST
-    int num_length_5 = 1;
     std::vector<int> nums_5 = {4};
     int and_value_5 = 3;
     int expected_5 = 1;
-    int result_5 = MinimumDifference(num_length_5, nums_5, and_value_5);
+    int result_5 = MinimumDifference(nums_5, and_value_5);
     assert(result_5 == expected_5);
     // TEST_END
     
 
     // TEST 6
-    int num_length_6 = 6;
     std::vector<int> nums_6 = {2, 4, 6, 8, 10, 12};
     int and_value_6 = 7;
     int expected_6 = 1;
-    int result_6 = MinimumDifference(num_length_6, nums_6, and_value_6);
+    int result_6 = MinimumDifference(nums_6, and_value_6);
     assert(result_6 == expected_6);
     // TEST_END
 
     // TEST
-    int num_length_7 = 7;
     std::vector<int> nums_7 = {15, 30, 45, 60, 75, 90, 105};
     int and_value_7 = 50;
     int expected_7 = 5;
-    int result_7 = MinimumDifference(num_length_7, nums_7, and_value_7);
+    int result_7 = MinimumDifference(nums_7, and_value_7);
     assert(result_7 == expected_7);
     // TEST_END
 
     // TEST 8
-    int num_length_8 = 3;
     std::vector<int> nums_8 = {1000000000, 999999999, 999999998};
     int and_value_8 = 500000000;
     int expected_8 = 499999488;
-    int result_8 = MinimumDifference(num_length_8, nums_8, and_value_8);
+    int result_8 = MinimumDifference(nums_8, and_value_8);
     assert(result_8 == expected_8);
     // TEST_END
 
     // TEST
-    int num_length_9 = 5;
     std::vector<int> nums_9 = {100, 200, 300, 400, 500};
     int and_value_9 = 250;
     int expected_9 = 6;
-    int result_9 =MinimumDifference(num_length_9, nums_9, and_value_9);
+    int result_9 =MinimumDifference(nums_9, and_value_9);
     assert(result_9 == expected_9);
     // TEST_END
     // TEST
-    int num_length_10 = -10;
     std::vector<int> nums_10 = {1, 2, 3, 4, 5, 6, 7, 8, 9, 10};
     int and_value_10 = 0;
     try {
-        MinimumDifference(num_length_10, nums_10, and_value_10);
+        MinimumDifference( nums_10, and_value_10);
         assert(false);
     } catch (const std::invalid_argument &e) {
         assert(true);
@@ -224,11 +214,10 @@ int main() {
     // TEST_END
 
     // TEST
-    int num_length_11 = -5;
     std::vector<int> nums_11 = {1, 2, -3, -4, 5, 6, -7, 8, 9, 10};
     int and_value_11 = -5;
     try {
-        MinimumDifference(num_length_11, nums_11, and_value_11);
+        MinimumDifference(nums_11, and_value_11);
         assert(false);
     } catch (const std::invalid_argument &e) {
         assert(true);
@@ -236,11 +225,10 @@ int main() {
     // TEST_END
 
      // TEST 
-    int num_length_12 = 3;
     std::vector<int> nums_12 = {1, 1, 1};
     int and_value_12 = 2;
     int expected_12 = 1;
-    int result_12 = MinimumDifference(num_length_12, nums_12, and_value_12);
+    int result_12 = MinimumDifference(nums_12, and_value_12);
     assert(result_12 == expected_12);
     // TEST_END
 
