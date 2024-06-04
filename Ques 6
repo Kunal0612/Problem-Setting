@@ -146,56 +146,56 @@ int main() {
     assert(result_2 == expected_2);
     // TEST_END
 
-    // TEST 3
+    // TEST
     std::vector<std::string> words_3 = {"asb", "sba", "abs"};
     int expected_3 = 1;
     int result_3 = NumSimilarGroups(words_3);
     assert(result_3 == expected_3);
     // TEST_END
 
-    // TEST 4
+    // TEST
     std::vector<std::string> words_4 = {"abcd", "bcda", "dbca", "dcba"};
     int expected_4 = 1;
     int result_4 = NumSimilarGroups(words_4);
     assert(result_4 == expected_4);
     // TEST_END
 
-    // TEST 5
+    // TEST
     std::vector<std::string> words_5 = {"aaaa", "aaaa", "aaaa", "aaaa"};
     int expected_5 = 1;
     int result_5 = NumSimilarGroups(words_5);
     assert(result_5 == expected_5);
     // TEST_END
 
-    // TEST 6
+    // TEST
     std::vector<std::string> words_6 = {"ab", "ba"};
     int expected_6 = 1;
     int result_6 = NumSimilarGroups(words_6);
     assert(result_6 == expected_6);
     // TEST_END
 
-    // TEST 7
+    // TEST
     std::vector<std::string> words_7 = {"abc", "cab", "bca"};
     int expected_7 = 3;
     int result_7 = NumSimilarGroups(words_7);
     assert(result_7 == expected_7);
     // TEST_END
 
-    // TEST 8
+    // TEST
     std::vector<std::string> words_8 = {"abcde", "edcba", "bcdea", "decba", "acbde"};
     int expected_8 = 3;
     int result_8 = NumSimilarGroups( words_8);
     assert(result_8 == expected_8);
     // TEST_END
 
-    // TEST 9
+    // TEST
     std::vector<std::string> words_9 = {"abcd", "bcda", "cdab", "dabc"};
     int expected_9 = 4;
     int result_9 = NumSimilarGroups(words_9);
     assert(result_9 == expected_9);
     // TEST_END
 
-    // TEST 10
+    // TEST
     std::vector<std::string> words_10 = {"aaa", "aaa", "aaa"};
     int expected_10 = 1;
     int result_10 = NumSimilarGroups(words_10);
