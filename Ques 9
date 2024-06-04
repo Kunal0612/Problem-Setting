@@ -40,10 +40,10 @@ struct Node
     bool was_visited = false;
 };
 
-const int prime1 = 31;
-const int prime2 = 53;
-unsigned long long power1[32];
-unsigned long long power2[32];
+const int prime_1 = 31;
+const int prime_2 = 53;
+unsigned long long power_1[32];
+unsigned long long power_2[32];
 
 const int max_memory = 130000000;
 int memory_position = 0;
@@ -146,12 +146,12 @@ std::vector<int> SmallestNumberOccurOddTimes(std::vector<int> nums, int number_q
             throw std::invalid_argument("Query values must be between 0 and 2000000000");
         }
     }
-    power1[0] = 1;
-    power2[0] = 1;
+    power_1[0] = 1;
+    power_2[0] = 1;
     for (int i = 1; i <= 31; i++)
     {
-        power1[i] = prime1 * power1[i - 1];
-        power2[i] = prime2 * power2[i - 1];
+        power_1[i] = prime_1 * power_1[i - 1];
+        power_2[i] = prime_2 * power_2[i - 1];
     }
 
     std::vector<std::pair<int, int>> indexed_nums(number_nums);
