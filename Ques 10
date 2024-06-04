@@ -1,0 +1,200 @@
+// Write a C++ Function CountSmallerPairs that count the number of nice pairs of the vector.
+
+// In the realm of integers, there existed an array named nums, filled with enigmatic values. Two sentinels, low and high, stood guard, defining the boundaries of magic pairs within nums. A magic pair, conjured by indices i and j, possessed an XOR that dwelled within the mystical confines set by low and high.
+
+// Our intrepid hero embarked on a quest to count these elusive magic pairs, navigating the array's labyrinthine passages. With each encounter, they ensured that the array's length remained within bounds and that the sentinels' decrees were upheld.
+
+// Through trials and triumphs, our hero persevered, unraveling the secrets of the array and tallying the tally of magic pairs. Thus, another legend was etched into the annals of integer lore.
+
+// Input:
+
+// A vector of integers nums containing the elements of the vector.
+// Two integers low and high
+
+// Constraints:
+
+// nums: Each element should be between 1 and 20000  inclusive.
+// low : Range lie from 1 to 20000.
+// high : Range lie from 1 to 20000.
+
+// Output:
+
+// A Integer count that contain the number of nice pairs.
+
+
+#include <iostream>
+#include <vector>
+#include <algorithm>
+#include <map>
+#include <cassert>
+
+struct TrieNode
+{
+    TrieNode *child[2];
+    int count_of_elements;
+    TrieNode()
+    {
+        child[0] = child[1] = nullptr;
+        count_of_elements = 0;
+    }
+};
+
+void InsertTrie(TrieNode *root, int n)
+{
+    for (int i = 16; i >= 0; i--)
+    {
+        bool bit = (n) & (1 << i);
+        if (!root->child[bit])
+        {
+            root->child[bit] = new TrieNode();
+        }
+        root->child[bit]->count_of_elements += 1;
+        root = root->child[bit];
+    }
+}
+
+int CountSmallerPairs(TrieNode *root, int num_1, int num_2)
+{
+    int count_pairs = 0;
+    for (int i = 16; i >= 0 && root; i--)
+    {
+        bool bit_num_1 = num_1 & (1 << i);
+        bool bit_num_2 = num_2 & (1 << i);
+        if (bit_num_2 == 0)
+        {
+            root = root->child[bit_num_1];
+            continue;
+        }
+        if (root->child[bit_num_1])
+        {
+            count_pairs += root->child[bit_num_1]->count_of_elements;
+        }
+        root = root->child[1 - bit_num_1];
+    }
+    return count_pairs;
+}
+
+int CountPairs(std::vector<int> &nums, int low, int high)
+{
+
+    if (nums.size() < 1 || nums.size() > 2 * 10000)
+    {
+        throw std::invalid_argument("Invalid length of nums vector.");
+    }
+    for (int num : nums)
+    {
+        if (num < 1 || num > 2 * 104)
+        {
+            throw std::invalid_argument("Invalid element value in nums vector.");
+        }
+    }
+    if (low < 1 || high < low || high > 2 * 104)
+    {
+        throw std::invalid_argument("Invalid values for low or high.");
+    }
+    TrieNode *root = new TrieNode();
+    int count = 0;
+    for (auto &num : nums)
+    {
+        count += CountSmallerPairs(root, num, high + 1) - CountSmallerPairs(root, num, low);
+        InsertTrie(root, num);
+    }
+    return count;
+}
+
+int main(){
+
+    // TEST
+    std::vector<int> nums_1 = {1, 4, 2, 7};
+    int low_1 = 2, high_1 = 6;
+    int result_1 = CountPairs(nums_1, low_1, high_1);
+    int expected_1 = 6;
+    assert(result_1 == expected_1);
+    // TEST_END
+
+    // TEST
+    std::vector<int> nums_2 = {5, 6, 7, 8};
+    int low_2 = 3, high_2 = 9;
+    int result_2 = CountPairs(nums_2, low_2, high_2);
+    int expected_2 = 1;
+    assert(result_2 == expected_2);
+    // TEST_END
+
+    // TEST
+    std::vector<int> nums_3 = {2, 3, 4, 5, 6};
+    int low_3 = 4, high_3 = 7;
+    int result_3 = CountPairs(nums_3, low_3, high_3);
+    int expected_3 = 6;
+    assert(result_3 == expected_3);
+    // TEST_END
+
+    // TEST
+    std::vector<int> nums_4 = {10, 12, 15, 20};
+    int low_4 = 8, high_4 = 18;
+    int result_4 = CountPairs(nums_4, low_4, high_4);
+    int expected_4 = 0;
+    assert(result_4 == expected_4);
+    // TEST_END
+
+    // TEST
+    std::vector<int> nums_5 = {7, 8, 9, 10, 11};
+    int low_5 = 3, high_5 = 15;
+    int result_5 = CountPairs(nums_5, low_5, high_5);
+    int expected_5 = 6;
+    assert(result_5 == expected_5);
+    // TEST_END
+
+    // TEST
+    std::vector<int> nums_6 = {3, 6, 9, 12, 15};
+    int low_6 = 5, high_6 = 20;
+    int result_6 = CountPairs(nums_6, low_6, high_6);
+    int expected_6 = 9;
+    assert(result_6 == expected_6);
+    // TEST_END
+
+    // TEST
+        std::vector<int> nums_7={};
+        int low_7= 2, high_7 = 6;
+        try
+        {
+            CountPairs(nums_7, low_7, high_7);
+            assert(false);
+        }
+        catch (const std::invalid_argument &e)
+        {
+            assert(true); 
+        }
+    // TEST_END
+
+    // TEST
+        std::vector<int> nums_8={200005};
+        int low_8= 2, high_8 = 6;
+        try
+        {
+            CountPairs(nums_8, low_8, high_8);
+            assert(false);
+        }
+        catch (const std::invalid_argument &e)
+        {
+            assert(true); 
+        }
+    // TEST_END
+
+    // TEST
+        std::vector<int> nums_9={};
+        int low_9= 2, high_9 = 200005;
+        try
+        {
+            CountPairs(nums_9, low_9, high_9);
+            assert(false);
+        }
+        catch (const std::invalid_argument &e)
+        {
+            assert(true); 
+        }
+    // TEST_END
+
+
+    std::cout << "All test cases passed!\n";
+    return 0;
+}
