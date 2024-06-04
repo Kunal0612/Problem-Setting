@@ -171,7 +171,7 @@ int main() {
     // TEST_END
     
 
-    // TEST 6
+    // TEST
     std::vector<int> nums_6 = {2, 4, 6, 8, 10, 12};
     int and_value_6 = 7;
     int expected_6 = 1;
@@ -187,7 +187,7 @@ int main() {
     assert(result_7 == expected_7);
     // TEST_END
 
-    // TEST 8
+    // TEST 
     std::vector<int> nums_8 = {1000000000, 999999999, 999999998};
     int and_value_8 = 500000000;
     int expected_8 = 499999488;
