@@ -1,3 +1,4 @@
+// https://leetcode.com/problems/maximum-strong-pair-xor-ii/description/
 // Write a C++ Function MaximumXorValue ut of all possible strong pairs in the vector nums.
 
 // In the realm of Numeria, there's a concept known as "strong pairs" among integers. A strong pair, denoted by (x, y), is formed when the absolute difference between the two integers is less than or equal to the minimum of the two numbers.
