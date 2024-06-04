@@ -176,8 +176,8 @@ std::vector<int> SmallestNumberOccurOddTimes(std::vector<int> nums, int number_q
         element_map[indexed_nums[i].first] = current_index;
     }
 
-    std::sort(indexed_nums.begin(), indexed_nums.end(), [](std::pair<int, int> x, std::pair<int, int> y)
-              { return x.second < y.second; });
+    std::sort(indexed_nums.begin(), indexed_nums.end(), [](std::pair<int, int> xec, std::pair<int, int> yec)
+              { return xec.second < yec.second; });
 
     for (int i = 0; i < number_nums; i++)
     {
