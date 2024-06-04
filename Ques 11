@@ -1,0 +1,228 @@
+// Write a C++ Function MaximumXorValue ut of all possible strong pairs in the vector nums.
+
+// In the realm of Numeria, there's a concept known as "strong pairs" among integers. A strong pair, denoted by (x, y), is formed when the absolute difference between the two integers is less than or equal to the minimum of the two numbers.
+
+// Now, a mystical artifact called the "XOR Crystal" is said to harness the power of strong pairs to unveil the greatest XOR value. XOR, or exclusive OR, is a bitwise operation where each bit of the output is the result of an exclusive OR operation on the corresponding bits of the input operands.
+
+// Your quest is to find the maximum XOR value achievable among all possible strong pairs within a given array of integers. To do this, you'll need to carefully select two integers from the array to form a strong pair and then compute their bitwise XOR. The challenge lies in identifying the optimal pair that results in the maximum XOR value.
+
+// So, armed with knowledge of strong pairs and bitwise XOR operations, your task is to navigate the array, strategically choosing pairs to unlock the full potential of the XOR Crystal and attain the coveted maximum XOR value.
+
+// Input:
+
+// A vector of integers nums containing the elements of the vector.
+
+// Constraints:
+
+// nums.size() : Range from 1 to 50000
+// nums: Each element should be between 1 and 2^20 - 1 inclusive.
+
+// Output:
+
+// A Integer count that contain the number of nice pairs.
+
+
+#include <iostream>
+#include <vector>
+#include <algorithm>
+#include <map>
+#include <cassert>
+
+struct Node {
+    Node* Links[2];
+    int Frequency; 
+    Node() : Frequency(0) {
+        Links[0] = Links[1] = nullptr;
+    }
+
+    bool ContainsKey(int bit) {
+        return (Links[bit] != nullptr);
+    }
+
+    Node* Get(int bit) {
+        return Links[bit];
+    }
+
+    void Put(int bit, Node* node) {
+        Links[bit] = node;
+    }
+};
+
+class Trie {
+private:
+    Node* Root;
+
+public:
+    Trie() {
+        Root = new Node();
+    }
+
+    void Insert(int num) {
+        Node* node = Root;
+        for (int i = 31; i >= 0; i--) {
+            int bit = (num >> i) & 1;
+            if (!node->ContainsKey(bit)) {
+                node->Put(bit, new Node());
+            }
+            node = node->Get(bit);
+            node->Frequency++;
+        }
+    }
+
+    int GetMax(int num) {
+        Node* node = Root;
+        int res = 0;
+        for (int i = 31; i >= 0; i--) {
+            int bit = (num >> i) & 1;
+            if (node->ContainsKey(1 - bit) && node->Get(1 - bit)->Frequency > 0) {
+                res = res | (1 << i);
+                node = node->Get(1 - bit);
+            } else {
+                if(node->ContainsKey(bit) && node->Get(bit)->Frequency > 0) node = node->Get(bit);
+                else return 0;
+            }
+        }
+        return res;
+    }
+
+    void DeleteKey(int num) {
+        Node* node = Root;
+        for (int i = 31; i >= 0; i--) {
+            int bit = (num >> i) & 1;
+            if (node->ContainsKey(bit)) {
+                node = node->Get(bit);
+                node->Frequency--;
+            } else {
+                break;
+            }
+        }
+    }
+};
+
+int MaximumXorValue(std::vector<long long int> &nums)
+{
+    if (nums.size() <= 0)
+    {
+        throw std::invalid_argument("vec length must be positive.");
+    }
+    for (int i = 0; i < nums.size(); ++i)
+    {
+        if (nums[i] < 1 || nums[i] > (1 << 20) - 1)
+        {
+            throw std::invalid_argument("Invalid element value");
+        }
+    }
+    std::sort(nums.begin(), nums.end());
+    int maxi = 0;
+    Trie trie;
+    trie.Insert(nums[0]);
+    for (int i = 1,j=0; i < nums.size(); i++)
+    {
+        while (j < i && nums[i] - nums[j] > std::min(nums[i], nums[j]))
+        {
+            trie.DeleteKey(nums[j]);
+            ++j;
+        }
+        maxi = std::max(maxi, trie.GetMax(nums[i]));
+        trie.Insert(nums[i]);
+    }
+    return maxi;
+}
+
+int main()
+{
+    //TEST
+    std::vector<long long int> nums_1 = {1,2,3,4,5};
+    int expected_1 = 7;
+    int result_1 = MaximumXorValue(nums_1);
+    assert(result_1 == expected_1);
+    // TEST_END
+
+    //TEST
+    std::vector<long long int> nums_2 = {10,100};
+    int expected_2 = 0;
+    int result_2 = MaximumXorValue(nums_2);
+    assert(result_2 == expected_2);
+    // TEST_END
+
+    //TEST
+    std::vector<long long int> nums_3 = {500,520,2500,3000};
+    int expected_3 = 1020;
+    int result_3 = MaximumXorValue(nums_3);
+    assert(result_3 == expected_3);
+    // TEST_END
+
+    //TEST
+    std::vector<long long int> nums_4 = {5, 5, 5, 5};
+    int expected_4 = 0;
+    int result_4 = MaximumXorValue(nums_4);
+    assert(result_4 == expected_4);
+    // TEST_END
+
+    //TEST
+    std::vector<long long int> nums_5 = {10};
+    int expected_5 = 0;
+    int result_5 = MaximumXorValue(nums_5);
+    assert(result_5 == expected_5);
+    // TEST_END
+
+    //TEST
+    std::vector<long long int> nums_6 = {1, 2, 3, 4, 5, 6, 7, 8, 9, 10};
+    int expected_6 = 15;
+    int result_6 = MaximumXorValue(nums_6);
+    assert(result_6 == expected_6);
+    // TEST_END
+
+    //TEST
+    std::vector<long long int> nums_7 = {1, 2, 3, 4, 5, 5, 5};
+    int expected_7 = 7;
+    int result_7 = MaximumXorValue(nums_7);
+    assert(result_7 == expected_7);
+    // TEST_END
+
+    //TEST
+    std::vector<long long int> nums_8 = {1, 2, 1, 2, 1, 2, 1, 2};
+    int expected_8 = 3;
+    int result_8 = MaximumXorValue(nums_8);
+    assert(result_8 == expected_8);
+    // TEST_END
+
+    //TEST
+    std::vector<long long int> nums_9 = {1, 1, 1, 1, 1, 1, 1, 1, 1, 2};
+    int expected_9 = 3;
+    int result_9 = MaximumXorValue(nums_9);
+    assert(result_9 == expected_9);
+    // TEST_END
+
+    //TEST
+    std::vector<long long int> nums_10 = {1, -2, 3, 4, 5, 6, 7, 8, 9, 10};
+    int expected_10 = 0;
+    int result_10;
+        try
+        {
+            MaximumXorValue(nums_10);
+            assert(false);
+        }
+        catch (const std::invalid_argument &e)
+        {
+            assert(true);
+        }
+    // TEST_END
+    //TEST
+    std::vector<long long int> nums_11 = {1, 2, -3, -4, 5, 6, -7, 8, 9, 10};
+    int expected_11 = 0;
+    int result_11;
+        try
+        {
+            MaximumXorValue(nums_11);
+            assert(false);
+        }
+        catch (const std::invalid_argument &e)
+        {
+            assert(true);
+        }
+    // TEST_END
+
+    std::cout << "All test cases passed!\n";
+    return 0;
+}
