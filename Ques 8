@@ -49,11 +49,9 @@
 #include <climits>
 #include <cassert>
 
-using namespace std;
-
-vector<long long> Prev(vector<long long> &vec)
+std::vector<long long> Prev(std::vector<long long> &vec)
 {
-    vector<long long> prev_diff(vec.size());
+    std::vector<long long> prev_diff(vec.size());
     for (long long idx = 0; idx < vec.size(); idx++)
     {
         if (idx == 0)
@@ -72,9 +70,9 @@ vector<long long> Prev(vector<long long> &vec)
     return prev_diff;
 }
 
-vector<long long> Next(vector<long long> &vec)
+std::vector<long long> Next(std::vector<long long> &vec)
 {
-    vector<long long> next_diff(vec.size());
+    std::vector<long long> next_diff(vec.size());
     int size = vec.size();
     for (long long idx = size - 1; idx >= 0; idx--)
     {
@@ -94,7 +92,7 @@ vector<long long> Next(vector<long long> &vec)
     return next_diff;
 }
 
-vector<int> CalculateSecondsForEach(vector<long long int> &nums)
+std::vector<int> CalculateSecondsForEach(std::vector<long long int> &nums)
 {
     if (nums.size() <= 0)
     {
@@ -108,14 +106,14 @@ vector<int> CalculateSecondsForEach(vector<long long int> &nums)
         }
     }
     int num_elements = nums.size();
-    vector<long long> prefix_sum(num_elements + 1);
+    std::vector<long long> prefix_sum(num_elements + 1);
     for (long long idx = 0; idx < num_elements; idx++)
     {
         prefix_sum[idx + 1] = prefix_sum[idx] + nums[idx];
     }
-    vector<long long> next_diff = Next(nums);
-    vector<long long> prev_diff = Prev(nums);
-    vector<int> ans;
+    std::vector<long long> next_diff = Next(nums);
+    std::vector<long long> prev_diff = Prev(nums);
+    std::vector<int> ans;
     for (long long idx = 0; idx < num_elements; idx++)
     {
         if ((idx > 0 && nums[idx - 1] > nums[idx]) || (idx + 1 < num_elements && nums[idx + 1] > nums[idx]))
@@ -161,10 +159,10 @@ vector<int> CalculateSecondsForEach(vector<long long int> &nums)
                 }
             }
         }
-        if (min(left_val, right_val) == LONG_MAX)
+        if (std::min(left_val, right_val) == LONG_MAX)
             ans.push_back(-1);
         else
-            ans.push_back(min(left_val, right_val));
+            ans.push_back(std::min(left_val, right_val));
     }
     return ans;
 }
