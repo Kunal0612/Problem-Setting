@@ -1,0 +1,299 @@
+// Write a C++ Function MaximizeXor to calculate the answer of all queries for the numbers array.
+
+// Once upon a time in a faraway kingdom, there lived a wise old wizard named Merlin. Merlin possessed a magical array called numbers, filled with enchanting non-negative integers. This array held the essence of mystical energies, each integer representing a unique source of magical power.
+
+// However, the true magic lay within the kingdom's inhabitants' queries. These queries, represented by an array called queries, contained pairs of values [xi, mi]. The people sought the guidance of Merlin to unlock the secrets hidden within numbers using these queries.
+
+// The people believed that by consulting Merlin's wisdom, they could uncover the maximum potential of their own unique values. Thus, they posed their queries to Merlin, hoping to discover the maximum bitwise XOR value between their individual values (xi) and any element from the magical array numbers that did not exceed a certain limit (mi).
+
+// Merlin, with his vast knowledge of ancient spells and incantations, delved deep into the mystical realm of bitwise XOR operations. He pondered over each query, summoning the essence of numbers to reveal its secrets to the seekers.
+
+// For each query, Merlin sought to find the most potent magical bond between the seeker's value xi and the elements of numbers, ensuring that the enchanting energies did not surpass the limit mi. If the seeker's power exceeded that of numbers, Merlin would solemnly declare the answer to be -1, signifying an unreachable magical connection.
+
+// As Merlin embarked on this journey of unraveling the arcane, he meticulously recorded the outcomes of each query, forming an array of answers known as answer. With each query answered, Merlin bestowed upon the seekers the knowledge they sought, guiding them on their mystical quests.
+
+// And thus, armed with the wisdom of Merlin's guidance, the people ventured forth into the enchanted realm, their hearts filled with hope and wonder, ready to unlock the mysteries of the magical array.
+
+// Input:
+
+// A vector of integers numbers containing the elements of the vector.
+// A vector of vector of integers queries.
+
+// Constraints:
+
+// numbers.size() : Range from 1 to 200000
+// queries.size() : Range from 1 to 200000
+// numbers: Each element should be between 0 and 10^9 inclusive.
+// queries: Each element should be between 0 and 10^9 inclusive.
+// pos: Integer which ranges be between 1 and 10^9 inclusive.
+
+// Output:
+
+// A answer vector results containing answer to all queries.
+
+
+#include <iostream>
+#include <vector>
+#include <algorithm>
+#include <map>
+#include <cassert>
+
+class Node{
+public:
+    Node* links[2];
+    bool ContainsKey(int bit){
+        return (links[bit] != nullptr);
+    }
+    Node* GetNode(int bit){
+        return links[bit];
+    }
+    void PutNode(int bit, Node* node){
+        links[bit] = node;
+    }
+};
+
+class Trie{
+public:
+    Node* root_node;
+    Trie(){
+        root_node = new Node();
+    }
+    void InsertNum(int number){
+        Node* node = root_node;
+        for(int i = 31; i >= 0; i--){
+            int bit = (number >> i) & 1;
+            if(!node->ContainsKey(bit)){
+                node->PutNode(bit, new Node());
+            }
+            node = node->GetNode(bit);
+        }
+    }
+    int GetMax(int number){
+        Node* node = root_node;
+        int maximum = 0;
+        for(int i = 31; i >= 0; i--){
+            int bit = (number >> i) & 1;
+            if(node->ContainsKey(1 - bit)){
+                maximum = maximum | (1 << i);
+                node = node->GetNode(1 - bit);
+            }
+            else{
+                node = node->GetNode(bit);
+            }
+        }
+        return maximum;
+    }
+};
+
+std::vector<int> MaximizeXor(std::vector<int> &numbers, std::vector<std::vector<int>> &queries)
+{
+    if (numbers.size() < 1 || numbers.size() > 100000)
+        throw std::invalid_argument("Invalid length of 'numbers' array.");
+    for(int i=0;i<numbers.size();i++){
+        if(numbers[i]<0 || numbers[i]>1000000000){
+            throw std::invalid_argument("Invalid value in query.");
+        }
+    }
+
+    for (int i = 0; i < queries.size(); ++i)
+    {
+        if (queries[i].size() != 2)
+            throw std::invalid_argument("Each query must contain exactly 2 elements.");
+        if (queries[i][0] < 0 || queries[i][0] > 1000000000)
+            throw std::invalid_argument("Invalid value in query.");
+        if (queries[i][1] < 0 || queries[i][1] > 1000000000)
+            throw std::invalid_argument("Invalid value in query.");
+    }
+
+    Trie *trie = new Trie();
+    int size = numbers.size();
+    std::sort(numbers.begin(), numbers.end());
+    std::vector<std::pair<int, std::pair<int, int>>> vp_pair;
+    for (int i = 0; i < queries.size(); i++)
+    {
+        vp_pair.push_back({queries[i][1], {queries[i][0], i}});
+    }
+    std::sort(vp_pair.begin(), vp_pair.end());
+    long long index = 0;
+    std::vector<int> result(queries.size());
+    int flag = 0;
+    for (int j = 0; j < vp_pair.size(); j++)
+    {
+        int num = vp_pair[j].first;
+        int val = vp_pair[j].second.first;
+        int idx = vp_pair[j].second.second;
+        while (index < size && numbers[index] <= num)
+        {
+            trie->InsertNum(numbers[index]);
+            index++;
+        }
+        if (index == 0)
+            result[idx] = -1;
+        else
+        {
+            int res = trie->GetMax(val);
+            result[idx] = res;
+        }
+    }
+    return result;
+}
+
+int main()
+{
+    // TEST
+    std::vector<int> numbers_1 = {1, 2, 3, 4, 5};
+    std::vector<std::vector<int>> queries_1 = {{0, 1}, {1, 2}, {2, 3}, {3, 4}};
+    std::vector<int> expected_1 = {1, 3, 3, 7};
+    std::vector<int> result_1 = MaximizeXor(numbers_1, queries_1);
+    assert(result_1 == expected_1);
+    // TEST_END
+
+    // TEST
+    std::vector<int> numbers_2 = {0, 0, 0, 0, 0};
+    std::vector<std::vector<int>> queries_2 = {{0, 0}, {1, 1}, {2, 2}, {3, 3}};
+    std::vector<int> expected_2 = {0, 1, 2, 3};
+    std::vector<int> result_2 = MaximizeXor(numbers_2, queries_2);
+    assert(result_2 == expected_2);
+    // TEST_END
+
+    // TEST
+    std::vector<int> numbers_3 = {109, 108, 107, 106, 105};
+    std::vector<std::vector<int>> queries_3 = {{0, 100}, {1, 101}, {2, 102}, {3, 103}};
+    std::vector<int> expected_3 = {-1,-1,-1,-1};
+    std::vector<int> result_3 = MaximizeXor(numbers_3, queries_3);
+    assert(result_3 == expected_3);
+    // TEST_END
+
+    // TEST
+    std::vector<int> numbers_4 = {1000000000, 500000000, 200000000, 100000000, 50000000};
+    std::vector<std::vector<int>> queries_4 = {{1000000000, 100000000}, {500000000, 50000000}, {200000000, 1000000}, {100000000, 500000}};
+    std::vector<int> expected_4 = {1047472896, 523736448, -1, -1};
+    std::vector<int> result_4 = MaximizeXor(numbers_4, queries_4);
+    assert(result_4 == expected_4);
+    // TEST_END
+
+    // TEST
+    std::vector<int> numbers_5 = {109, 109, 109, 109, 109};
+    std::vector<std::vector<int>> queries_5 = {{109, 0}, {109, 1}, {109, 2}, {109, 3}};
+    std::vector<int> expected_5 = {-1,-1,-1,-1};
+    std::vector<int> result_5 = MaximizeXor(numbers_5, queries_5);
+    assert(result_5 == expected_5);
+    // TEST_END
+
+    // TEST
+    std::vector<int> numbers_6 = {50000000, 60000000, 70000000, 80000000, 90000000};
+    std::vector<std::vector<int>> queries_6 = {{200000000, 5000000}, {300000000, 6000000}, {400000000, 7000000}, {500000000, 8000000}};
+    std::vector<int> expected_6 = {-1,-1,-1,-1};
+    std::vector<int> result_6 = MaximizeXor(numbers_6, queries_6);
+    assert(result_6 == expected_6);
+    // TEST_END
+
+    // TEST
+    std::vector<int> numbers_7 = {1000000000, 999999999, 999999998, 999999997, 999999996};
+    std::vector<std::vector<int>> queries_7 = {{1000000000, 999999999}, {999999999, 999999998}, {999999998, 999999997}, {999999997, 999999996}};
+    std::vector<int> expected_7 = {1023,3,3,1};
+    std::vector<int> result_7 = MaximizeXor(numbers_7, queries_7);
+    assert(result_7 == expected_7);
+    // TEST_END
+
+    // TEST
+    std::vector<int> numbers_8 = {109, 108, 107, 106, 105};
+    std::vector<std::vector<int>> queries_8 = {{1000000000, 109}, {1000000000, 108}, {1000000000, 107}, {1000000000, 106}};
+    std::vector<int> expected_8 = {1000000109,1000000108,1000000107,1000000106};
+    std::vector<int> result_8 = MaximizeXor(numbers_8, queries_8);
+    assert(result_8 == expected_8);
+    // TEST_END
+
+    // TEST
+    std::vector<int> numbers_9 = {1000000000, 500000000, 200000000, 100000000, 50000000};
+    std::vector<std::vector<int>> queries_9 = {{0, 1000000000}, {0, 500000000}, {0, 200000000}, {0, 100000000}};
+    std::vector<int> expected_9 = {1000000000, 500000000, 200000000, 100000000};
+    std::vector<int> result_9 = MaximizeXor(numbers_9, queries_9);
+    assert(result_9 == expected_9);
+    // TEST_END
+
+    // TEST
+    std::vector<int> numbers_10 = {1000000000, 500000000, 200000000, 100000000, 50000000};
+    std::vector<std::vector<int>> queries_10 = {{1000000000, 1000000000}, {500000000, 500000000}, {200000000, 200000000}, {100000000, 100000000}};
+    std::vector<int> expected_10 = {1047472896,523736448,236856064,118428032};
+    std::vector<int> result_10 = MaximizeXor(numbers_10, queries_10);
+    assert(result_10 == expected_10);
+    // TEST_END
+    // TEST
+    std::vector<int> numbers_11 = {1000000001, 500000000, 200000000, 100000000, 50000000};
+    std::vector<std::vector<int>> queries_11 = {{1000000005, 1000000000}, {500000000, 500000000}, {200000000, 200000000}, {100000000, 100000000}};
+    std::vector<int> result_11;
+    try
+    {
+        MaximizeXor(numbers_11, queries_11);
+        assert(false);
+    }
+    catch (const std::invalid_argument &e)
+    {
+        assert(true);
+    }
+    // TEST_END
+
+    // TEST
+    std::vector<int> numbers_12 = {1000000000, 500000000, 200000000, 100000000, 50000000};
+    std::vector<std::vector<int>> queries_12 = {{1000000000, 1000000000, 1000000000}, {500000000, 500000000}, {200000000, 200000000}, {100000000, 100000000}};
+    std::vector<int> result_12;
+    try
+    {
+        MaximizeXor(numbers_12, queries_12);
+        assert(false);
+    }
+    catch (const std::invalid_argument &e)
+    {
+        assert(true);
+    }
+    // TEST_END
+
+    // TEST
+    std::vector<int> numbers_13 = {1000000000, 500000000, 200000000, 100000000, 50000000};
+    std::vector<std::vector<int>> queries_13 = {{1000000000, 1000000001}, {500000000, 500000000}, {200000000, 200000000}, {100000000, 100000000}};
+    std::vector<int> result_13;
+    try
+    {
+        MaximizeXor(numbers_13, queries_13);
+        assert(false);
+    }
+    catch (const std::invalid_argument &e)
+    {
+        assert(true);
+    }
+    // TEST_END
+
+    // TEST
+    std::vector<int> numbers_14 = {1000000000, 500000000, 200000000, 100000000, 50000000};
+    std::vector<std::vector<int>> queries_14 = {{1000000000, -1}, {500000000, 500000000}, {200000000, 200000000}, {100000000, 100000000}};
+    std::vector<int> result_14;
+    try
+    {
+        MaximizeXor(numbers_14, queries_14);
+        assert(false);
+    }
+    catch (const std::invalid_argument &e)
+    {
+        assert(true);
+    }
+    // TEST_END
+
+    // TEST
+    std::vector<int> numbers_15 = {1000000000, 500000000, 200000000, 100000000, 50000000};
+    std::vector<std::vector<int>> queries_15 = {{1000000000, 1000000000}, {500000000, 500000000}, {200000000, 200000000}, {-1, 100000000}};
+    std::vector<int> result_15;
+    try
+    {
+        MaximizeXor(numbers_15, queries_15);
+        assert(false);
+    }
+    catch (const std::invalid_argument &e)
+    {
+        assert(true);
+    }
+    // TEST_END
+
+    std::cout << "All test cases passed!\n";
+    return 0;
+}
