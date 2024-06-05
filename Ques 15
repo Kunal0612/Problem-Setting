@@ -1,0 +1,279 @@
+// https://leetcode.com/problems/falling-squares/description/
+// Write a C++ Function FallingSquare to calculate the array answer where ans[i] represents the height described above after dropping the ith square.
+
+// In the bustling town of Vertexville, located within the heart of the Cartesian Kingdom, there stood a peculiar plaza where squares of various sizes descended from the heavens above. Each square, embodying its own unique dimensions, descended one by one onto the X-axis of a mystical 2D plane.
+
+// As the squares made their descent, they followed a harmonious rhythm orchestrated by the laws of gravity. The townsfolk, gathered around the plaza in awe, watched as each square gracefully descended, their eyes following the gentle descent until the squares found their resting place.
+
+// The enigmatic squares, represented by a 2D integer array called positions, were characterized by their left edges aligned with distinct X-coordinates. Each square brought with it a dimension of significance, denoted by its side length.
+
+// With each square's descent, the townsfolk held their breath in anticipation, observing as the squares gracefully navigated their way down. As they descended, they followed a path ordained by fate, drifting downwards in the negative Y-direction, until they found their resting place atop another square or upon the sacred X-axis.
+
+// However, it was not merely the act of descent that captivated the people; it was the grandeur of the tallest tower of squares that rose higher with each successive descent. As each square came to rest, it contributed to the burgeoning tower, shaping it into a marvel of architectural wonder.
+
+// In the midst of this celestial spectacle, the townsfolk turned to their scribes, beseeching them to chronicle the height of the tallest tower after each square's descent. Thus, the scribes diligently recorded the heights, forming an array of integers known as ans, where each entry ans[i] represented the height of the tallest tower after the descent of the ith square.
+
+// As the squares continued their celestial descent, the town of Vertexville stood witness to a symphony of geometry, where each square played its part in shaping the skyline of the plaza, leaving behind a legacy of wonder and awe for generations to come.
+
+// Input:
+
+// A vector of vector of int positions .
+
+// Constraints:
+
+// positions.size() : Range from 1 to 1000
+// left[i] : Range varies from 1 to 10^8
+// sidelength[i] : Range varies from 1 to 10^6.
+
+// Output:
+
+// A answer vector answer where ans[i] represents the height described above after dropping the ith square.
+
+
+#include <iostream>
+#include <vector>
+#include <algorithm>
+#include <map>
+#include <cassert>
+#include <set>
+#include <unordered_map>
+
+class SegTree{
+    std::vector<int> st_vector, lazy_vector;
+public:
+    SegTree(int length){
+        st_vector.resize(4*length, 0);
+        lazy_vector.resize(4*length, 0);
+    }
+    void RangeUpdate(int seg_index, int start_seg, int end_seg, int& left, int& right, int& value){
+        if(lazy_vector[seg_index] != 0){
+            st_vector[seg_index] = std::max(st_vector[seg_index], lazy_vector[seg_index]);
+            if(start_seg != end_seg){
+                lazy_vector[2*seg_index+1] = std::max(lazy_vector[2*seg_index+1], st_vector[seg_index]);
+                lazy_vector[2*seg_index+2] = std::max(lazy_vector[2*seg_index+2], st_vector[seg_index]);
+            }
+            lazy_vector[seg_index] = 0;
+        }
+
+        if(right < start_seg || end_seg < left) return;
+
+        if(left <= start_seg && end_seg <= right){
+            st_vector[seg_index] = value;
+            if(start_seg != end_seg){
+                lazy_vector[2*seg_index+1] = std::max(lazy_vector[2*seg_index+1], st_vector[seg_index]);
+                lazy_vector[2*seg_index+2] = std::max(lazy_vector[2*seg_index+2], st_vector[seg_index]);
+            }
+            return;
+        }
+
+        int  mid = start_seg + (end_seg - start_seg)/2;
+        RangeUpdate(2*seg_index+1, start_seg, mid, left, right, value);
+        RangeUpdate(2*seg_index+2, mid+1, end_seg, left, right, value);
+
+        st_vector[seg_index] = std::max(st_vector[2*seg_index+1], st_vector[2*seg_index+2]);
+    }
+    int Query(int seg_index, int start_seg, int end_seg, int& query_start, int& query_end){
+        if(lazy_vector[seg_index] != 0){
+            st_vector[seg_index] = std::max(st_vector[seg_index], lazy_vector[seg_index]);
+            if(start_seg != end_seg){
+                lazy_vector[2*seg_index+1] = std::max(lazy_vector[2*seg_index+1], st_vector[seg_index]);
+                lazy_vector[2*seg_index+2] = std::max(lazy_vector[2*seg_index+2], st_vector[seg_index]);
+            }
+            lazy_vector[seg_index] = 0;
+        }
+        if(query_end < start_seg || end_seg < query_start) return 0;
+        if(query_start <= start_seg && end_seg <= query_end) return st_vector[seg_index];
+
+        int mid = start_seg + (end_seg - start_seg)/2;
+        return std::max(Query(2*seg_index+1, start_seg, mid, query_start, query_end),
+                        Query(2*seg_index+2, mid+1, end_seg, query_start, query_end));
+    }
+};
+
+std::vector<int> FallingSquares(std::vector<std::vector<int>>& positions) {
+    if (positions.size() < 1 || positions.size() > 1000)
+        throw std::invalid_argument("Invalid length of 'positions' array.");
+
+    std::set<int> x_cords;
+    for(int i = 0; i < positions.size(); ++i){
+        int left = positions[i][0];
+        int side_length = positions[i][1];
+        if (left < 1 || left > 100000000 || side_length < 1 || side_length > 1000000)
+            throw std::invalid_argument("Invalid position or side length.");
+        x_cords.insert(left);
+        x_cords.insert(left + side_length - 1);
+    }
+    std::unordered_map<int, int> actual_to_compressed_idx;
+    int index = 0;
+    for(std::set<int>::iterator it = x_cords.begin(); it != x_cords.end(); ++it){
+        actual_to_compressed_idx[*it] = index;
+        index++;
+    }
+    int max_n = x_cords.size();
+    SegTree root(max_n);
+    int max_height = 0;
+    std::vector<int> answer;
+    for(int i = 0; i < positions.size(); ++i){
+        int x1 = actual_to_compressed_idx[positions[i][0]];
+        int x2 = actual_to_compressed_idx[positions[i][0] + positions[i][1] - 1];
+        int current_max = root.Query(0, 0, max_n, x1, x2);
+        current_max += positions[i][1];
+        root.RangeUpdate(0, 0, max_n, x1, x2, current_max);
+        max_height = std::max(max_height, current_max);
+        answer.push_back(max_height);
+    }
+    return answer;
+}
+
+
+int main()
+{
+    // TEST
+    std::vector<std::vector<int>> positions_1 = {{1, 2}, {2, 3}, {6, 1}};
+    std::vector<int> expected_1 = {2, 5, 5};
+    std::vector<int> result_1 = FallingSquares(positions_1);
+    assert(result_1 == expected_1);
+    // TEST_END
+
+    // TEST
+    std::vector<std::vector<int>> positions_2 = {{1, 1}, {2, 3}, {6, 2}};
+    std::vector<int> expected_2 = {1, 3, 3};
+    std::vector<int> result_2 = FallingSquares(positions_2);
+    assert(result_2 == expected_2);
+    // TEST_END
+
+    // TEST
+    std::vector<std::vector<int>> positions_3 = {{1, 1}, {2, 3}, {6, 2}, {9, 1}};
+    std::vector<int> expected_3 = {1, 3,3,3};
+    std::vector<int> result_3 = FallingSquares(positions_3);
+    assert(result_3 == expected_3);
+    // TEST_END
+
+    // TEST
+    std::vector<std::vector<int>> positions_4 = {{1, 1}, {2, 3}, {6, 2}, {9, 1}, {12, 5}};
+    std::vector<int> expected_4 = {1,3,3,3,5};
+    std::vector<int> result_4 = FallingSquares(positions_4);
+    assert(result_4 == expected_4);
+    // TEST_END
+
+    // TEST
+    std::vector<std::vector<int>> positions_5 = {{1, 1}, {2, 3}, {6, 2}, {9, 1}, {12, 5}, {15, 3}};
+    std::vector<int> expected_5 = {1,3,3,3,5,8};
+    std::vector<int> result_5 = FallingSquares(positions_5);
+    assert(result_5 == expected_5);
+    // TEST_END
+
+    // TEST
+    std::vector<std::vector<int>> positions_6 = {{1, 1}, {2, 3}, {6, 2}, {9, 1}, {12, 5}, {15, 3}, {18, 1}};
+    std::vector<int> expected_6 = {1,3,3,3,5,8,8};
+    std::vector<int> result_6 = FallingSquares(positions_6);
+    assert(result_6 == expected_6);
+    // TEST_END
+
+    // TEST
+    std::vector<std::vector<int>> positions_7 = {{1, 1}, {2, 3}, {6, 2}, {9, 1}, {12, 5}, {15, 3}, {18, 1}, {21, 2}};
+    std::vector<int> expected_7 = {1,3,3,3,5,8,8,8};
+    std::vector<int> result_7 = FallingSquares(positions_7);
+    assert(result_7 == expected_7);
+    // TEST_END
+
+    // TEST
+    std::vector<std::vector<int>> positions_8 = {{1, 1}, {2, 3}, {6, 2}, {9, 1}, {12, 5}, {15, 3}, {18, 1}, {21, 2}, {24, 6}};
+    std::vector<int> expected_8 = {1,3,3,3,5,8,8,8,8};
+    std::vector<int> result_8 = FallingSquares(positions_8);
+    assert(result_8 == expected_8);
+    // TEST_END
+
+    // TEST
+    std::vector<std::vector<int>> positions_9 = {{1, 1}, {2, 3}, {6, 2}, {9, 1}, {12, 5}, {15, 3}, {18, 1}, {21, 2}, {24, 6}, {27, 1}};
+    std::vector<int> expected_9 = {1,3,3,3,5,8,8,8,8,8};
+    std::vector<int> result_9 = FallingSquares(positions_9);
+    assert(result_9 == expected_9);
+    // TEST_END
+
+    // TEST
+    std::vector<std::vector<int>> positions_10 = {{1, 1}, {2, 3}, {6, 2}, {9, 1}, {12, 5}, {15, 3}, {18, 1}, {21, 2}, {24, 6}, {27, 1}, {30, 4}};
+    std::vector<int> expected_10 = {1,3,3,3,5,8,8,8,8,8,8};
+    std::vector<int> result_10 = FallingSquares(positions_10);
+    assert(result_10 == expected_10);
+    // TEST_END
+
+    // TEST
+    std::vector<std::vector<int>> positions_11 = {{1, 1}, {2, 3}, {6, 2}, {9, 1}, {12, 5}, {15, 3}, {18, 1}, {21, 2}, {24, 6}, {27, 1}, {1000000001, 1}};
+    std::vector<int> expected_11 = {1, 4, 4, 5, 10, 10, 11, 13, 19, 20};
+    std::vector<int> result_11;
+    try
+    {
+        FallingSquares(positions_11);
+        assert(false);
+    }
+    catch (const std::invalid_argument &e)
+    {
+        assert(true);
+    }
+    // TEST_END
+
+    // TEST
+    std::vector<std::vector<int>> positions_12 = {{1, 1}, {2, 3}, {6, 2}, {9, 1}, {12, 5}, {15, 3}, {18, 1}, {21, 2}, {24, 6}, {27, 1}, {-1, 1}};
+    std::vector<int> expected_12 = {1, 4, 4, 5, 10, 10, 11, 13, 19, 20};
+    std::vector<int> result_12;
+    try
+    {
+        FallingSquares(positions_12);
+        assert(false);
+    }
+    catch (const std::invalid_argument &e)
+    {
+        assert(true);
+    }
+    // TEST_END
+
+    // TEST
+    std::vector<std::vector<int>> positions_13 = {{1, 1}, {2, 3}, {6, 2}, {9, 1}, {12, 5}, {15, 3}, {18, 1}, {21, 2}, {24, 6}, {27, 1}, {1, 1000000001}};
+    std::vector<int> expected_13 = {1, 4, 4, 5, 10, 10, 11, 13, 19, 20};
+    std::vector<int> result_13;
+    try
+    {
+        FallingSquares(positions_13);
+        assert(false);
+    }
+    catch (const std::invalid_argument &e)
+    {
+        assert(true);
+    }
+    
+    // TEST_END
+
+    // TEST
+    std::vector<std::vector<int>> positions_14 = {{1, 1}, {2, 3}, {6, 2}, {9, 1}, {12, 5}, {15, 3}, {18, 1}, {21, 2}, {24, 6}, {27, 1}, {1, -1}};
+    std::vector<int> expected_14 = {1, 4, 4, 5, 10, 10, 11, 13, 19, 20};
+    std::vector<int> result_14;
+    try
+    {
+         FallingSquares(positions_14);
+        assert(false);
+    }
+    catch (const std::invalid_argument &e)
+    {
+        assert(true);
+    }
+    
+    // TEST_END
+
+    // TEST
+    std::vector<std::vector<int>> positions_15 = {{1, 1}, {2, 3}, {6, 2}, {9, 1}, {12, 5}, {15, 3}, {18, 1}, {21, 2}, {24, 6}, {27, 1}, {1000000000, 1000000001}};
+    std::vector<int> expected_15 = {1, 4, 4, 5, 10, 10, 11, 13, 19, 20};
+    std::vector<int> result_15;
+    try
+    {
+        FallingSquares(positions_15);
+        assert(false);
+    }
+    catch (const std::invalid_argument &e)
+    {
+        assert(true);
+    }
+    // TEST_END
+    std::cout << "All test cases passed!\n";
+    return 0;
+}
