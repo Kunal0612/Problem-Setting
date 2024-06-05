@@ -1,0 +1,389 @@
+// Write a C++ Function IsPossible to find whether Chef will defeat the monster or not.
+
+// Chef is playing an intense computer game where he needs to defeat N monsters positioned on a number line. Chef starts at position 0 on the line, while the i-th monster has a starting health health[i] and is initially positioned at pos[i]. The positions are strictly increasing, meaning pos[i]<pos[i+1] for every integer from 1<=i<=n.
+
+// Each second in the game involves the following actions:
+
+// Chef's Attack: Chef can choose one monster that is still alive and fire a bullet at it, reducing its health health[i] by 1.
+// Monster Death: Any monster whose health reaches 0 dies and is removed from the game.
+// Monster Movement: All remaining monsters move one position closer to Chef.
+// The game ends immediately if any monster reaches position 0, resulting in Chef's loss. Chef wins if he successfully kills all the monsters before any of them can reach position 0.
+
+// Before the game starts, Chef has the option to plant a bomb at any position X on the line. This bomb will instantly kill all monsters whose starting positions lie within the range [X−K,X+K]. The game will then commence with the remaining monsters.
+
+// Input:
+
+// A vector of integers pos containing the elements of the vector denoting position of monsters.
+// A vector of integers health containing the elements of the vector denoting initial health of monsters.
+// An Integer k denoting the range.
+
+// Constraints:
+
+// pos.size() : Range from 1 to 200000
+// health.size() : Range from 1 to 200000
+// pos: Each element should be between 1 and 10^9 inclusive.
+// health: Each element should be between 1 and 10^9 inclusive.
+// threshold: Integer which ranges be between 1 and 10^9 inclusive.
+
+// Output:
+
+// A Integer that denotes where chef will defeat the monster or not.
+
+
+
+
+#include <iostream>
+#include <vector>
+#include <algorithm>
+#include <climits>
+#include <stdexcept>
+#include <cassert>
+
+struct Node {
+    long long int value;
+    Node() : value(0) {}
+    Node(long long int val) : value(val) {}
+    void merge(const Node &left, const Node &right) {
+        value = std::max(left.value, right.value);
+    }
+};
+
+struct SumNode {
+    long long int value;
+    SumNode() : value(0) {}
+    SumNode(long long int val) : value(val) {}
+    void merge(const SumNode &left, const SumNode &right) {
+        value = left.value + right.value;
+    }
+};
+
+struct Update {
+    long long int value;
+    Update() : value(0) {}
+    Update(long long int val) : value(val) {}
+    void apply(Node &node) {
+        node.value = value;
+    }
+    void apply(SumNode &node) {
+        node.value = value;
+    }
+};
+
+template <typename T, typename Node = Node, typename Update = Update>
+class SegmentTree {
+private: 
+    long long int tree_size = 0;
+    std::vector<Node> segment_tree;
+    
+    void BuildTree(long long int start, long long int end, long long int index, std::vector<T> &arr) {
+        if(start == end) {
+            segment_tree[index] = Node(arr[start]);
+            return;
+        }
+        long long int mid = (start + end) / 2;
+        long long int left_index = 2 * index + 1, right_index = 2 * index + 2;
+        BuildTree(start, mid, left_index, arr);
+        BuildTree(mid + 1, end, right_index, arr);
+        segment_tree[index].merge(segment_tree[left_index], segment_tree[right_index]);
+    }
+    
+    Node QueryTree(long long int start, long long int end, long long int index, long long int left, long long int right) {
+        if(start > right || end < left) {
+            return Node();
+        }
+        if(start >= left && end <= right) {
+            return segment_tree[index];
+        }
+        long long int mid = (start + end) / 2;
+        long long int left_index = 2 * index + 1, right_index = 2 * index + 2;
+        Node result;
+        Node left_item = QueryTree(start, mid, left_index, left, right);
+        Node right_item = QueryTree(mid + 1, end, right_index, left, right);
+        result.merge(left_item, right_item);
+        return result;
+    }
+    
+    void UpdateTree(long long int start, long long int end, long long int index, long long int position, Update &update_value) {
+        if(start == end) {
+            update_value.apply(segment_tree[index]);
+            return;
+        }
+        long long int mid = (start + end) / 2;
+        long long int left_index = 2 * index + 1, right_index = 2 * index + 2;
+        if(position <= mid) UpdateTree(start, mid, left_index, position, update_value);
+        else UpdateTree(mid + 1, end, right_index, position, update_value);
+        segment_tree[index].merge(segment_tree[left_index], segment_tree[right_index]);
+    }
+    
+public:
+    SegmentTree() {}
+    
+    SegmentTree(long long int size) {
+        if (size <= 0) {
+            throw std::invalid_argument("Array length must be positive.");
+        }
+        tree_size = size;
+        segment_tree.resize(4 * tree_size + 1);
+    }
+    
+    SegmentTree(std::vector<T> &arr) {
+        if (arr.size() <= 0) {
+            throw std::invalid_argument("Array length must be positive.");
+        }
+        tree_size = arr.size();
+        segment_tree.resize(4 * tree_size + 1);
+        BuildTree(arr);
+    }
+    
+    void BuildTree(std::vector<T> &arr) {
+        if (arr.size() <= 0) {
+            throw std::invalid_argument("Array length must be positive.");
+        }
+        BuildTree(0, tree_size - 1, 0, arr);
+    }
+    
+    Node QueryTree(long long int left, long long int right) {
+        if (left < 0 || right >= tree_size || left > right) {
+            throw std::out_of_range("Invalid range for query.");
+        }
+        return QueryTree(0, tree_size - 1, 0, left, right);
+    }
+    
+    void UpdateTree(long long int position, long long int value) {
+        if (position < 0 || position >= tree_size) {
+            throw std::out_of_range("Invalid position for update.");
+        }
+        Update update_value = Update(value);
+        return UpdateTree(0, tree_size - 1, 0, position, update_value);
+    }
+};
+
+bool IsPossible(std::vector<int> &pos, std::vector<int> &health, int threshold) {
+    int size = pos.size();
+    int size_2=health.size();
+    
+    if (size <= 0) {
+        throw std::invalid_argument("Array length must be positive.");
+    }
+    if (size!=size_2) {
+        throw std::invalid_argument("Both vector should be of same length.");
+    }
+    if (threshold < 1 || threshold > 1000000000) {
+        throw std::invalid_argument("Threshold must be between 1 and 1000000000.");
+    }
+    for (int i = 0; i < size; i++) {
+        if (pos[i] < 1 || pos[i] > 1000000000) {
+            throw std::invalid_argument("Invalid element value in pos.");
+        }
+        if (health[i] < 1 || health[i] > 1000000000) {
+            throw std::invalid_argument("Invalid element value in health.");
+        }
+    }
+    
+    long long int total_health = 0;
+    SegmentTree<long long int, Node> max_segment_tree(size);
+    SegmentTree<long long int, SumNode> sum_segment_tree(size);
+    for(long long int i = 0; i < size; i++) {
+        total_health += health[i];
+        max_segment_tree.UpdateTree(i, total_health - pos[i]);
+        sum_segment_tree.UpdateTree(i, health[i]);
+    }
+
+    long long int flag = 0;
+    for(long long int i = 0; i < size; i++) {
+        long long int upper_index = std::upper_bound(pos.begin(), pos.end(), pos[i] + 2 * threshold) - pos.begin() - 1;
+        long long int max_value = 0;
+        if (i > 0) max_value = std::max(max_value, max_segment_tree.QueryTree(0, i - 1).value);
+        if (upper_index < size - 1) {
+            long long int left_query = max_segment_tree.QueryTree(upper_index + 1, size - 1).value;
+            long long int sum_query = sum_segment_tree.QueryTree(i, upper_index).value;
+            max_value = std::max(max_value, left_query - sum_query);
+        }
+        if (max_value == 0) {
+            flag = 1;
+        }
+    }
+    return flag;
+}
+
+
+int main(){
+
+    // TEST
+    std::vector<int> pos_1 = {2, 3, 4, 6, 8, 9, 10};
+    std::vector<int> health_1 = {3, 3, 3, 2, 5, 9, 7};
+    int threshold_1 = 1;
+    int expected_1 = 0;
+    int result_1 = IsPossible(pos_1, health_1, threshold_1);
+    assert(result_1 == expected_1);
+    // TEST_END
+
+    // TEST
+    std::vector<int> pos_2 = {1, 2, 3, 4, 5};
+    std::vector<int> health_2 = {1, 2, 3, 4, 5};
+    int threshold_2 = 2;
+    int expected_2 = 1;
+    int result_2 = IsPossible(pos_2, health_2, threshold_2);
+    assert(result_2 == expected_2);
+    // TEST_END
+
+    // TEST
+    std::vector<int> pos_3 = {1, 2, 3, 4, 5, 6, 7, 8, 9, 10};
+    std::vector<int> health_3 = {10, 9, 8, 7, 6, 5, 4, 3, 2, 1};
+    int threshold_3 = 10;
+    int expected_3 = 1;
+    int result_3 = IsPossible(pos_3, health_3, threshold_3);
+    assert(result_3 == expected_3);
+    // TEST_END
+
+    // TEST
+    std::vector<int> pos_4 = {5, 10, 15, 20, 25, 30};
+    std::vector<int> health_4 = {30, 25, 20, 15, 10, 5};
+    int threshold_4 = 5;
+    int expected_4 = 1;
+    int result_4 = IsPossible(pos_4, health_4, threshold_4);
+    assert(result_4 == expected_4);
+    // TEST_END
+
+    // TEST
+    std::vector<int> pos_5 = {1, 2, 3, 4, 5, 6};
+    std::vector<int> health_5 = {6, 5, 4, 3, 2, 1};
+    int threshold_5 = 1;
+    int expected_5 = 1;
+    int result_5 = IsPossible(pos_5, health_5, threshold_5);
+    assert(result_5 == expected_5);
+    // TEST_END
+
+    // TEST
+    std::vector<int> pos_6 = {2, 4, 6, 8, 10};
+    std::vector<int> health_6 = {10, 8, 6, 4, 2};
+    int threshold_6 = 2;
+    int expected_6 = 1;
+    int result_6 = IsPossible(pos_6, health_6, threshold_6);
+    assert(result_6 == expected_6);
+    // TEST_END
+
+    // TEST
+    std::vector<int> pos_7 = {3, 6, 9, 12, 15};
+    std::vector<int> health_7 = {15, 12, 9, 6, 3};
+    int threshold_7 = 3;
+    int expected_7 = 1;
+    int result_7 = IsPossible(pos_7, health_7, threshold_7);
+    assert(result_7 == expected_7);
+    // TEST_END
+
+    // TEST
+    std::vector<int> pos_8 = {1, 3, 5, 7, 9};
+    std::vector<int> health_8 = {9, 7, 5, 3, 1};
+    int threshold_8 = 5;
+    int expected_8 = 1;
+    int result_8 = IsPossible(pos_8, health_8, threshold_8);
+    assert(result_8 == expected_8);
+    // TEST_END
+
+    // TEST
+    std::vector<int> pos_9 = {10, 20, 30, 40, 50};
+    std::vector<int> health_9 = {50, 40, 30, 20, 10};
+    int threshold_9 = 10;
+    int expected_9 = 1;
+    int result_9 = IsPossible(pos_9, health_9, threshold_9);
+    assert(result_9 == expected_9);
+    // TEST_END
+
+    // TEST
+    std::vector<int> pos_10 = {5, 15, 25, 35, 45, 55};
+    std::vector<int> health_10 = {55, 45, 35, 25, 15, 5};
+    int threshold_10 = 5;
+    int expected_10 = 0;
+    int result_10 = IsPossible(pos_10, health_10, threshold_10);
+    assert(result_10 == expected_10);
+    // TEST_END
+
+    // TEST
+    std::vector<int> pos_11 = {3, 6, 9, 12, 15};
+    std::vector<int> health_11 = {15, 12, 9, 6, 3};
+    int threshold_11 = -3;
+    int expected_11 = 0;
+    int result_11;
+    try
+    {
+        result_11 = IsPossible(pos_11, health_11, threshold_11);
+        assert(false);
+    }
+    catch (const std::invalid_argument &e)
+    {
+        assert(true);
+    }
+    // TEST_END
+
+    // TEST
+    std::vector<int> pos_12 = {3, 6, 9, 12, 15};
+    std::vector<int> health_12 = {15, 12, 9, 6, 3};
+    int threshold_12 = -5;
+    int expected_12 = 0;
+    int result_12;
+    try
+    {
+        result_12 = IsPossible(pos_12, health_12, threshold_12);
+        assert(false);
+    }
+    catch (const std::invalid_argument &e)
+    {
+        assert(true);
+    }
+    // TEST_END
+
+    // TEST
+    std::vector<int> pos_13 = {3, 6, 9, 12, 15};
+    std::vector<int> health_13 = {15, 12, 9, 6, 3};
+    int threshold_13 = 1000000001;
+    int expected_13 = 0;
+    int result_13;
+    try
+    {
+        result_13 = IsPossible(pos_13, health_13, threshold_13);
+        assert(false);
+    }
+    catch (const std::invalid_argument &e)
+    {
+        assert(true);
+    }
+    // TEST_END
+
+    // TEST
+    std::vector<int> pos_14 = {3, 6, 9, 12, 15};
+    std::vector<int> health_14 = {15, 12, 9, 6, 3, 10};
+    int threshold_14 = 3;
+    int expected_14 = 0;
+    int result_14;
+    try
+    {
+        result_14 = IsPossible(pos_14, health_14, threshold_14);
+        assert(false);
+    }
+    catch (const std::invalid_argument &e)
+    {
+        assert(true);
+    }
+    // TEST_END
+
+    // TEST
+    std::vector<int> pos_15;
+    std::vector<int> health_15 = {15, 12, 9, 6, 3};
+    int threshold_15 = 3;
+    int expected_15 = 0;
+    int result_15;
+    try
+    {
+        result_15 = IsPossible(pos_15, health_15, threshold_15);
+        assert(false);
+    }
+    catch (const std::invalid_argument &e)
+    {
+        assert(true);
+    }
+    // TEST_END
+
+    std::cout << "All test cases passed!\n";
+    return 0;
+}
