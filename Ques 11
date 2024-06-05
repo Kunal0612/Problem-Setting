@@ -30,22 +30,22 @@
 #include <cassert>
 
 struct Node {
-    Node* Links[2];
-    int Frequency; 
-    Node() : Frequency(0) {
-        Links[0] = Links[1] = nullptr;
+    Node* links[2];
+    int frequency; 
+    Node() : frequency(0) {
+        links[0] = links[1] = nullptr;
     }
 
     bool ContainsKey(int bit) {
-        return (Links[bit] != nullptr);
+        return (links[bit] != nullptr);
     }
 
     Node* Get(int bit) {
-        return Links[bit];
+        return links[bit];
     }
 
     void Put(int bit, Node* node) {
-        Links[bit] = node;
+        links[bit] = node;
     }
 };
 
@@ -66,7 +66,7 @@ public:
                 node->Put(bit, new Node());
             }
             node = node->Get(bit);
-            node->Frequency++;
+            node->frequency++;
         }
     }
 
@@ -75,11 +75,11 @@ public:
         int res = 0;
         for (int i = 31; i >= 0; i--) {
             int bit = (num >> i) & 1;
-            if (node->ContainsKey(1 - bit) && node->Get(1 - bit)->Frequency > 0) {
+            if (node->ContainsKey(1 - bit) && node->Get(1 - bit)->frequency > 0) {
                 res = res | (1 << i);
                 node = node->Get(1 - bit);
             } else {
-                if(node->ContainsKey(bit) && node->Get(bit)->Frequency > 0) node = node->Get(bit);
+                if(node->ContainsKey(bit) && node->Get(bit)->frequency > 0) node = node->Get(bit);
                 else return 0;
             }
         }
@@ -92,7 +92,7 @@ public:
             int bit = (num >> i) & 1;
             if (node->ContainsKey(bit)) {
                 node = node->Get(bit);
-                node->Frequency--;
+                node->frequency--;
             } else {
                 break;
             }
