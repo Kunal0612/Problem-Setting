@@ -41,11 +41,11 @@ struct TrieNode
     }
 };
 
-void InsertTrie(TrieNode *root, int n)
+void InsertTrie(TrieNode *root, int size)
 {
     for (int i = 16; i >= 0; i--)
     {
-        bool bit = (n) & (1 << i);
+        bool bit = (size) & (1 << i);
         if (!root->child[bit])
         {
             root->child[bit] = new TrieNode();
