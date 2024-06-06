@@ -51,15 +51,15 @@ struct Node {
 
 class Trie {
 private:
-    Node* Root;
+    Node* root;
 
 public:
     Trie() {
-        Root = new Node();
+        root = new Node();
     }
 
     void Insert(int num) {
-        Node* node = Root;
+        Node* node = root;
         for (int i = 31; i >= 0; i--) {
             int bit = (num >> i) & 1;
             if (!node->ContainsKey(bit)) {
@@ -71,7 +71,7 @@ public:
     }
 
     int GetMax(int num) {
-        Node* node = Root;
+        Node* node = root;
         int res = 0;
         for (int i = 31; i >= 0; i--) {
             int bit = (num >> i) & 1;
@@ -87,7 +87,7 @@ public:
     }
 
     void DeleteKey(int num) {
-        Node* node = Root;
+        Node* node = root;
         for (int i = 31; i >= 0; i--) {
             int bit = (num >> i) & 1;
             if (node->ContainsKey(bit)) {
