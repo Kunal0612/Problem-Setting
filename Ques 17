@@ -1,0 +1,273 @@
+// https://leetcode.com/problems/longest-increasing-subsequence-ii/description/
+
+// Write a C++ function LengthOfLis to find the maximum length with given condition.
+
+
+// Once upon a time in a mystical land, there was an enchanted array of numbers called nums. This array held many secrets and challenges. A wise sage from the village nearby introduced a special number, k, which had the power to guide adventurers on their quest through this enchanted array.
+
+// The sage presented a challenge to the brave souls of the village:
+
+// "Find the longest path through the enchanted array, but heed these rules:
+
+// Your journey must always move upward, with each step bringing you to a number greater than the last.
+// The magic number k dictates that the difference between any two consecutive numbers on your path must be no greater than k.
+// You may skip certain numbers, but you must never change the order of the remaining numbers in the array."
+
+// The sage's words echoed through the village, and the adventurers knew that whoever could find the longest path through the array while adhering to these rules would gain great wisdom and honor.
+
+// Thus, the villagers set out to find the longest subsequence in the array nums that was strictly increasing and where the difference between any two consecutive elements was at most k.
+
+// The quest had begun.
+
+
+// Input:
+
+// A vector of integers nums containing the elements of the vector.
+// A integer atmost_diff the difference between adjacent elements in the subsequence is at most atmost_diff.
+
+// Constraints:
+
+// size: Should be at least 1 and at most 200,000.
+// nums: Each element should be between 1 and 1,00,000(10^5) inclusive.
+
+// Output:
+
+// A vector of integer which contain the time take to each slimes to eat all other slimes.
+
+
+#include <iostream>
+#include <vector>
+#include <cmath>
+#include <cassert>
+
+class MaxSegmentTree {
+public:
+    int num_elements;
+    std::vector<int> segment_tree;
+    
+    MaxSegmentTree(int num_elements_) : num_elements(num_elements_) {
+        int size = static_cast<int>(ceil(log2(num_elements)));
+        size = (2 * pow(2, size)) - 1;
+        segment_tree = std::vector<int>(size);
+    }
+    
+    int MaxValue() { return segment_tree[0]; }
+
+    int Query(int left, int right) { return QueryUtil(0, left, right, 0, num_elements - 1); }
+
+    int QueryUtil(int index, int query_left, int query_right, int left, int right) {
+        if (left >= query_left && right <= query_right) return segment_tree[index];
+        if (left > query_right || right < query_left) return -1e9;
+
+        int middle = (left + right) / 2;
+        return std::max(QueryUtil(2 * index + 1, query_left, query_right, left, middle), 
+                        QueryUtil(2 * index + 2, query_left, query_right, middle + 1, right));
+    }
+
+    void Update(int index, int value) { UpdateUtil(0, 0, num_elements - 1, index, value); }
+    void UpdateUtil(int tree_index, int left, int right, int position, int value) {
+        if (position < left || position > right) return;
+        if (left == right) {
+            segment_tree[tree_index] = std::max(value, segment_tree[tree_index]);
+            return;
+        }
+
+        int middle = (left + right) / 2;
+        UpdateUtil(2 * tree_index + 1, left, middle, position, value);
+        UpdateUtil(2 * tree_index + 2, middle + 1, right, position, value);
+        segment_tree[tree_index] = std::max(segment_tree[2 * tree_index + 1], segment_tree[2 * tree_index + 2]);
+    }
+};
+
+int LengthOfLIS(std::vector<int> &nums, int atmost_diff)
+{
+    if (nums.size() < 1 || nums.size() > 1e5)
+    {
+        throw std::invalid_argument("Invalid length of 'nums' array. It should be between 1 and 100000.");
+    }
+    if (atmost_diff < 1 || atmost_diff > 1e5)
+    {
+        throw std::invalid_argument("Invalid value of 'k'. It should be between 1 and 100000.");
+    }
+    for (int num : nums)
+    {
+        if (num < 1 || num > 1e5)
+        {
+            throw std::invalid_argument("Invalid element in 'nums'. Each element should be between 1 and 100000.");
+        }
+    }
+
+    MaxSegmentTree segment_tree(1e5 + 1);
+    for (int num : nums)
+    {
+        int lower_bound = std::max(0, num - atmost_diff);
+        int current_value = 1 + segment_tree.Query(lower_bound, num - 1);
+        segment_tree.Update(num, current_value);
+    }
+    int ans=segment_tree.MaxValue();
+    return ans;
+}
+
+int main(){
+    // TEST
+    std::vector<int> nums_1 = {4, 2, 1, 4, 3, 4, 5, 8, 15};
+    int atmost_diff_1 = 3;
+    int expected_1 = 5;
+    int ans_1 = LengthOfLIS(nums_1, atmost_diff_1);
+    assert(ans_1 == expected_1);
+    // TEST_END
+
+    // TEST
+    std::vector<int> nums_2 = {1, 2, 3, 4, 5};
+    int atmost_diff_2 = 1;
+    int expected_2 = 5;
+    int ans_2 = LengthOfLIS(nums_2, atmost_diff_2);
+    assert(ans_2 == expected_2);
+    // TEST_END
+
+    // TEST
+    std::vector<int> nums_3 = {5, 4, 3, 2, 1};
+    int atmost_diff_3 = 1;
+    int expected_3 = 1;
+    int ans_3 = LengthOfLIS(nums_3, atmost_diff_3);
+    assert(ans_3 == expected_3);
+    // TEST_END
+
+    // TEST
+    std::vector<int> nums_4 = {2, 4, 6, 8, 10};
+    int atmost_diff_4 = 5;
+    int expected_4 = 5;
+    int ans_4 = LengthOfLIS(nums_4, atmost_diff_4);
+    assert(ans_4 == expected_4);
+    // TEST_END
+
+    // TEST
+    std::vector<int> nums_5 = {10, 8, 6, 4, 2};
+    int atmost_diff_5 = 5;
+    int expected_5 = 1;
+    int ans_5 = LengthOfLIS(nums_5, atmost_diff_5);
+    assert(ans_5 == expected_5);
+    // TEST_END
+
+    // TEST
+    std::vector<int> nums_6 = {1};
+    int atmost_diff_6 = 1;
+    int expected_6 = 1;
+    int ans_6 = LengthOfLIS(nums_6, atmost_diff_6);
+    assert(ans_6 == expected_6);
+    // TEST_END
+
+    // TEST
+    std::vector<int> nums_7 = {2, 1};
+    int atmost_diff_7 = 1;
+    int expected_7 = 1;
+    int ans_7 = LengthOfLIS(nums_7, atmost_diff_7);
+    assert(ans_7 == expected_7);
+    // TEST_END
+
+    // TEST
+    std::vector<int> nums_8 = {1, 3, 2};
+    int atmost_diff_8 = 1;
+    int expected_8 = 2;
+    int ans_8 = LengthOfLIS(nums_8, atmost_diff_8);
+    assert(ans_8 == expected_8);
+    // TEST_END
+
+    // TEST
+    std::vector<int> nums_9 = {1, 5, 2, 7, 3, 9};
+    int atmost_diff_9 = 3;
+    int expected_9 = 3;
+    int ans_9 = LengthOfLIS(nums_9, atmost_diff_9);
+    assert(ans_9 == expected_9);
+    // TEST_END
+
+    // TEST
+    std::vector<int> nums_10 = {5, 3, 4, 2, 1};
+    int atmost_diff_10 = 1;
+    int expected_10 = 2;
+    int ans_10 = LengthOfLIS(nums_10, atmost_diff_10);
+    assert(ans_10 == expected_10);
+    // TEST_END
+
+    // TEST
+    std::vector<int> nums_11 = {};
+    int atmost_diff_11 = 3;
+    int expected_11 = 0;
+    int ans_11;
+    try
+    {
+        LengthOfLIS(nums_11, atmost_diff_11);
+        assert(false);
+    }
+    catch (const std::invalid_argument &e)
+    {
+        assert(true);
+    }
+    // TEST_END
+
+    // TEST
+    std::vector<int> nums_12 = {1, 2, 3, 4, 5};
+    int atmost_diff_12 = 0;
+    int expected_12 = -1; 
+    int ans_12;
+    try
+    {
+        LengthOfLIS(nums_12, atmost_diff_12);
+        assert(false);
+    }
+    catch (const std::invalid_argument &e)
+    {
+        assert(true);
+    }
+    // TEST_END
+
+    // TEST
+    std::vector<int> nums_13(100001, 1);
+    int atmost_diff_13 = 3;
+    int expected_13 = -1;
+    int ans_13;
+    try
+    {
+        LengthOfLIS(nums_13, atmost_diff_13);
+        assert(false);
+    }
+    catch (const std::invalid_argument &e)
+    {
+        assert(true);
+    }
+    // TEST_END
+
+    // TEST
+    std::vector<int> nums_14 = {100001};
+    int atmost_diff_14 = 3;
+    int expected_14 = -1;
+    int ans_14;
+    try
+    {
+        LengthOfLIS(nums_14, atmost_diff_14);
+        assert(false);
+    }
+    catch (const std::invalid_argument &e)
+    {
+        assert(true);
+    }
+    // TEST_END
+
+    // TEST
+    std::vector<int> nums_15 = {1, 100001};
+    int atmost_diff_15 = 3;
+    int expected_15 = -1; 
+    int ans_15;
+    try
+    {
+        LengthOfLIS(nums_15, atmost_diff_15);
+        assert(false);
+    }
+    catch (const std::invalid_argument &e)
+    {
+        assert(true);
+    }
+    // TEST_END
+
+    return 0;
+}
