@@ -1,0 +1,268 @@
+// Write a C++ function MaxBalancedSubsequenceSum to find the maximum sum of elements in a balanced subsequence of the enchanted array nums.
+
+
+// In a distant kingdom, there existed a magical array of nums called nums. The wise king of the land issued a challenge to all the scholars and adventurers in the kingdom:
+
+// "Find the most valuable path through this array. The path, or subsequence, must be balanced and the sum of its nums as high as possible. A path is considered balanced if it meets these conditions:
+
+// For any two consecutive steps on your path, the difference between the nums you step on must be at least as large as the difference between their positions.
+// If your path consists of only one step, it is already balanced.
+// Your goal is to uncover the maximum possible sum of the nums on any such balanced path."
+
+// The scholars gathered in the grand hall, pondering over the challenge. They knew that to find the maximum sum of a balanced subsequence, they had to carefully choose steps that not only followed the rules but also added the most value to their journey. The path needed to be such that, for any two steps taken from positions i and j in the vector and the difference between abs(nums[j]-nums[i]) is atleast j-i.
+
+// With these rules in mind, the adventurers began their quest to find the maximum sum of elements in a balanced subsequence of the enchanted array nums.
+
+
+// Input:
+
+// A vector of integers nums containing the elements of the vector.
+
+// Constraints:
+
+// nums.size(): Should be at least 1 and at most 200,000.
+// nums: Each element should be between -10^9 and 10^9 inclusive.
+
+// Output:
+
+// A long long integer which ans represent maximum sum of elements in a balanced subsequence of the enchanted array nums.
+
+
+
+
+
+#include <iostream>
+#include <vector>
+#include <algorithm>
+#include <map>
+#include <functional>
+#include <cassert>
+
+class SegmentTree {
+public:
+    SegmentTree(const std::vector<long long>& data, long long defaultValue = 0, std::function<long long(long long, long long)> function = [](long long a, long long b) { return std::max(a, b); }) {
+        _defaultValue = defaultValue;
+        _function = function;
+        _length = data.size();
+        _size = 1;
+        while (_size < _length) {
+            _size <<= 1;
+        }
+
+        _data.resize(2 * _size, defaultValue);
+        std::copy(data.begin(), data.end(), _data.begin() + _size);
+
+        for (int i = _size - 1; i >= 1; --i) {
+            _data[i] = _function(_data[2 * i], _data[2 * i + 1]);
+        }
+    }
+
+    void Remove(int index) {
+        Update(index, _defaultValue);
+    }
+
+    long long operator[](int index) {
+        return _data[index + _size];
+    }
+
+    void Update(int index, long long value) {
+        index += _size;
+        _data[index] = value;
+        index >>= 1;
+        while (index >= 1) {
+            _data[index] = _function(_data[2 * index], _data[2 * index + 1]);
+            index >>= 1;
+        }
+    }
+
+    int Size() {
+        return _length;
+    }
+
+    long long query(int start, int stop) {
+        start += _size;
+        stop += _size;
+
+        long long resultLeft = _defaultValue;
+        long long resultRight = _defaultValue;
+
+        while (start < stop) {
+            if (start & 1) {
+                resultLeft = _function(resultLeft, _data[start]);
+                start += 1;
+            }
+            if (stop & 1) {
+                stop -= 1;
+                resultRight = _function(_data[stop], resultRight);
+            }
+            start >>= 1;
+            stop >>= 1;
+        }
+
+        return _function(resultLeft, resultRight);
+    }
+
+    std::vector<long long> Data() {
+        return _data;
+    }
+
+private:
+    long long _defaultValue;
+    int _length;
+    int _size;
+    std::vector<long long> _data;
+    std::function<long long(long long, long long)> _function;
+};
+
+long long MaxBalancedSubsequenceSum(std::vector<int> &nums)
+{
+    if (nums.size() <= 0)
+    {
+        throw std::invalid_argument("vec length must be positive.");
+    }
+    for (int i = 0; i < nums.size(); ++i)
+    {
+        if (nums[i] < -1000000000 || nums[i] > 1000000000)
+        {
+            throw std::invalid_argument("Invalid element value");
+        }
+    }
+    long long maximum = *std::max_element(nums.begin(), nums.end());
+    if (maximum <= 0)
+    {
+        return maximum;
+    }
+
+    std::vector<long long> lnums;
+    lnums.reserve(nums.size());
+    for (size_t i = 0; i < nums.size(); ++i)
+    {
+        lnums.push_back(nums[i] - static_cast<long long>(i));
+    }
+
+    std::vector<long long> llnums(lnums);
+    std::sort(llnums.begin(), llnums.end());
+    llnums.erase(std::unique(llnums.begin(), llnums.end()), llnums.end());
+
+    std::map<long long, long long> mpp;
+    for (size_t i = 0; i < llnums.size(); ++i)
+    {
+        mpp[llnums[i]] = i;
+    }
+
+    std::vector<long long> norm;
+    norm.reserve(lnums.size());
+    for (size_t i = 0; i < lnums.size(); ++i)
+    {
+        norm.push_back(mpp[lnums[i]]);
+    }
+
+    long long result = 0;
+    SegmentTree seg(std::vector<long long>(llnums.size(), 0));
+    for (size_t i = 0; i < lnums.size(); ++i)
+    {
+        long long quer = seg.query(0, norm[i] + 1);
+        seg.Update(norm[i], quer + nums[i]);
+        result = std::max(result, quer + nums[i]);
+    }
+
+    return result;
+}
+
+int main()
+{
+    //TEST
+    std::vector<int> nums_1 = {2, 3, 6};
+    long long int expected_1 = 11;
+    long long int result_1 = MaxBalancedSubsequenceSum(nums_1);
+    assert(result_1 == expected_1);
+    // TEST_END
+
+    //TEST
+    std::vector<int> nums_2 = {1, 2, 2, 3, 3};
+    long long int expected_2 = 5;
+    long long int result_2 = MaxBalancedSubsequenceSum(nums_2);
+    assert(result_2 == expected_2);
+    // TEST_END
+
+    //TEST
+    std::vector<int> nums_3 = {1, 2, 2, 2, 3, 3};
+    long long int expected_3 = 5;
+    long long int result_3 = MaxBalancedSubsequenceSum(nums_3);
+    assert(result_3 == expected_3);
+    // TEST_END
+
+    //TEST
+    std::vector<int> nums_4 = {5, 5, 5, 5};
+    long long int expected_4 = 5;
+    long long int result_4 = MaxBalancedSubsequenceSum(nums_4);
+    assert(result_4 == expected_4);
+    // TEST_END
+
+    //TEST
+    std::vector<int> nums_5 = {10};
+    long long int expected_5 = 10;
+    long long int result_5 = MaxBalancedSubsequenceSum(nums_5);
+    assert(result_5 == expected_5);
+    // TEST_END
+
+    //TEST
+    std::vector<int> nums_6 = {1, 2, 3, 4, 5, 6, 7, 8, 9, 10};
+    long long int expected_6 = 55;
+    long long int result_6 = MaxBalancedSubsequenceSum(nums_6);
+    assert(result_6 == expected_6);
+    // TEST_END
+
+    //TEST
+    std::vector<int> nums_7 = {1, 2, 3, 4, 5, 5, 5};
+    long long int expected_7 = 15;
+    long long int result_7 = MaxBalancedSubsequenceSum(nums_7);
+    assert(result_7 == expected_7);
+    // TEST_END
+
+    //TEST
+    std::vector<int> nums_8 = {1, 2, 1, 2, 1, 2, 1, 2};
+    long long int expected_8 = 3;
+    long long int result_8 = MaxBalancedSubsequenceSum(nums_8);
+    assert(result_8 == expected_8);
+    // TEST_END
+
+    //TEST
+    std::vector<int> nums_9 = {1, 1, 1, 1, 1, 1, 1, 1, 1, 2};
+    long long int expected_9 = 3;
+    long long int result_9 = MaxBalancedSubsequenceSum(nums_9);
+    assert(result_9 == expected_9);
+    // TEST_END
+
+    //TEST
+    std::vector<int> nums_10 = {};
+    long long int expected_10 = 0;
+    long long int result_10;
+        try
+        {
+            MaxBalancedSubsequenceSum(nums_10);
+            assert(false);
+        }
+        catch (const std::invalid_argument &e)
+        {
+            assert(true);
+        }
+    // TEST_END
+    //TEST
+    std::vector<int> nums_11 = {1000000002, 2, -3, -4, 5, 6, -7, 8, 9, 10};
+    long long int expected_11 = 0;
+    long long int result_11;
+        try
+        {
+            MaxBalancedSubsequenceSum(nums_11);
+            assert(false);
+        }
+        catch (const std::invalid_argument &e)
+        {
+            assert(true);
+        }
+    // TEST_END
+
+    std::cout << "All test cases passed!\n";
+    return 0;
+}
