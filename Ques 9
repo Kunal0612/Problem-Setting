@@ -36,14 +36,17 @@
 struct Node
 {
     unsigned long long hash_value = 0;
-    Node *left = 0, *right = 0;
+    Node *left = nullptr, *right = nullptr;
     bool was_visited = false;
+
+    static const int prime_1 = 31;
+    static const int prime_2 = 53;
+    static unsigned long long power_1[32];
+    static unsigned long long power_2[32];
 };
 
-const int prime_1 = 31;
-const int prime_2 = 53;
-unsigned long long power_1[32];
-unsigned long long power_2[32];
+unsigned long long Node::power_1[32];
+unsigned long long Node::power_2[32];
 
 const int max_memory = 130000000;
 int memory_position = 0;
@@ -54,7 +57,7 @@ void *operator new(size_t size)
     char *result = memory + memory_position;
     memory_position += size;
     assert(memory_position <= max_memory);
-    return (void *)result;
+    return static_cast<void *>(result);
 }
 
 void operator delete(void *) {}
@@ -75,20 +78,20 @@ Node *Update(Node *node, unsigned long long value, int index = 18)
     if (value & (1 << index))
     {
         Node *result = new Node();
-        result->left = (node ? node->left : 0);
-        result->right = Update((node ? node->right : 0), value, index - 1);
-        unsigned long long left_hash = (result->left ? result->left->hash_value * power_1[index + 1] : 0);
-        unsigned long long right_hash = (result->right ? result->right->hash_value * power_2[index + 1] : 0);
+        result->left = (node ? node->left : nullptr);
+        result->right = Update((node ? node->right : nullptr), value, index - 1);
+        unsigned long long left_hash = (result->left ? result->left->hash_value * Node::power_1[index + 1] : 0);
+        unsigned long long right_hash = (result->right ? result->right->hash_value * Node::power_2[index + 1] : 0);
         result->hash_value = left_hash + right_hash;
         return result;
     }
     else
     {
         Node *result = new Node();
-        result->left = Update((node ? node->left : 0), value, index - 1);
-        result->right = (node ? node->right : 0);
-        unsigned long long left_hash = (result->left ? result->left->hash_value * power_1[index + 1] : 0);
-        unsigned long long right_hash = (result->right ? result->right->hash_value * power_2[index + 1] : 0);
+        result->left = Update((node ? node->left : nullptr), value, index - 1);
+        result->right = (node ? node->right : nullptr);
+        unsigned long long left_hash = (result->left ? result->left->hash_value * Node::power_1[index + 1] : 0);
+        unsigned long long right_hash = (result->right ? result->right->hash_value * Node::power_2[index + 1] : 0);
         result->hash_value = left_hash + right_hash;
         return result;
     }
@@ -108,10 +111,10 @@ int Get(Node *left_node, Node *right_node, int index = 18, int current = 0)
 
     if ((left_node && left_node->left ? left_node->left->hash_value : 0) == (right_node && right_node->left ? right_node->left->hash_value : 0))
     {
-        return Get((left_node ? left_node->right : 0), (right_node ? right_node->right : 0), index - 1, current + (1 << index));
+        return Get((left_node ? left_node->right : nullptr), (right_node ? right_node->right : nullptr), index - 1, current + (1 << index));
     }
 
-    return Get((left_node ? left_node->left : 0), (right_node ? right_node->left : 0), index - 1, current);
+    return Get((left_node ? left_node->left : nullptr), (right_node ? right_node->left : nullptr), index - 1, current);
 }
 
 std::vector<int> SmallestNumberOccurOddTimes(std::vector<int> nums, int number_queries, std::vector<std::pair<int, int>> queries)
@@ -146,15 +149,14 @@ std::vector<int> SmallestNumberOccurOddTimes(std::vector<int> nums, int number_q
             throw std::invalid_argument("Query values must be between 0 and 2000000000");
         }
     }
-    power_1[0] = 1;
-    power_2[0] = 1;
+    Node::power_1[0] = 1;
+    Node::power_2[0] = 1;
     for (int i = 1; i <= 31; i++)
     {
-        power_1[i] = prime_1 * power_1[i - 1];
-        power_2[i] = prime_2 * power_2[i - 1];
+        Node::power_1[i] = Node::prime_1 * Node::power_1[i - 1];
+        Node::power_2[i] = Node::prime_2 * Node::power_2[i - 1];
     }
-
-    std::vector<std::pair<int, int>> indexed_nums(number_nums);
+     std::vector<std::pair<int, int>> indexed_nums(number_nums);
     std::vector<int> mapped_nums(number_nums + 1);
 
     for (int i = 0; i < number_nums; i++)
