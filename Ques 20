@@ -1,0 +1,300 @@
+// https://leetcode.com/problems/process-restricted-friend-requests/description/
+
+// Write a C++ function FriendRequests to find a boolean array answer, where each answer[j] is true if the jth friend request is successful or false if it is not.
+
+
+// In the bustling city of Networkopolis, there lived n people, each labeled from 0 to n-1. The city was known for its intricate web of relationships, but not everyone could be friends with each other due to some long-standing rivalries and restrictions.
+
+// The city council, determined to maintain peace, issued a decree represented by a 0-indexed 2D integer array called restrictions. Each entry in the array, restrictions[i] = [xi, yi], indicated that person xi and person yi could never be friends, either directly or indirectly through mutual acquaintances. This rule was strictly enforced to prevent any disputes from arising.
+
+// At the beginning, no one in Networkopolis was friends with anyone else. However, as time passed, people began to express their desires to form friendships. These desires were recorded as friend requests in a 0-indexed 2D integer array called requests. Each entry, requests[j] = [uj, vj], represented a wish for person uj and person vj to become friends.
+
+// The process was simple: each friend request was considered in the given order. If the request could be fulfilled without violating any of the restrictions, it was successful, and the two individuals became friends. If it couldn't be fulfilled, the request was denied. Even if uj and vj were already direct friends, their request was still marked as successful.
+
+// The challenge for the city council was to determine the outcome of each friend request. They needed to compile a list called result, where result[j] was true if the jth friend request was successful, and false if it was not.
+
+// Your task is to help the city council by writing a function that returns the result array, accurately reflecting whether each friend request can be successfully processed or not.
+
+// Notes:
+
+// The same pair of people will not make more than one friend request.
+// Friendships are cumulative, meaning once two people become friends, they remain friends for all future requests.
+
+// Help Networkopolis maintain its harmony by ensuring that friendships are formed in accordance with the restrictions.
+
+
+// Input:
+
+// A integer size indicating number of people in network.
+// A integer vector restrictions, where restrictions[i] = [x[i], y[i]] means that person x[i] and person y[i] cannot become friends, either directly or indirectly through other people.
+// A integer vector requests, where requests[j] = [u[j], v[j]] is a friend request between person u[j] and person v[j].
+
+// Constraints:
+
+// size : The number of people in the network, size, must be between 2 and 1000 inclusive.
+// restrictions : The number of restrictions, represented by the length of the restrictions array, must be between 0 and 1000 inclusive.
+//                Each restriction is a pair of integers, so each element in the restrictions array must have a length of 2.
+//                For each restriction [xi, yi]:
+//                xi and yi must be between 0 and size-1 inclusive.
+//                xi and yi must be different (i.e., xi != yi).
+// requests : The number of friend requests, represented by the length of the requests array, must be between 1 and 1000 inclusive.
+//            Each friend request is a pair of integers, so each element in the requests array must have a length of 2.
+//            For each friend request [uj, vj]:
+//            uj and vj must be between 0 and size-1 inclusive.
+//            uj and vj must be different (i.e., uj != vj).
+
+
+// Output:
+
+//  An a boolean vector answer, where each answer[j] is true if the jth friend request is successful or false if it is not.
+
+
+#include <vector>
+#include <iostream>
+#include <cassert>
+
+class Dsu {
+    int *rank_arr, *parent_arr, length;
+
+public:
+    Dsu(int size) {
+        rank_arr = new int[size];
+        parent_arr = new int[size];
+        length = size;
+        MakeSet();
+    }
+    void MakeSet() {
+        for (int i = 0; i < length; i++) {
+            parent_arr[i] = i;
+        }
+    }
+
+    int Parent(int node) {
+        if (parent_arr[node] != node) {
+            parent_arr[node] = Parent(parent_arr[node]);
+        }
+        return parent_arr[node];
+    }
+    void Unions(int node_1, int node_2) {
+        int x_set = Parent(node_1);
+        int y_set = Parent(node_2);
+        if (x_set == y_set)
+            return;
+        if (rank_arr[x_set] < rank_arr[y_set]) {
+            parent_arr[x_set] = y_set;
+        }
+        else if (rank_arr[x_set] > rank_arr[y_set]) {
+            parent_arr[y_set] = x_set;
+        }
+        else {
+            parent_arr[y_set] = x_set;
+            rank_arr[x_set] = rank_arr[x_set] + 1;
+        }
+    }
+};
+
+std::vector<bool> FriendRequests(int size, std::vector<std::vector<int>> &restrictions, std::vector<std::vector<int>> &requests) {
+
+    if (size < 2 || size > 1000) {
+        throw std::invalid_argument("Invalid size of n");
+    }
+
+    if (restrictions.size() > 1000) {
+        throw std::invalid_argument("Too many restrictions");
+    }
+
+    for (int i = 0; i < restrictions.size(); ++i) {
+        for (int j = 0; j < restrictions[i].size(); ++j) {
+            if (restrictions[i][j] < 0 || restrictions[i][j] >= size) {
+                throw std::invalid_argument("Invalid restriction value");
+            }
+        }
+    }
+
+    if (requests.size() < 1 || requests.size() > 1000) {
+        throw std::invalid_argument("Invalid size of requests");
+    }
+
+    for (int i = 0; i < requests.size(); ++i) {
+        if (requests[i].size() != 2) {
+            throw std::invalid_argument("Invalid request format");
+        }
+    }
+
+    for (int i = 0; i < requests.size(); ++i) {
+        for (int j = 0; j < requests[i].size(); ++j) {
+            if (requests[i][j] < 0 || requests[i][j] >= size) {
+                throw std::invalid_argument("Invalid request value");
+            }
+        }
+    }
+
+    for (int i = 0; i < requests.size(); ++i) {
+        if (requests[i][0] == requests[i][1]) {
+            throw std::invalid_argument("Invalid request: uj should not be equal to vj");
+        }
+    }
+
+    Dsu obj(size);
+    obj.MakeSet();
+    std::vector<bool> answer;
+    for (int i = 0; i < requests.size(); ++i) {
+        int node_ = obj.Parent(requests[i][0]);
+        int nodee_ = obj.Parent(requests[i][1]);
+        bool valid = true;
+        for (int j = 0; j < restrictions.size(); ++j) {
+            int node_1 = obj.Parent(restrictions[j][0]);
+            int nodee_1 = obj.Parent(restrictions[j][1]);
+            if ((node_ == node_1 && nodee_ == nodee_1) || (node_ == nodee_1 && nodee_ == node_1)) {
+                valid = false;
+                break;
+            }
+        }
+        if (valid) {
+            answer.push_back(true);
+            obj.Unions(requests[i][0], requests[i][1]);
+        }
+        else {
+            answer.push_back(false);
+        }
+    }
+    return answer;
+}
+
+
+int main(){
+
+    // TEST
+    int size_1 = 3;
+    std::vector<std::vector<int>> restrictions_1 = {{0, 1}};
+    std::vector<std::vector<int>> request_1 = {{0, 2}, {2, 1}};
+    std::vector<bool> expected_1 = {true, false};
+    std::vector<bool> result_1 = FriendRequests(size_1, restrictions_1, request_1);
+    assert(result_1 == expected_1);
+    // TEST_END
+
+    // TEST
+    int size_2 = 5;
+    std::vector<std::vector<int>> restrictions_2 = {{0, 1}, {2, 3}};
+    std::vector<std::vector<int>> request_2 = {{1, 2}, {3, 4}};
+    std::vector<bool> expected_2 = {1,1};
+    std::vector<bool> result_2 = FriendRequests(size_2, restrictions_2, request_2);
+    assert(result_2 == expected_2);
+    // TEST_END
+
+    // TEST
+    int size_3 = 4;
+    std::vector<std::vector<int>> restrictions_3 = {{0, 1}, {2, 3}};
+    std::vector<std::vector<int>> request_3 = {{0, 3}, {1, 2}};
+    std::vector<bool> expected_3 = {true, true};
+    std::vector<bool> result_3 = FriendRequests(size_3, restrictions_3, request_3);
+    assert(result_3 == expected_3);
+    // TEST_END
+
+    // TEST
+    int size_4 = 2;
+    std::vector<std::vector<int>> restrictions_4 = {{0, 1}};
+    std::vector<std::vector<int>> request_4 = {{0, 1}};
+    std::vector<bool> expected_4 = {false};
+    std::vector<bool> result_4 = FriendRequests(size_4, restrictions_4, request_4);
+    assert(result_4 == expected_4);
+    // TEST_END
+
+    // TEST
+    int size_5 = 3;
+    std::vector<std::vector<int>> restrictions_5 = {};
+    std::vector<std::vector<int>> request_5 = {{0, 1}, {1, 2}};
+    std::vector<bool> expected_5 = {true, true};
+    std::vector<bool> result_5 = FriendRequests(size_5, restrictions_5, request_5);
+    assert(result_5 == expected_5);
+    // TEST_END
+
+    // TEST
+    int size_6 = 3;
+    std::vector<std::vector<int>> restrictions_6 = {{0, 1}, {1, 2}};
+    std::vector<std::vector<int>> request_6 = {{0, 2}, {2, 1}};
+    std::vector<bool> expected_6 = {1,0};
+    std::vector<bool> result_6 = FriendRequests(size_6, restrictions_6, request_6);
+    assert(result_6 == expected_6);
+    // TEST_END
+
+    // TEST
+    int size_7 = 5;
+    std::vector<std::vector<int>> restrictions_7 = {{0, 1}, {1, 2}, {2, 3}, {3, 4}};
+    std::vector<std::vector<int>> request_7 = {{0, 4}, {1, 3}};
+    std::vector<bool> expected_7 = {1,1};
+    std::vector<bool> result_7 = FriendRequests(size_7, restrictions_7, request_7);
+    assert(result_7 == expected_7);
+    // TEST_END
+
+    // TEST
+    int size_8 = 4;
+    std::vector<std::vector<int>> restrictions_8 = {{0, 1}, {1, 2}, {2, 3}};
+    std::vector<std::vector<int>> request_8 = {{0, 3}, {1, 2}};
+    std::vector<bool> expected_8 = {1,0};
+    std::vector<bool> result_8 = FriendRequests(size_8, restrictions_8, request_8);
+    assert(result_8 == expected_8);
+    // TEST_END
+    // TEST
+    int size__9 = 1; 
+    std::vector<std::vector<int>> restrictions__9 = {};
+    std::vector<std::vector<int>> request__9 = {{0, 0}};
+    try
+    {
+        FriendRequests(size__9, restrictions__9, request__9);
+        assert(false); 
+    }
+    catch (const std::invalid_argument &e)
+    {
+        assert(true);
+    }
+    // TEST_END
+
+    // TEST
+    int size_10 = 1001; 
+    std::vector<std::vector<int>> restrictions_10 = {};
+    std::vector<std::vector<int>> request_10 = {{0, 1}};
+    try
+    {
+        FriendRequests(size_10, restrictions_10, request_10);
+        assert(false); 
+    }
+    catch (const std::invalid_argument &e)
+    {
+        assert(true);
+    }
+    // TEST_END
+
+    // TEST
+    int size_11 = 3;
+    std::vector<std::vector<int>> restrictions_11 = {{0, 1}};
+    std::vector<std::vector<int>> request_11 = {{0, 1, 2}}; 
+    try
+    {
+        FriendRequests(size_11, restrictions_11, request_11);
+        assert(false);
+    }
+    catch (const std::invalid_argument &e)
+    {
+        assert(true);
+    }
+    // TEST_END
+
+    // TEST
+    int size_12 = 3;
+    std::vector<std::vector<int>> restrictions_12 = {{0, 1}};
+    std::vector<std::vector<int>> request_12 = {{0, 1}, {1, 1}}; 
+    try
+    {
+        FriendRequests(size_12, restrictions_12, request_12);
+        assert(false); 
+    }
+    catch (const std::invalid_argument &e)
+    {
+        assert(true);
+    }
+    // TEST_END
+
+    std::cout << "All test cases passed!\n";
+    return 0;
+}
