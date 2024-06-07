@@ -1,0 +1,241 @@
+// https://leetcode.com/problems/maximum-segment-sum-after-removals/
+// Write a C++ function MaximumSegmentSum to find the answer, of length nums.size(), where answer[i] is the maximum segment sum after applying the ith removal.
+
+
+// Once upon a time in the land of Integrovia, there were two magical arrays named nums and 
+// removeQueries, both containing n integers. The array nums was a treasure trove of values,
+// each spot representing a precious gem of different value. The array removeQueries contained
+// a series of mystical instructions, each directing which gem from nums should be removed.
+
+// Every time a gem was removed as per the instructions in removeQueries, the land of
+// Integrovia would see the remaining gems split into various segments. Each segment was
+// a contiguous sequence of gems, and the sum of the values in each segment was a measure
+// of its beauty and worth.
+
+// The wise sages of Integrovia sought to know the maximum beauty of these segments
+// after each removal, to keep a record of how the removal of each gem affected the
+// remaining treasures. They wanted an array, answer, of length n, where answer[i]
+// would tell the maximum beauty of the segments after the ith removal instruction had been followed.
+
+// Note: The same index will not be removed more than once.
+
+// Your task is to help the sages by writing a function that returns the array answer.
+
+
+// Input:
+
+// A vector of long lng integers nums containing the elements of the vector.
+// A vector of integers queries containing query to be apply.
+
+// Constraints:
+
+// nums.size() : Should be at least 1 and at most 100,000.
+// queries.size() : Should be at least 1 and at most 100,000.
+// nums.size() == queries.size()
+// nums: Each element should be between 1 and 10^9 inclusive.
+// queries: Each element should be between 0 and nums.size()-1 inclusive and all values of queries are unique.
+
+
+// Output:
+
+// An integer vector answer, of length nums.size(), where answer[i] is the maximum segment sum after applying the ith removal.
+
+#include <iostream>
+#include <vector>
+#include <unordered_map>
+#include <algorithm>
+#include <cassert>
+
+class UnionFind {
+public:
+    std::unordered_map<long long, long long> parent_map, rank_map, sum_map;
+    long long max_sum;
+
+    UnionFind() : max_sum(0) {}
+
+    long long Find(int num) {
+        if (parent_map[num] != num)
+            return parent_map[num] = Find(parent_map[num]);
+        return num;
+    }
+
+    void Merge(int node_x, int node_y) {
+        long long root_x = Find(node_x), root_y = Find(node_y);
+        if (rank_map[root_x] > rank_map[root_y]) {
+            parent_map[root_y] = root_x;
+            sum_map[root_x] += sum_map[root_y];
+            max_sum = std::max(max_sum, sum_map[root_x]);
+        } else if (rank_map[root_y] > rank_map[root_x]) {
+            parent_map[root_x] = root_y;
+            sum_map[root_y] += sum_map[root_x];
+            max_sum = std::max(max_sum, sum_map[root_y]);
+        } else {
+            parent_map[root_x] = root_y;
+            rank_map[root_y]++;
+            sum_map[root_y] += sum_map[root_x];
+            max_sum = std::max(max_sum, sum_map[root_y]);
+        }
+    }
+};
+
+std::vector<long long> MaximumSegmentSum(std::vector<int> &nums, std::vector<int> &queries) {
+    if (nums.size() != queries.size()) {
+        throw std::invalid_argument("Sizes of nums and queries do not match");
+    }
+
+    if (nums.size() < 1 || nums.size() > 100000) {
+        throw std::invalid_argument("Invalid size of nums");
+    }
+
+    for (int i=0;i<nums.size();i++) {
+        int num = nums[i];
+        if (num < 1 || num > 1000000000) {
+            throw std::invalid_argument("Invalid value in nums");
+        }
+    }
+
+    for (int i=0;i<queries.size();i++) {
+        int query = queries[i];
+        if (query < 0 || query >= nums.size()) {
+            throw std::invalid_argument("Invalid removeQueries value");
+        }
+    }
+    UnionFind union_find;
+    std::vector<long long> answer(queries.size(), 0);
+    std::vector<bool> visited(nums.size(), false);
+
+    for (int i = queries.size() - 1; i >= 0; i--) {
+        int index = queries[i];
+        union_find.parent_map[index] = index;
+        union_find.sum_map[index] = nums[index];
+        visited[index] = true;
+        union_find.max_sum = std::max(union_find.max_sum, static_cast<long long>(nums[index]));
+        if (index - 1 >= 0 && visited[index - 1])
+            union_find.Merge(index, index - 1);
+        if (index + 1 < nums.size() && visited[index + 1])
+            union_find.Merge(index, index + 1);
+        if (i > 0) { 
+            answer[i - 1] = union_find.max_sum;
+        }
+    }
+    return answer;
+}
+
+
+
+int main() {
+    // TEST
+    std::vector<int> nums_1 = {1, 2, 5, 6, 1};
+    std::vector<int> queries_1 = {0, 3, 2, 4, 1};
+    std::vector<long long int> expected_1 = {14, 7, 2, 2, 0};
+    std::vector<long long int> result_1 = MaximumSegmentSum(nums_1, queries_1);
+    assert(result_1 == expected_1);
+    // TEST_END
+
+    // TEST
+    std::vector<int> nums_2 = {4, 3, 2, 1, 5};
+    std::vector<int> queries_2 = {1, 3, 4, 0, 2};
+    std::vector<long long int> expected_2 = {8, 5, 4, 2, 0};
+    std::vector<long long int> result_2 = MaximumSegmentSum(nums_2, queries_2);
+    assert(result_2 == expected_2);
+    // TEST_END
+
+    // TEST
+    std::vector<int> nums_3 = {7, 8, 9, 10, 11};
+    std::vector<int> queries_3 = {4, 2, 0, 1, 3};
+    std::vector<long long int> expected_3 = {34,15,10, 10, 0};
+    std::vector<long long int> result_3 = MaximumSegmentSum(nums_3, queries_3);
+    assert(result_3 == expected_3);
+    // TEST_END
+
+    // TEST
+    std::vector<int> nums_4 = {10, 20, 30, 40, 50};
+    std::vector<int> queries_4 = {4, 3, 2, 1, 0};
+    std::vector<long long int> expected_4 = {100, 60, 30, 10,0};
+    std::vector<long long int> result_4 = MaximumSegmentSum(nums_4, queries_4);
+    assert(result_4 == expected_4);
+    // TEST_END
+
+    // TEST
+    std::vector<int> nums_5 = {1, 1, 1, 1, 1};
+    std::vector<int> queries_5 = {0, 1, 2, 3, 4};
+    std::vector<long long int> expected_5 = {4, 3, 2,1, 0};
+    std::vector<long long int> result_5 = MaximumSegmentSum(nums_5, queries_5);
+    assert(result_5 == expected_5);
+    // TEST_END
+
+    // TEST
+    std::vector<int> nums_6 = {100, 200, 300, 400, 500};
+    std::vector<int> queries_6 = {3, 2, 4, 1, 0};
+    std::vector<long long int> expected_6 = {600, 500, 300, 100, 0};
+    std::vector<long long int> result_6 = MaximumSegmentSum(nums_6, queries_6);
+    assert(result_6 == expected_6);
+    // TEST_END
+
+    // TEST
+    std::vector<int> nums_7 = {5, 10, 15, 20, 25};
+    std::vector<int> queries_7 = {4, 2, 0, 1, 3};
+    std::vector<long long int> expected_7 = {50, 20, 20, 20, 0};
+    std::vector<long long int> result_7 = MaximumSegmentSum(nums_7, queries_7);
+    assert(result_7 == expected_7);
+    // TEST_END
+
+    // TEST
+    std::vector<int> nums_8 = {6, 7, 8, 9, 10};
+    std::vector<int> queries_8 = {2, 3, 1, 4, 0};
+    std::vector<long long int> expected_8 = {19, 13, 10, 6, 0};
+    std::vector<long long int> result_8 = MaximumSegmentSum(nums_8, queries_8);
+    assert(result_8 == expected_8);
+    // TEST_END
+
+    // TEST
+    std::vector<int> nums_9 = {1, 2, 3};
+    std::vector<int> queries_9 = {0, 1, 2, 3};
+    std::vector<long long int> result_9;
+    try {
+        MaximumSegmentSum(nums_9, queries_9);
+        assert(false);  
+    } catch (const std::invalid_argument &e) {
+        assert(true);   
+    }
+    // TEST_END
+
+    // TEST
+    std::vector<int> nums_10 = {};
+    std::vector<int> queries_10 = {0, 1, 2, 3};
+    std::vector<long long int> result_10;
+    try {
+        MaximumSegmentSum(nums_10, queries_10);
+        assert(false);  
+    } catch (const std::invalid_argument &e) {
+        assert(true);   
+    }
+    // TEST_END
+
+    // TEST
+    std::vector<int> nums_11 = {1, 2, 3, 4, 5};
+    std::vector<int> queries_11 = {};
+    std::vector<long long int> result_11;
+    try {
+        MaximumSegmentSum(nums_11, queries_11);
+        assert(false);  
+    } catch (const std::invalid_argument &e) {
+        assert(true);   
+    }
+    // TEST_END
+
+    // TEST
+    std::vector<int> nums_12 = {};
+    std::vector<int> queries_12 = {};
+    std::vector<long long int> result_12;
+    try {
+        MaximumSegmentSum(nums_12, queries_12);
+        assert(false);  
+    } catch (const std::invalid_argument &e) {
+        assert(true);   
+    }
+    // TEST_END
+
+    std::cout << "All test cases passed!";
+    return 0;
+}
