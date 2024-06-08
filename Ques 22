@@ -1,0 +1,271 @@
+// https://leetcode.com/problems/count-valid-paths-in-a-tree/description/
+// Write a C++ Function CountPaths to find the number of paths.
+// Once upon a time, in the lush green kingdom of Arborea, there stood a magnificent tree known as the Prime Tree. This tree was no ordinary tree; it was a mystical entity that held within it the secrets of the prime numbers.
+
+// The Prime Tree had its roots deeply embedded in the fertile soil, and its branches stretched far and wide, reaching toward the heavens. Nestled within its branches were n nodes, each labeled from 1 to n, connected by edges forming a beautiful undirected tree.
+
+// Legends spoke of a peculiar phenomenon within the Prime Tree. It was said that traversing from one node to another, following the path of branches, one could encounter the magic of prime numbers. A path between two nodes, a and b, was considered valid if and only if there existed exactly one prime number among the labels of the nodes along that path.
+
+// Adventurers from distant lands would come seeking the wisdom and blessings of the Prime Tree. They would embark on journeys through its branches, hoping to unlock the secrets hidden within its depths. But such journeys were not without challenges, for the paths were shrouded in mystery, and only those who could decipher the language of primes could truly navigate its complexities.
+
+// You, too, have been drawn to the enchanting allure of the Prime Tree. Armed with your knowledge of mathematics and the spirit of adventure, you set forth on a quest to uncover the number of valid paths within this mystical arboreal realm.
+
+// With the aid of your trusty map, represented by the 2D integer array edges, you traverse the branches of the Prime Tree, counting each valid path you encounter. Your journey is fraught with excitement and discovery as you unravel the mathematical marvels concealed within the heart of the tree.
+
+// Now, dear traveler, as you venture forth into the realm of Arborea, let your keen intellect guide you through the labyrinthine paths of the Prime Tree. Count the valid paths, unlock the secrets of the primes, and may your quest be filled with wonder and enlightenment.
+
+// Input:
+
+// A integers size denoting number of nodes.
+// A vector of vector of integers edges denoting there is a edge from node_u to node_v.
+
+// Output : 
+
+// A integer ans denoting number of valid paths in the tree.
+
+// Constraint : 
+
+// size : The tree consists of size nodes, where size ranges from 1 to 105,The labels of the nodes range from 1 to n.
+// edges : Each element in the 'edges' array, denoted as edges[i], contains two integers node_u and node_v, indicating an edge between nodes node_u and node_v in the tree.
+// The edges of the tree are represented by a 2D integer array called 'edges', with a length of n - 1.
+// The input is structured in such a way that the 'edges' array represents a valid tree.
+
+
+#include <vector>
+#include <numeric>
+#include <iostream>
+#include <cassert>
+
+class DSU
+{
+public:
+    std::vector<int> par;
+    std::vector<int> cnt;
+
+    DSU(int size)
+    {
+        par.resize(size + 1);
+        cnt.resize(size + 1, 1);
+
+        for (int i = 0; i <= size; i++)
+            par[i] = i;
+    }
+
+    int AbsPar(int node_x)
+    {
+        if (node_x == par[node_x])
+            return node_x;
+        return par[node_x] = AbsPar(par[node_x]);
+    }
+
+    void Unite(int node_a, int node_b)
+    {
+        int abs_a = AbsPar(node_a);
+        int abs_b = AbsPar(node_b);
+
+        if (abs_a == abs_b)
+            return;
+
+        if (cnt[abs_a] > cnt[abs_b])
+            std::swap(node_a, node_b);
+
+        cnt[abs_b] += cnt[abs_a];
+        par[abs_a] = abs_b;
+    }
+};
+
+long long CountPaths(int size, std::vector<std::vector<int>> &edges)
+{
+    
+    if (size < 1 || size > 105)
+        throw std::invalid_argument("Size must be between 1 and 105");
+    if (edges.size() != size - 1)
+        throw std::invalid_argument("Number of edges must be exactly size - 1");
+
+    for (int i = 0; i < edges.size(); i++) {
+        const std::vector<int>& edge = edges[i];
+        if (edge.size() != 2)
+            throw std::invalid_argument("Each edge must consist of exactly 2 nodes");
+        if (edge[0] < 1 || edge[0] > size || edge[1] < 1 || edge[1] > size)
+            throw std::invalid_argument("Node values must be between 1 and size");
+    }
+
+    std::vector<bool> is_prime(size + 1, true);
+    is_prime[0] = is_prime[1] = false;
+    for (int p = 2; p * p <= size; p++)
+    {
+        if (is_prime[p])
+        {
+            for (int i = p * p; i <= size; i += p)
+            {
+                is_prime[i] = false;
+            }
+        }
+    }
+    DSU dsu(size);
+    std::vector<std::vector<int>> adj_list(size + 1);
+    for (int i = 0; i < edges.size(); i++)
+    {
+        int node_u = edges[i][0];
+        int node_v = edges[i][1];
+        adj_list[node_u].push_back(node_v);
+        adj_list[node_v].push_back(node_u);
+
+        if (is_prime[node_u] || is_prime[node_v])
+            continue;
+
+        dsu.Unite(node_u, node_v);
+    }
+
+    long long ans = 0;
+    for (int i = 1; i <= size; i++)
+    {
+        if (!is_prime[i])
+            continue;
+
+        std::vector<long long> child_cnt;
+        for (int j = 0; j < adj_list[i].size(); j++)
+        {
+            int x = adj_list[i][j];
+            if (is_prime[x])
+                continue;
+            int par_x = dsu.AbsPar(x);
+            child_cnt.push_back(dsu.cnt[par_x]);
+        }
+        long long sum = std::accumulate(child_cnt.begin(), child_cnt.end(), 1LL);
+        for (int j = 0; j < child_cnt.size(); j++)
+        {
+            long long cnt = child_cnt[j];
+            sum -= cnt;
+            ans += sum * cnt;
+        }
+    }
+
+    return ans;
+}
+int main()
+{
+    // TEST
+    int size_1 = 5;
+    std::vector<std::vector<int>> edges_1 = {{1, 2}, {1, 3}, {2, 4}, {2, 5}};
+    int expected_1 = 4;
+    int result_1 = CountPaths(size_1, edges_1);
+    assert(result_1 == expected_1);
+    // TEST_END
+
+    // TEST
+    int size_2 = 3;
+    std::vector<std::vector<int>> edges_2 = {{1, 2}, {2, 3}};
+    int expected_2 = 1;
+    int result_2 = CountPaths(size_2, edges_2);
+    assert(result_2 == expected_2);
+    // TEST_END
+
+    // TEST
+    int size_3 = 4;
+    std::vector<std::vector<int>> edges_3 = {{1, 2}, {2, 3}, {3, 4}};
+    int expected_3 = 2;
+    int result_3 = CountPaths(size_3, edges_3);
+    assert(result_3 == expected_3);
+    // TEST_END
+
+    // TEST
+    int size_4 = 2;
+    std::vector<std::vector<int>> edges_4 = {{1, 2}};
+    int expected_4 = 1;
+    int result_4 = CountPaths(size_4, edges_4);
+    assert(result_4 == expected_4);
+    // TEST_END
+
+    // TEST
+    int size_5 = 6;
+    std::vector<std::vector<int>> edges_5 = {{1, 2}, {2, 3}, {3, 4}, {4, 5}, {5, 6}};
+    int expected_5 = 5;
+    int result_5 = CountPaths(size_5, edges_5);
+    assert(result_5 == expected_5);
+    // TEST_END
+
+    // TEST
+    int size_6 = 7;
+    std::vector<std::vector<int>> edges_6 = {{1, 2}, {1, 3}, {2, 4}, {2, 5}, {3, 6}, {3, 7}};
+    int expected_6 = 6;
+    int result_6 = CountPaths(size_6, edges_6);
+    assert(result_6 == expected_6);
+    // TEST_END
+
+    // TEST
+    int size_7 = 4;
+    std::vector<std::vector<int>> edges_7 = {{1, 2}, {1, 3}, {1, 4}};
+    int expected_7 = 4;
+    int result_7 = CountPaths(size_7, edges_7);
+    assert(result_7 == expected_7);
+    // TEST_END
+
+    // TEST
+    int size_8 = 8;
+    std::vector<std::vector<int>> edges_8 = {{1, 2}, {1, 3}, {2, 4}, {2, 5}, {3, 6}, {3, 7}, {4, 8}};
+    int expected_8 = 8;
+    int result_8 = CountPaths(size_8, edges_8);
+    assert(result_8 == expected_8);
+    // TEST_END
+
+    // TEST
+    int size_9 = 5;
+    std::vector<std::vector<int>> edges_9 = {{1, 2}, {1, 3}, {2, 4}, {2, 5}, {3, 6}, {3, 7}, {4, 8}};
+    std::vector<int> result_9;
+    try
+    {
+        CountPaths(size_9,edges_9);
+        assert(false);
+    }
+    catch (const std::invalid_argument &e)
+    {
+        assert(true);
+    }
+    // TEST_END
+
+    // TEST
+    int size_10 = 8;
+    std::vector<std::vector<int>> edges_10 = {{1, 2}, {1, 3}, {2, 4}, {2, 5}, {3, 6}, {3, 9}, {4, 8}};
+    std::vector<int> result_10;
+    try
+    {
+        CountPaths(size_10,edges_10);
+        assert(false);
+    }
+    catch (const std::invalid_argument &e)
+    {
+        assert(true);
+    }
+    // TEST_END
+    // TEST
+    int size_11 = 200000;
+    std::vector<std::vector<int>> edges_11 = {{1, 2}, {1, 3}, {2, 4}, {2, 5}, {3, 6}, {3, 9}, {4, 8}};
+    std::vector<int> result_11;
+    try
+    {
+        CountPaths(size_11,edges_11);
+        assert(false);
+    }
+    catch (const std::invalid_argument &e)
+    {
+        assert(true);
+    }
+    // TEST_END
+    // TEST
+    int size_12 = 2;
+    std::vector<std::vector<int>> edges_12 = {{1, 2,5}, {1, 3}, {2, 4}, {2, 5}, {3, 6}, {3, 9}, {4, 8}};
+    std::vector<int> result_12;
+    try
+    {
+        CountPaths(size_12,edges_12);
+        assert(false);
+    }
+    catch (const std::invalid_argument &e)
+    {
+        assert(true);
+    }
+    // TEST_END
+    std::cout << "All test cases passed!\n";
+    return 0;
+}
