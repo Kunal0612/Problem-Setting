@@ -1,0 +1,306 @@
+// https://leetcode.com/problems/maximum-sum-of-subsequence-with-non-adjacent-elements/description/
+// Write a C++ Function MaximumSumSubsequence to find  the sum of the answers to all queries.
+
+
+// In the bustling town of Numaria, there lived a group of skilled mathematicians known as the Sequence Seekers. These mathematicians were renowned for their prowess in unraveling the mysteries of arrays and sequences. Their latest challenge? The optimization of subsequences.
+
+// The tale begins with an array of integers, a treasure trove of numerical values waiting to be explored. Each element in this array held its own significance, but the Sequence Seekers sought something more—a subsequence of maximum sum, where no two adjacent elements were chosen.
+
+// To embark on their quest, the Sequence Seekers were equipped with a map of queries, each represented by a pair of coordinates: [posi, xi]. These coordinates served as clues, indicating positions within the array where transformations were permitted. With each query, the mathematicians would alter the array, setting the value of a specific element to a new integer.
+
+// But their mission went beyond mere manipulation. With each change to the array, they sought to uncover the maximum sum achievable for a subsequence, adhering to the rule of avoiding adjacent elements. This was their ultimate pursuit—a quest for optimization amidst the array's numerical landscape.
+
+// With nimble fingers and keen minds, the Sequence Seekers delved into the heart of each query, recalculating the sum of subsequences, ensuring no adjacent elements were selected. As they navigated through the array, they encountered challenges and triumphs, each query bringing them closer to their goal.
+
+// And finally, after a series of meticulous calculations, the Sequence Seekers arrived at their destination—the sum of the answers to all queries. But such a treasure was not easily measured; its magnitude was vast, potentially exceeding the limits of conventional representation. Thus, they employed the power of modulo arithmetic, ensuring that their answer remained within bounds defined by 109 + 7.
+
+// As the sun set over Numaria, the Sequence Seekers celebrated their victory, their minds filled with the satisfaction of unraveling yet another mathematical enigma. And thus, their legend grew, their exploits immortalized in the annals of numerical lore for generations to come.
+
+// Input:
+
+// A vector of integers nums .
+// A vector of vector of integers queries.
+
+// Output : 
+
+// A integer ans denoting the sum of the answers to all queries.
+
+// Constraint : 
+
+// nums: The vector of integers contains between 1 and 5 * 104 elements.
+// nums[i]: Each element in the array ranges from -105 to 105, covering a wide range of numerical values.
+// queries : The queries provided to the Sequence Seekers are represented as a 2D array.
+//           Each query, denoted as [posi, xi], specifies a position within the array where a transformation is allowed.
+//           The position, posi, in each query ranges from 0 to the length of the array minus 1.
+//           The new integer, xi, that can be set at the specified position varies from -105 to 105.
+
+#include <vector>
+#include <algorithm>
+#include <iostream>
+#include <cassert>
+
+
+
+struct SegmentTreeNode
+{
+    long long sum_exclude_last;
+    long long sum_exclude_first;
+    long long exclude_f_l;
+    long long max_sum;
+
+    SegmentTreeNode() : sum_exclude_last(0), exclude_f_l(0), sum_exclude_first(0), max_sum(0) {}
+    SegmentTreeNode(long long val) : sum_exclude_last(0), exclude_f_l(0), sum_exclude_first(0), max_sum(std::max(0LL, val)) {}
+};
+
+class SegmentTree
+{
+private:
+    int size;
+    std::vector<SegmentTreeNode> tree;
+
+    SegmentTreeNode Merge(SegmentTreeNode &left, SegmentTreeNode &right)
+    {
+        SegmentTreeNode result;
+        result.sum_exclude_last = std::max({0LL, left.sum_exclude_last, left.sum_exclude_last + right.sum_exclude_last, left.max_sum + right.exclude_f_l, right.sum_exclude_last});
+        result.sum_exclude_first = std::max({0LL, right.sum_exclude_first, left.sum_exclude_first, right.sum_exclude_first + left.sum_exclude_first, right.max_sum + left.exclude_f_l, right.max_sum});
+        result.max_sum = std::max({0LL, result.sum_exclude_last, result.sum_exclude_first, left.max_sum + right.sum_exclude_first, left.sum_exclude_last + right.max_sum, left.max_sum, right.max_sum, left.sum_exclude_last + right.sum_exclude_last, right.sum_exclude_first + left.sum_exclude_first, right.sum_exclude_first + left.sum_exclude_last});
+        result.exclude_f_l = std::max({0LL, left.exclude_f_l + right.sum_exclude_last, right.exclude_f_l + left.sum_exclude_first});
+        return result;
+    }
+    SegmentTreeNode Merge2(SegmentTreeNode &left, SegmentTreeNode &right)
+    {
+        SegmentTreeNode result;
+        result.sum_exclude_last = std::max({0LL, left.max_sum});
+        result.sum_exclude_first = std::max({0LL, right.max_sum});
+        result.max_sum = std::max({0LL, left.max_sum, right.max_sum});
+        result.exclude_f_l = 0LL;
+        return result;
+    }
+
+    void Build(std::vector<int> &nums, int node, int start, int end)
+    {
+        if (start == end)
+        {
+            tree[node] = SegmentTreeNode(nums[start]);
+        }
+        else
+        {
+            int mid = (start + end) / 2;
+            Build(nums, 2 * node + 1, start, mid);
+            Build(nums, 2 * node + 2, mid + 1, end);
+
+            if (end - start == 1)
+                tree[node] = Merge2(tree[2 * node + 1], tree[2 * node + 2]);
+            else
+                tree[node] = Merge(tree[2 * node + 1], tree[2 * node + 2]);
+        }
+    }
+
+    void Update(int idx, int value, int node, int start, int end)
+    {
+        if (start == end)
+        {
+            tree[node] = SegmentTreeNode(value);
+        }
+        else
+        {
+            int mid = (start + end) / 2;
+            if (idx <= mid)
+            {
+                Update(idx, value, 2 * node + 1, start, mid);
+            }
+            else
+            {
+                Update(idx, value, 2 * node + 2, mid + 1, end);
+            }
+
+            if (end - start == 1)
+                tree[node] = Merge2(tree[2 * node + 1], tree[2 * node + 2]);
+            else
+                tree[node] = Merge(tree[2 * node + 1], tree[2 * node + 2]);
+        }
+    }
+
+public:
+    SegmentTree(std::vector<int> &nums)
+    {
+        size = nums.size();
+        tree.resize(4 * size);
+        Build(nums, 0, 0, size - 1);
+    }
+
+    void Update(int idx, int value)
+    {
+        Update(idx, value, 0, 0, size - 1);
+    }
+
+    long long Query()
+    {
+        return tree[0].max_sum;
+    }
+};
+
+int MaximumSumSubsequence(std::vector<int> &nums, std::vector<std::vector<int>> &queries)
+{
+    if (nums.size() < 1 || nums.size() > 5 * 104)
+        throw std::invalid_argument("Invalid length of nums");
+
+    for (int i=0;i<queries.size();i++)
+    {
+        std::vector<int> &query=queries[i];
+        if (query.size() != 2)
+            throw std::invalid_argument("Invalid query format");
+
+        int pos = query[0], value = query[1];
+        if (pos < 0 || pos >= nums.size())
+            throw std::invalid_argument("Invalid query position");
+        if (value < -105 || value > 105)
+            throw std::invalid_argument("Invalid query value");
+    }
+
+    SegmentTree seg_tree(nums);
+
+    long long result = 0;
+    int MOD = 1e9 + 7;
+
+    for (int i = 0; i < queries.size(); ++i)
+    {
+        int pos = queries[i][0], value = queries[i][1];
+
+        seg_tree.Update(pos, value);
+        int ans = seg_tree.Query();
+        result = (result + ans) % MOD;
+    }
+
+    return result;
+}
+
+int main()
+{
+    // TEST
+    std::vector<int> nums_1 = {3, 5, 9};
+    std::vector<std::vector<int>> queries_1 = {{1, -2}, {0, -3}};
+    int expected_1 = 21;
+    int result_1 = MaximumSumSubsequence(nums_1, queries_1);
+    assert(result_1 == expected_1);
+    // TEST_END
+
+    // TEST
+    std::vector<int> nums_2 = {1, 2, 3};
+    std::vector<std::vector<int>> queries_2 = {{0, 5}, {2, 7}};
+    int expected_2 = 20;
+    int result_2 = MaximumSumSubsequence(nums_2, queries_2);
+    assert(result_2 == expected_2);
+    // TEST_END
+
+    // TEST
+    std::vector<int> nums_3 = {10, 20, 30};
+    std::vector<std::vector<int>> queries_3 = {{1, -5}, {0, -10}};
+    int expected_3 = 70;
+    int result_3 = MaximumSumSubsequence(nums_3, queries_3);
+    assert(result_3 == expected_3);
+    // TEST_END
+
+    // TEST
+    std::vector<int> nums_4 = {5, 10, 15, 20};
+    std::vector<std::vector<int>> queries_4 = {{3, -2}, {1, -4}};
+    int expected_4 = 40;
+    int result_4 = MaximumSumSubsequence(nums_4, queries_4);
+    assert(result_4 == expected_4);
+    // TEST_END
+
+    // TEST
+    std::vector<int> nums_5 = {8, 16, 24};
+    std::vector<std::vector<int>> queries_5 = {{2, -8}, {0, -16}};
+    int expected_5 = 32;
+    int result_5 = MaximumSumSubsequence(nums_5, queries_5);
+    assert(result_5 == expected_5);
+    // TEST_END
+
+    // TEST
+    std::vector<int> nums_6 = {4, 8, 12};
+    std::vector<std::vector<int>> queries_6 = {{0, -3}, {1, -6}};
+    int expected_6 = 24;
+    int result_6 = MaximumSumSubsequence(nums_6, queries_6);
+    assert(result_6 == expected_6);
+    // TEST_END
+
+    // TEST
+    std::vector<int> nums_7 = {1, 3, 5, 7};
+    std::vector<std::vector<int>> queries_7 = {{2, -4}, {3, -2}};
+    int expected_7 = 13;
+    int result_7 = MaximumSumSubsequence(nums_7, queries_7);
+    assert(result_7 == expected_7);
+    // TEST_END
+
+    // TEST
+    std::vector<int> nums_8 = {2, 4, 6, 8};
+    std::vector<std::vector<int>> queries_8 = {{0, -1}, {1, -2}};
+    int expected_8 = 20;
+    int result_8 = MaximumSumSubsequence(nums_8, queries_8);
+    assert(result_8 == expected_8);
+    // TEST_END
+
+    // TEST
+    std::vector<int> nums_9 = {};                      
+    std::vector<std::vector<int>> queries_9 = {{0, 1}}; 
+    int result_9;
+    try
+    {
+        MaximumSumSubsequence(nums_9, queries_9);
+        assert(false); 
+    }
+    catch (const std::invalid_argument &e)
+    {
+        assert(true);
+    }
+    // TEST_END
+
+    // TEST
+    std::vector<int> nums_10(50001, 106);                               
+    std::vector<std::vector<int>> queries_10(1, std::vector<int>{0, 5});
+    int result_10;
+    try
+    {
+        MaximumSumSubsequence(nums_10, queries_10);
+        assert(false); 
+    }
+    catch (const std::invalid_argument &e)
+    {
+        assert(true);
+    }
+    // TEST_END
+
+    // TEST
+    std::vector<int> nums_11 = {1, 2, 3};
+    std::vector<std::vector<int>> queries_11 = {{0, -106}}; 
+    int result_11;
+    try
+    {
+        MaximumSumSubsequence(nums_11, queries_11);
+        assert(false); 
+    }
+    catch (const std::invalid_argument &e)
+    {
+        assert(true);
+    }
+    // TEST_END
+
+    // TEST
+    std::vector<int> nums_12(100000, 100000);                                
+    std::vector<std::vector<int>> queries_12(100001, std::vector<int>{0, 1}); 
+    int result_12;
+    try
+    {
+        MaximumSumSubsequence(nums_12, queries_12);
+        assert(false); 
+    }
+    catch (const std::invalid_argument &e)
+    {
+        assert(true);
+    }
+    // TEST_END
+
+    std::cout << "All test cases passed!\n";
+    return 0;
+}
