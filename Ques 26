@@ -1,0 +1,316 @@
+// https://leetcode.com/problems/minimize-malware-spread/description/
+
+// Write a C++ Function MinMalware to find a node with the smallest index that would minimize M(initial).
+
+
+// In the futuristic city of Technopolis, the central computer network is under attack by a malicious virus. The network consists of n nodes, each representing critical infrastructure, interconnected by a complex web of direct connections. The connections are represented as an n x n adjacency matrix, where each node i is directly connected to node j if graph[i][j] == 1.
+
+// At the outbreak, several nodes are initially infected with malware. These nodes are listed in the array initial. The virus spreads through direct connections, meaning if node i is infected and directly connected to node j, node j will also be infected. This chain reaction continues until no more nodes can be infected.
+
+// The city's cybersecurity team is tasked with minimizing the final damage caused by the malware. They can achieve this by removing exactly one node from the initial list of infected nodes. The goal is to determine which node, when removed, would result in the smallest possible number of infected nodes by the time the malware can no longer spread.
+
+// The team defines M(initial) as the final number of nodes infected with malware after the spread stops. Your mission is to help them find the node that, if removed, would minimize M(initial). If there are multiple nodes that can achieve this, return the one with the smallest index.
+
+// Input :
+
+// graph: An n x n adjacency matrix where graph[i][j] == 1 indicates a direct connection between node i and node j.
+// initial: An array of initially infected nodes.
+
+// Output : 
+
+// The answer node that, if removed, minimizes the final number of infected nodes. If there are multiple such nodes, return the smallest index.
+
+// Constraint : 
+
+// Graph Dimensions:
+
+// The number of nodes n in the network is equal to the length of the adjacency matrix, i.e., n==graph.length.
+// The adjacency matrix is a square matrix, meaning the number of rows is equal to the number of columns, i.e. n==graph[i].length for all i.
+
+// Node Connections:
+
+// The value of each element in the adjacency matrix graph[i][j] is either 0 or 1, representing the absence or presence of a direct connection between nodes i and j, respectively.
+// The adjacency matrix is symmetric, which means graph[i][j]==graph[j][i] for all i and j. This ensures that if node i is directly connected to node j, then node j is also directly connected to node i.
+
+// Self-loops:
+
+// Each node is considered to be connected to itself, which is represented by the diagonal elements of the adjacency matrix being 1, i.e. graph[i][i]==1 for all i.
+
+// Initial Infection:
+
+// The number of initially infected nodes is at least 1 and at most n, i.e, 1≤initial.length≤n.
+// The indices of the initially infected nodes range from 0 to 0≤initial[i]≤n−1.
+// All the integers in the initial array are unique, meaning no node is listed more than once as initially infected.
+#include <vector>
+#include <unordered_map>
+#include <unordered_set>
+#include <algorithm>
+#include <climits>
+#include <iostream>
+#include <cassert>
+
+#include <vector>
+#include <unordered_set>
+#include <stdexcept>
+#include <algorithm>
+
+class DisjointSet
+{
+public:
+    std::vector<int> parent, size;
+    DisjointSet(int nodes)
+    {
+        parent.resize(nodes + 1);
+        size.resize(nodes + 1, 1);
+        for (int i = 0; i <= nodes; i++)
+        {
+            parent[i] = i;
+        }
+    }
+    int FindParent(int node)
+    {
+        if (node == parent[node])
+        {
+            return node;
+        }
+        return parent[node] = FindParent(parent[node]);
+    }
+    void Union(int node_u, int node_v)
+    {
+        int node_pu = FindParent(node_u), node_pv = FindParent(node_v);
+        if (node_pu == node_pv)
+        {
+            return;
+        }
+        if (size[node_pu] < size[node_pv])
+        {
+            parent[node_pu] = node_pv;
+            size[node_pv] += size[node_pu];
+        }
+        else
+        {
+            parent[node_pv] = node_pu;
+            size[node_pu] += size[node_pv];
+        }
+    }
+};
+
+int MinMalware(std::vector<std::vector<int>> &graph, std::vector<int> &initial)
+{
+    int size = graph.size();
+    if (size < 2 || size > 300)
+    {
+        throw std::invalid_argument("The number of nodes size must be between 2 and 300.");
+    }
+
+    for (int i = 0; i < size; ++i)
+    {
+        if (graph[i].size() != size)
+        {
+            throw std::invalid_argument("The graph must be a square matrix.");
+        }
+        if (graph[i][i] != 1)
+        {
+            throw std::invalid_argument("Each node must have a self-loop, i.e., graph[i][i] must be 1.");
+        }
+        for (int j = 0; j < size; ++j)
+        {
+            if (graph[i][j] != 0 && graph[i][j] != 1)
+            {
+                throw std::invalid_argument("Graph edges must be either 0 or 1.");
+            }
+            if (graph[i][j] != graph[j][i])
+            {
+                throw std::invalid_argument("Graph must be undirected, i.e., graph[i][j] must be equal to graph[j][i].");
+            }
+        }
+    }
+
+    if (initial.size() < 1 || initial.size() >= size)
+    {
+        throw std::invalid_argument("The number of initial infected nodes must be between 1 and n-1.");
+    }
+
+    std::unordered_set<int> unique_initial(initial.begin(), initial.end());
+    if (unique_initial.size() != initial.size())
+    {
+        throw std::invalid_argument("All integers in the initial array must be unique.");
+    }
+
+    for (int i = 0; i < initial.size(); i++)
+    {
+        int node = initial[i];
+        if (node < 0 || node >= size)
+        {
+            throw std::invalid_argument("All initial infected nodes must be between 0 and n-1.");
+        }
+    }
+
+    int nodes = graph.size(), answer = -1, maximum = -1;
+    DisjointSet dsu(nodes);
+    std::vector<int> visited(nodes, 0);
+    for (int i = 0; i < nodes; i++)
+    {
+        for (int j = 0; j < nodes; j++)
+        {
+            if (graph[i][j] == 1)
+            {
+                if (dsu.FindParent(i) != dsu.FindParent(j))
+                {
+                    dsu.Union(i, j);
+                }
+            }
+        }
+    }
+    for (int i = 0; i < initial.size(); i++)
+    {
+        visited[dsu.FindParent(initial[i])]++;
+    }
+    for (int i = 0; i < initial.size(); i++)
+    {
+        if (visited[dsu.FindParent(initial[i])] == 1 && dsu.size[dsu.FindParent(initial[i])] >= maximum)
+        {
+            if (dsu.size[dsu.FindParent(initial[i])] == maximum)
+            {
+                answer = std::min(answer, initial[i]);
+            }
+            else
+            {
+                answer = initial[i];
+            }
+            maximum = dsu.size[dsu.FindParent(initial[i])];
+        }
+    }
+    if (answer == -1)
+    {
+        int value = INT_MAX;
+        for (int i = 0; i < initial.size(); i++)
+        {
+            value = std::min(value, initial[i]);
+        }
+        return value;
+    }
+    return answer;
+}
+
+int main()
+{
+    // TEST
+    std::vector<std::vector<int>> graph_1 = {{1, 1, 0}, {1, 1, 0}, {0, 0, 1}};
+    std::vector<int> initial_1 = {0, 1};
+    int expected_1 = 0;
+    int result_1 = MinMalware(graph_1, initial_1);
+    assert(result_1 == expected_1);
+    // TEST_END
+
+    // TEST
+    std::vector<std::vector<int>> graph_2 = {{1, 0, 0}, {0, 1, 0}, {0, 0, 1}};
+    std::vector<int> initial_2 = {0, 1};
+    int expected_2 = 0;
+    int result_2 = MinMalware(graph_2, initial_2);
+    assert(result_2 == expected_2);
+    // TEST_END
+
+    // TEST
+    std::vector<std::vector<int>> graph_3 = {{1, 0, 0}, {0, 1, 1}, {0, 1, 1}};
+    std::vector<int> initial_3 = {0, 2};
+    int expected_3 = 2;
+    int result_3 = MinMalware(graph_3, initial_3);
+    assert(result_3 == expected_3);
+    // TEST_END
+
+    // TEST
+    std::vector<std::vector<int>> graph_4 = {{1, 1, 1}, {1, 1, 0}, {1, 0, 1}};
+    std::vector<int> initial_4 = {0, 1};
+    int expected_4 = 0;
+    int result_4 = MinMalware(graph_4, initial_4);
+    assert(result_4 == expected_4);
+    // TEST_END
+
+    // TEST
+    std::vector<std::vector<int>> graph_5 = {{1, 1, 0}, {1, 1, 0}, {0, 0, 1}};
+    std::vector<int> initial_5 = {0, 2};
+    int expected_5 = 0;
+    int result_5 = MinMalware(graph_5, initial_5);
+    assert(result_5 == expected_5);
+    // TEST_END
+
+    // TEST
+    std::vector<std::vector<int>> graph_6 = {{1, 1, 0}, {1, 1, 1}, {0, 1, 1}};
+    std::vector<int> initial_6 = {0, 1};
+    int expected_6 = 0;
+    int result_6 = MinMalware(graph_6, initial_6);
+    assert(result_6 == expected_6);
+    // TEST_END
+
+    // TEST
+    std::vector<std::vector<int>> graph_7 = {{1, 1, 1}, {1, 1, 0}, {1, 0, 1}};
+    std::vector<int> initial_7 = {0, 1};
+    int expected_7 = 0;
+    int result_7 = MinMalware(graph_7, initial_7);
+    assert(result_7 == expected_7);
+    // TEST_END
+
+    // TEST
+    std::vector<std::vector<int>> graph_8 = {{1, 1, 1}, {1, 1, 1}, {1, 1, 1}};
+    std::vector<int> initial_8 = {0, 1};
+    int expected_8 = 0;
+    int result_8 = MinMalware(graph_8, initial_8);
+    assert(result_8 == expected_8);
+    // TEST_END
+
+    // TEST
+    std::vector<std::vector<int>> graph_invalid_1 = {{1, 1}, {1, 1}};
+    std::vector<int> initial_invalid_1 = {0, 1, 2};
+    try
+    {
+        MinMalware(graph_invalid_1, initial_invalid_1);
+        assert(false);
+    }
+    catch (const std::invalid_argument &e)
+    {
+        assert(true);
+    }
+    // TEST_END
+    // TEST
+    std::vector<std::vector<int>> graph_invalid_2 = {{1, 1, 0}, {0, 1, 0}, {0, 0, 1}};
+    std::vector<int> initial_invalid_2 = {0, 1, 2};
+    try
+    {
+        MinMalware(graph_invalid_2, initial_invalid_2);
+        assert(false);
+    }
+    catch (const std::invalid_argument &e)
+    {
+        assert(true);
+    }
+    // TEST_END
+    // TEST
+    std::vector<std::vector<int>> graph_invalid_3 = {{1, 0, 0}, {0, 1, 1}, {0, 1, 1}};
+    std::vector<int> initial_invalid_3 = {0, 2, 1};
+    try
+    {
+        MinMalware(graph_invalid_3, initial_invalid_3);
+        assert(false);
+    }
+    catch (const std::invalid_argument &e)
+    {
+        assert(true);
+    }
+    // TEST_END
+    // TEST
+    std::vector<std::vector<int>> graph_invalid_4 = {{1, 1, 1}, {1, 1, 1}, {1, 1, 2}};
+    std::vector<int> initial_invalid_4 = {0, 1, 2};
+    try
+    {
+        MinMalware(graph_invalid_4, initial_invalid_4);
+        assert(false);
+    }
+    catch (const std::invalid_argument &e)
+    {
+        assert(true);
+    }
+    // TEST_END
+    std::cout << "All test cases passed!\n";
+    return 0;
+}
