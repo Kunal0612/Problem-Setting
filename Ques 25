@@ -1,0 +1,367 @@
+// https://leetcode.com/problems/minimize-malware-spread-ii/
+
+// Write a C++ Function MinimumMalwareSpread to find a node with the smallest index that would minimize M(initial).
+
+
+// In the bustling city of Cyberville, the central computer network that powers everything from traffic lights to communication systems is under attack by a malicious malware. This network is represented as a series of interconnected nodes, with each node representing a critical computer or server in the city's infrastructure.
+
+// The Network
+
+// The network is visualized as an n x n adjacency matrix. Each cell in the matrix, graph[i][j], indicates whether node i is directly connected to node j:
+
+// graph[i][j] == 1 means there is a direct connection between node i and node j.
+// graph[i][j] == 0 means there is no direct connection.
+
+// The Outbreak
+// The malware has already infected several nodes in the network, represented by the list initial. If a node is infected, it will eventually spread the malware to all other nodes directly connected to it, causing a ripple effect throughout the network. This infection will continue until no more nodes can be infected.
+
+// Objective
+
+// The goal is to contain the malware and minimize the damage to the network. You have the ability to remove exactly one node from the initially infected nodes, completely severing all its connections to the rest of the network. Your task is to determine which node, if removed, will minimize the total number of infected nodes in the network after the spread of malware stops.
+
+// Input
+
+// graph: An n x n adjacency matrix where graph[i][j] == 1 indicates a direct connection between node i and node j.
+// initial: An array of initially infected nodes.
+
+// Output
+
+// The answer node that, if removed, minimizes the final number of infected nodes. If there are multiple such nodes, return the smallest index.
+
+// Constraint : 
+
+// Graph Dimensions:
+
+// The number of nodes n in the network is equal to the length of the adjacency matrix, i.e., n==graph.length.
+// The adjacency matrix is a square matrix, meaning the number of rows is equal to the number of columns, i.e. n==graph[i].length for all i.
+
+// Node Connections:
+
+// The value of each element in the adjacency matrix graph[i][j] is either 0 or 1, representing the absence or presence of a direct connection between nodes i and j, respectively.
+// The adjacency matrix is symmetric, which means graph[i][j]==graph[j][i] for all i and j. This ensures that if node i is directly connected to node j, then node j is also directly connected to node i.
+
+// Self-loops:
+
+// Each node is considered to be connected to itself, which is represented by the diagonal elements of the adjacency matrix being 1, i.e. graph[i][i]==1 for all i.
+
+// Initial Infection:
+
+// The number of initially infected nodes is at least 1 and at most n, i.e, 1≤initial.length≤n.
+// The indices of the initially infected nodes range from 0 to 0≤initial[i]≤n−1.
+// All the integers in the initial array are unique, meaning no node is listed more than once as initially infected.
+
+#include <vector>
+#include <unordered_map>
+#include <unordered_set>
+#include <algorithm>
+#include <climits>
+#include <iostream>
+#include <cassert>
+
+class DSU
+{
+public:
+    std::vector<int> parent, rank, size;
+
+    DSU(int num)
+    {
+        parent.resize(num);
+        rank.resize(num, 0);
+        size.resize(num, 1);
+        for (int idx = 0; idx < num; idx++)
+        {
+            parent[idx] = idx;
+        }
+    }
+
+    int Find(int x)
+    {
+        if (x == parent[x])
+        {
+            return x;
+        }
+        return parent[x] = Find(parent[x]);
+    }
+
+    void UnionByRank(int node_x, int node_y)
+    {
+        int root_x = Find(node_x);
+        int root_y = Find(node_y);
+        if (root_x == root_y)
+            return;
+        if (rank[root_x] < rank[root_y])
+        {
+            parent[root_x] = root_y;
+        }
+        else if (rank[root_x] > rank[root_y])
+        {
+            parent[root_y] = root_x;
+        }
+        else
+        {
+            rank[root_x]++;
+            parent[root_y] = root_x;
+        }
+    }
+
+    void UnionBySize(int node_x, int node_y)
+    {
+        int root_x = Find(node_x);
+        int root_y = Find(node_y);
+        if (root_x == root_y)
+            return;
+        if (size[root_x] < size[root_y])
+        {
+            parent[root_x] = root_y;
+            size[root_y] += size[root_x];
+        }
+        else if (size[root_x] > size[root_y])
+        {
+            parent[root_y] = root_x;
+            size[root_x] += size[root_y];
+        }
+        else
+        {
+            size[root_x] += size[root_y];
+            parent[root_y] = root_x;
+        }
+    }
+};
+
+int MinMalwareSpread(std::vector<std::vector<int>> &graph, std::vector<int> &initial)
+{
+    // Constraint Checking
+    int size = graph.size();
+    if (size < 2 || size > 300)
+    {
+        throw std::invalid_argument("The number of nodes size must be between 2 and 300.");
+    }
+
+    for (int i = 0; i < size; ++i)
+    {
+        if (graph[i].size() != size)
+        {
+            throw std::invalid_argument("The graph must be a square matrix.");
+        }
+        if (graph[i][i] != 1)
+        {
+            throw std::invalid_argument("Each node must have a self-loop, i.e., graph[i][i] must be 1.");
+        }
+        for (int j = 0; j < size; ++j)
+        {
+            if (graph[i][j] != 0 && graph[i][j] != 1)
+            {
+                throw std::invalid_argument("Graph edges must be either 0 or 1.");
+            }
+            if (graph[i][j] != graph[j][i])
+            {
+                throw std::invalid_argument("Graph must be undirected, i.e., graph[i][j] must be equal to graph[j][i].");
+            }
+        }
+    }
+
+    if (initial.size() < 1 || initial.size() >= size)
+    {
+        throw std::invalid_argument("The number of initial infected nodes must be between 1 and n-1.");
+    }
+
+    std::unordered_set<int> unique_initial(initial.begin(), initial.end());
+    if (unique_initial.size() != initial.size())
+    {
+        throw std::invalid_argument("All integers in the initial array must be unique.");
+    }
+
+    for (int i = 0; i < initial.size(); i++)
+    {
+        int node = initial[i];
+        if (node < 0 || node >= size)
+        {
+            throw std::invalid_argument("All initial infected nodes must be between 0 and n-1.");
+        }
+    }
+
+    DSU dsu(size);
+    std::unordered_map<int, int> malware_count;
+    for (int i = 0; i < initial.size(); i++)
+    {
+        malware_count[initial[i]]++;
+    }
+    for (int i = 0; i < size; i++)
+    {
+        if (malware_count[i])
+            continue;
+        for (int j = 0; j < size; j++)
+        {
+            if (i == j || malware_count[j])
+                continue;
+            if (graph[i][j] == 1)
+                dsu.UnionBySize(i, j);
+        }
+    }
+    std::vector<std::vector<int>> component_freq(size);
+    std::vector<std::vector<int>> component_malware(size);
+    for (int i = 0; i < initial.size(); i++)
+    {
+        int node = initial[i];
+        for (int j = 0; j < size; j++)
+        {
+            if (j == node || malware_count[j])
+                continue;
+            if (graph[node][j] == 1)
+            {
+                int parent = dsu.Find(j);
+                component_freq[node].push_back(parent);
+                component_malware[parent].push_back(node);
+            }
+        }
+    }
+    int max_size = INT_MIN, min_node = INT_MAX;
+    for (int i = 0; i < initial.size(); i++)
+    {
+        int node = initial[i];
+        std::unordered_set<int> unique_components(component_freq[node].begin(), component_freq[node].end());
+        int size_sum = 0;
+        for (std::unordered_set<int>::iterator it = unique_components.begin(); it != unique_components.end(); ++it)
+        {
+            int comp = *it;
+            std::unordered_set<int> unique_malware(component_malware[comp].begin(), component_malware[comp].end());
+            if (unique_malware.size() > 1)
+                continue;
+            size_sum += dsu.size[comp];
+        }
+        if (max_size < size_sum)
+        {
+            max_size = size_sum;
+            min_node = node;
+        }
+        if (max_size == size_sum)
+        {
+            min_node = std::min(node, min_node);
+        }
+    }
+    if (max_size == INT_MIN)
+        return *std::min_element(initial.begin(), initial.end());
+    return min_node;
+}
+
+int main()
+{
+    // TEST
+    std::vector<std::vector<int>> graph_1 = {{1, 1, 0}, {1, 1, 0}, {0, 0, 1}};
+    std::vector<int> initial_1 = {0, 1};
+    int expected_1 = 0;
+    int result_1 = MinMalwareSpread(graph_1, initial_1);
+    assert(result_1 == expected_1);
+    // TEST_END
+
+    // TEST
+    std::vector<std::vector<int>> graph_2 = {{1, 0, 0}, {0, 1, 0}, {0, 0, 1}};
+    std::vector<int> initial_2 = {0, 1};
+    int expected_2 = 0;
+    int result_2 = MinMalwareSpread(graph_2, initial_2);
+    assert(result_2 == expected_2);
+    // TEST_END
+
+    // TEST
+    std::vector<std::vector<int>> graph_3 = {{1, 0, 0}, {0, 1, 1}, {0, 1, 1}};
+    std::vector<int> initial_3 = {0, 2};
+    int expected_3 = 2;
+    int result_3 = MinMalwareSpread(graph_3, initial_3);
+    assert(result_3 == expected_3);
+    // TEST_END
+
+    // TEST
+    std::vector<std::vector<int>> graph_4 = {{1, 1, 1}, {1, 1, 0}, {1, 0, 1}};
+    std::vector<int> initial_4 = {0, 1};
+    int expected_4 = 0;
+    int result_4 = MinMalwareSpread(graph_4, initial_4);
+    assert(result_4 == expected_4);
+    // TEST_END
+
+    // TEST
+    std::vector<std::vector<int>> graph_5 = {{1, 1, 0}, {1, 1, 0}, {0, 0, 1}};
+    std::vector<int> initial_5 = {0, 2};
+    int expected_5 = 0;
+    int result_5 = MinMalwareSpread(graph_5, initial_5);
+    assert(result_5 == expected_5);
+    // TEST_END
+
+    // TEST
+    std::vector<std::vector<int>> graph_6 = {{1, 1, 0}, {1, 1, 1}, {0, 1, 1}};
+    std::vector<int> initial_6 = {0, 1};
+    int expected_6 = 1;
+    int result_6 = MinMalwareSpread(graph_6, initial_6);
+    assert(result_6 == expected_6);
+    // TEST_END
+
+    // TEST
+    std::vector<std::vector<int>> graph_7 = {{1, 1, 1}, {1, 1, 0}, {1, 0, 1}};
+    std::vector<int> initial_7 = {0, 1};
+    int expected_7 = 0;
+    int result_7 = MinMalwareSpread(graph_7, initial_7);
+    assert(result_7 == expected_7);
+    // TEST_END
+
+    // TEST
+    std::vector<std::vector<int>> graph_8 = {{1, 1, 1}, {1, 1, 1}, {1, 1, 1}};
+    std::vector<int> initial_8 = {0, 1};
+    int expected_8 = 0;
+    int result_8 = MinMalwareSpread(graph_8, initial_8);
+    assert(result_8 == expected_8);
+    // TEST_END
+
+    // TEST
+    std::vector<std::vector<int>> graph_invalid_1 = {{1, 1}, {1, 1}};
+    std::vector<int> initial_invalid_1 = {0,1,2};
+    try
+    {
+        MinMalwareSpread(graph_invalid_1, initial_invalid_1);
+        assert(false); 
+    }
+    catch (const std::invalid_argument &e)
+    {
+        assert(true); 
+    }
+    // TEST_END
+    // TEST
+    std::vector<std::vector<int>> graph_invalid_2 = {{1, 1, 0}, {0, 1, 0}, {0, 0, 1}};
+    std::vector<int> initial_invalid_2 = {0, 1, 2};
+    try
+    {
+        MinMalwareSpread(graph_invalid_2, initial_invalid_2);
+        assert(false);
+    }
+    catch (const std::invalid_argument &e)
+    {
+        assert(true); 
+    }
+    // TEST_END
+    // TEST
+    std::vector<std::vector<int>> graph_invalid_3 = {{1, 0, 0}, {0, 1, 1}, {0, 1, 1}};
+    std::vector<int> initial_invalid_3 = {0, 2,1};
+    try
+    {
+        MinMalwareSpread(graph_invalid_3, initial_invalid_3);
+        assert(false);
+    }
+    catch (const std::invalid_argument &e)
+    {
+        assert(true); 
+    }
+    // TEST_END
+    // TEST
+    std::vector<std::vector<int>> graph_invalid_4 = {{1, 1, 1}, {1, 1, 1}, {1, 1, 2}}; 
+    std::vector<int> initial_invalid_4 = {0, 1, 2};
+    try
+    {
+        MinMalwareSpread(graph_invalid_4, initial_invalid_4);
+        assert(false); 
+    }
+    catch (const std::invalid_argument &e)
+    {
+        assert(true); 
+    }
+    // TEST_END
+    std::cout << "All test cases passed!\n";
+    return 0;
+}
