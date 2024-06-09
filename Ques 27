@@ -1,0 +1,318 @@
+// https://leetcode.com/problems/minimize-the-total-price-of-the-trips/description/
+
+// Write a C++ Function MinimumTotalPrice to find the minimum total price sum to perform all the given trips.
+
+// In a quaint village nestled among towering trees, there stood an enchanted forest, crisscrossed with winding paths, and at its heart lay a magnificent tree, its branches stretching towards the sky like outstretched arms. In this forest, every node of the tree held a unique price, each contributing to the mystical aura that enveloped the land.
+
+// Our journey begins with a traveler, armed with a map of the forest and a desire for adventure. But this traveler was not alone in their quest; they were accompanied by a task - to traverse the forest, from one node to another, embarking on multiple trips.
+
+// As our traveler set forth, they encountered a curious dilemma. For, you see, before embarking on their first trip, they had the opportunity to wield a unique power - the power to halve the prices of select non-adjacent nodes. This decision, though seemingly simple, held the key to unlocking a more economical journey through the forest.
+
+// With the forest canopy overhead and the rustle of leaves beneath their feet, our traveler pondered their choices. Which nodes should they choose to halve the prices of, knowing that each decision would impact the total cost of their journey?
+
+// After careful consideration, our traveler made their selection, strategically reducing the prices of certain nodes to ensure a more cost-effective path through the forest.
+
+// And so, armed with their choices and a sense of determination, our traveler embarked on their trips, navigating through the labyrinth of paths, from node to node, guided by the allure of adventure and the promise of discovery.
+
+// As the sun dipped below the horizon and the stars adorned the night sky, our traveler completed their final trip, having traversed the forest in pursuit of their goal. And in the end, the total price sum of their journeys was revealed, a testament to the choices made and the paths taken through the enchanted forest.
+
+// Input :
+
+// size : The integer size denoting of nodes size in the tree.
+// edges : A vector of vector of integer denoting the edge between ai and bi.
+// price : A vector of integer price where price[i] is the price of the ith node.
+// trip : A vector of vector of integer indicates that you start the ith trip from the node start[i] and travel to the node end[i]
+
+// Output : 
+
+// An integer result to find the minimum total price sum to perform all the given trips.
+
+// Constraint : 
+
+// size : The number of nodes size in the tree is between 1 and 50 (inclusive).
+// edges.size() : The number of edges in the tree is equal to n−1.
+// edges[i] : The indices ai and b i of the edges are between 0 and n−1 (inclusive).
+//            The edges form a valid tree.
+// price.size() :The length of the price vector is equal to n.
+// price : Each price[i] in the vector is an even integer.
+//         Each price[i] is between 1 and 1000 (inclusive).
+// trip.size() : The number of trips is between 1 and 100 (inclusive).
+// trip : The starting and ending indices of each trip, start [i] and end[i], are between 0 and n−1  (inclusive).
+
+
+#include <iostream>
+#include <vector>
+#include <unordered_set>
+#include <cassert>
+#include <stdexcept>
+
+#include <vector>
+#include <unordered_set>
+
+
+bool GetPaths(int start, int end, std::vector<std::unordered_set<int>> &graph, std::vector<int> &vis, std::vector<int> &visited)
+{
+    vis[start] = 1;
+
+    if (start == end)
+        return true;
+
+    for (std::unordered_set<int>::iterator it = graph[start].begin(); it != graph[start].end(); ++it)
+    {
+        int itt = *it;
+        if (!vis[itt] && GetPaths(itt, end, graph, vis, visited))
+        {
+            ++visited[itt];
+            return true;
+        }
+    }
+
+    return false;
+}
+
+int Reduce(std::vector<std::unordered_set<int>> &graph, std::vector<int> &cost, int curr, bool half, std::vector<std::vector<int>> &dp, int parent = -1)
+{
+    if (dp[curr][half] != -1)
+        return dp[curr][half];
+
+    int sub = 0;
+    int total = half ? cost[curr] / 2 : cost[curr];
+
+    for (std::unordered_set<int>::iterator it = graph[curr].begin(); it != graph[curr].end(); ++it)
+    {
+        int itt = *it;
+        if (itt == parent)
+            continue;
+
+        sub = Reduce(graph, cost, itt, !half, dp, curr);
+
+        if (!half)
+            sub = std::min(Reduce(graph, cost, itt, half, dp, curr), sub);
+
+        total += sub;
+    }
+
+    return dp[curr][half] = total;
+}
+
+int MinimumTotalPrice(int size, std::vector<std::vector<int>> &edges, std::vector<int> &price, std::vector<std::vector<int>> &trips)
+{
+    if (size < 1 || size > 50)
+        throw std::invalid_argument("Invalid node count");
+
+    if (edges.size() != size - 1)
+        throw std::invalid_argument("Invalid number of edges");
+
+    for (int i = 0; i < edges.size(); ++i)
+    {
+        if (edges[i].size() != 2 || edges[i][0] < 0 || edges[i][0] >= size || edges[i][1] < 0 || edges[i][1] >= size)
+            throw std::invalid_argument("Invalid edge in graph");
+    }
+    if (price.size() != size)
+        throw std::invalid_argument("Invalid node price vector size");
+
+    for (int i = 0; i < price.size(); ++i)
+    {
+        if (price[i] % 2 != 0 || price[i] < 1 || price[i] > 1000)
+            throw std::invalid_argument("Invalid node price");
+    }
+
+    if (trips.size() < 1 || trips.size() > 100)
+        throw std::invalid_argument("Invalid number of trips");
+
+    for (int i = 0; i < trips.size(); ++i)
+    {
+        if (trips[i].size() != 2 || trips[i][0] < 0 || trips[i][0] >= size || trips[i][1] < 0 || trips[i][1] >= size)
+            throw std::invalid_argument("Invalid trip");
+    }
+    
+    std::vector<std::unordered_set<int>> graph(size, std::unordered_set<int>());
+
+    for (std::vector<std::vector<int>>::iterator it = edges.begin(); it != edges.end(); ++it)
+    {
+        std::vector<int> &i = *it;
+        graph[i[0]].insert(i[1]);
+        graph[i[1]].insert(i[0]);
+    }
+
+    std::vector<int> cost(size, 0);
+
+    for (std::vector<std::vector<int>>::iterator it = trips.begin(); it != trips.end(); ++it)
+    {
+        std::vector<int> &i = *it;
+        std::vector<int> vis(size, 0);
+
+        GetPaths(i[0], i[1], graph, vis, cost);
+        ++cost[i[0]];
+    }
+
+    for (int i = 0; i < size; ++i)
+    {
+
+        cost[i] *= price[i];
+        if (cost[i] == 0)
+        {
+
+            for (std::unordered_set<int>::iterator j = graph[i].begin(); j != graph[i].end(); ++j)
+                graph[*j].erase(i);
+
+            graph[i].clear();
+        }
+    }
+
+    int ans = 0;
+    std::vector<std::vector<int>> dp(size, std::vector<int>(2, -1));
+
+    for (std::vector<std::vector<int>>::iterator it = trips.begin(); it != trips.end(); ++it)
+    {
+        std::vector<int> &i = *it;
+        int start = i[0];
+
+        if (dp[start][0] + dp[start][1] == -2)
+        {
+
+            Reduce(graph, cost, start, true, dp);
+
+            Reduce(graph, cost, start, false, dp);
+
+            ans += std::min(dp[start][0], dp[start][1]);
+        }
+    }
+
+    return ans;
+}
+
+int main()
+{
+
+    // TEST
+    int size_1 = 4;
+    std::vector<std::vector<int>> edges_1 = {{0, 1}, {1, 2}, {1, 3}};
+    std::vector<int> price_1 = {2, 2, 10, 6};
+    std::vector<std::vector<int>> trips_1 = {{0, 3}, {2, 1}, {2, 3}};
+    int expected_1 = 23;
+    int result_1 = MinimumTotalPrice(size_1, edges_1, price_1, trips_1);
+    assert(result_1 == expected_1);
+    // TEST_END
+
+    // TEST
+    int size_2 = 5;
+    std::vector<std::vector<int>> edges_2 = {{0, 1}, {0, 2}, {1, 3}, {1, 4}};
+    std::vector<int> price_2 = {2, 2, 10, 6, 8};
+    std::vector<std::vector<int>> trips_2 = {{0, 4}, {3, 2}, {2, 1}};
+    int expected_2 = 29;
+    int result_2 = MinimumTotalPrice(size_2, edges_2, price_2, trips_2);
+    assert(result_2 == expected_2);
+    // TEST_END
+
+    // TEST
+    int size_3 = 3;
+    std::vector<std::vector<int>> edges_3 = {{0, 1}, {1, 2}};
+    std::vector<int> price_3 = {2, 2, 10};
+    std::vector<std::vector<int>> trips_3 = {{0, 2}, {1, 2}};
+    int expected_3 = 15;
+    int result_3 = MinimumTotalPrice(size_3, edges_3, price_3, trips_3);
+    assert(result_3 == expected_3);
+    // TEST_END
+
+    // TEST
+    int size_4 = 6;
+    std::vector<std::vector<int>> edges_4 = {{0, 1}, {0, 2}, {1, 3}, {1, 4}, {3, 5}};
+    std::vector<int> price_4 = {2, 2, 10, 6, 8, 4};
+    std::vector<std::vector<int>> trips_4 = {{0, 3}, {2, 1}, {4, 5}};
+    int expected_4 = 29;
+    int result_4 = MinimumTotalPrice(size_4, edges_4, price_4, trips_4);
+    assert(result_4 == expected_4);
+    // TEST_END
+
+    // TEST
+    int size_5 = 2;
+    std::vector<std::vector<int>> edges_5 = {{0, 1}};
+    std::vector<int> price_5 = {10, 20};
+    std::vector<std::vector<int>> trips_5 = {{0, 1}};
+    int expected_5 = 20;
+    int result_5 = MinimumTotalPrice(size_5, edges_5, price_5, trips_5);
+    assert(result_5 == expected_5);
+    // TEST_END
+
+    // TEST
+    int size_6 = 7;
+    std::vector<std::vector<int>> edges_6 = {{0, 1}, {0, 2}, {1, 3}, {1, 4}, {2, 5}, {2, 6}};
+    std::vector<int> price_6 = {10, 20, 30, 40, 50, 60, 70};
+    std::vector<std::vector<int>> trips_6 = {{0, 3}, {1, 6}, {4, 5}};
+    int expected_6 = 245;
+    int result_6 = MinimumTotalPrice(size_6, edges_6, price_6, trips_6);
+    assert(result_6 == expected_6);
+    // TEST_END
+
+    // TEST
+    int size_7 = 10;
+    std::vector<std::vector<int>> edges_7 = {{0, 1}, {0, 2}, {1, 3}, {1, 4}, {2, 5}, {2, 6}, {3, 7}, {4, 8}, {5, 9}};
+    std::vector<int> price_7 = {10, 20, 30, 40, 50, 60, 70, 80, 90, 100};
+    std::vector<std::vector<int>> trips_7 = {{0, 5}, {1, 7}, {6, 9}};
+    int expected_7 = 355;
+    int result_7 = MinimumTotalPrice(size_7, edges_7, price_7, trips_7);
+    assert(result_7 == expected_7);
+    // TEST_END
+
+    // TEST
+    int size_8 = 8;
+    std::vector<std::vector<int>> edges_8 = {{0, 1}, {1, 2}, {2, 3}, {3, 4}, {4, 5}, {5, 6}, {6, 7}};
+    std::vector<int> price_8 = {20, 30, 40, 50, 60, 70, 80, 90};
+    std::vector<std::vector<int>> trips_8 = {{0, 7}, {1, 6}, {2, 5}};
+    int expected_8 = 735;
+    int result_8 = MinimumTotalPrice(size_8, edges_8, price_8, trips_8);
+    assert(result_8 == expected_8);
+    // TEST_END
+
+    // TEST
+    int size_9 = 0; 
+    std::vector<std::vector<int>> edges_9 = {{0, 1}, {1, 2}};
+    std::vector<int> price_9 = {20, 30, 40};
+    std::vector<std::vector<int>> trips_9 = {{0, 1}, {1, 2}};
+    try
+    {
+        MinimumTotalPrice(size_9, edges_9, price_9, trips_9);
+        assert(false); 
+    }
+    catch (const std::invalid_argument &e)
+    {
+        assert(true);
+    }
+    // TEST_END
+
+    // TEST
+    int size_10 = 5;
+    std::vector<std::vector<int>> edges_10 = {{0, 1}, {0, 2}, {1, 3}, {1, 4}};
+    std::vector<int> price_10 = {20, 30};
+    std::vector<std::vector<int>> trips_10 = {{0, 4}, {3, 2}, {2, 1}};
+    try
+    {
+        MinimumTotalPrice(size_10, edges_10, price_10, trips_10);
+        assert(false); 
+    }
+    catch (const std::invalid_argument &e)
+    {
+        assert(true);
+    }
+    // TEST_END
+
+    // TEST
+    int size_11 = 4;
+    std::vector<std::vector<int>> edges_11 = {{0, 1}, {1, 2}, {1, 3}};
+    std::vector<int> price_11 = {1, 2, 10, 6}; 
+    std::vector<std::vector<int>> trips_11 = {{0, 3}, {2, 1}, {2, 3}};
+    try
+    {
+        MinimumTotalPrice(size_11, edges_11, price_11, trips_11);
+        assert(false);
+    }
+    catch (const std::invalid_argument &e)
+    {
+       assert(true);
+    }
+    // TEST_END
+
+    std::cout << "All test cases passed!\n";
+    return 0;
+}
