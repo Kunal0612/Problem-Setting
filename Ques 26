@@ -41,6 +41,8 @@
 // The number of initially infected nodes is at least 1 and at most n, i.e, 1≤initial.length≤n.
 // The indices of the initially infected nodes range from 0 to 0≤initial[i]≤n−1.
 // All the integers in the initial array are unique, meaning no node is listed more than once as initially infected.
+
+
 #include <vector>
 #include <unordered_map>
 #include <unordered_set>
@@ -48,11 +50,6 @@
 #include <climits>
 #include <iostream>
 #include <cassert>
-
-#include <vector>
-#include <unordered_set>
-#include <stdexcept>
-#include <algorithm>
 
 class DisjointSet
 {
