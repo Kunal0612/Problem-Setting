@@ -1,0 +1,212 @@
+// https://leetcode.com/problems/reverse-pairs/description/
+
+// Create a C++ function ReversePairs to find the number of reverse pairs in the vector
+
+// In the enchanting town of Numeria, where numbers come to life and tell stories of their own, lived a curious mathematician named Elara. Numeria's numerical inhabitants lived in harmony, except for a peculiar phenomenon known as the "reverse pairs." These pairs created disturbances in the otherwise orderly world of numbers.
+
+// A reverse pair was an unusual occurrence where one number was more than double another number that appeared after it in the sequence. For the Numerians, identifying and understanding these reverse pairs was crucial, as they held the key to unlocking deeper secrets of their numerical world.
+
+// One day, Elara was given a task by the wise elder of Numeria. She was handed an ancient scroll containing a sequence of numbers and asked to determine how many reverse pairs existed within the sequence. The criteria were simple yet intriguing: find all pairs (i,j) such that: 0≤i<j<length of the sequence, and The number at position i was greater than twice the number at position j.
+
+// Elara knew that solving this puzzle required more than just a cursory glance. She needed to devise an efficient method, as the sequences could be quite lengthy and the task complex.
+
+
+// Input:
+
+// A vector of long long integers nums containing the elements of the vector.
+
+// Constraints:
+
+// nums.size() : Should be at least 1 and at most 200,000.
+// nums: Each element should be between - 2^31 - 1  and 2^31 + 1 inclusive.
+
+// Output:
+
+// A integer result which return the number of reverse pairs in the vector.
+
+#include <vector>
+#include <set>
+#include <unordered_map>
+#include <climits>
+#include <cassert>
+#include <iostream>
+
+class SegmentTree
+{
+    std::vector<int> seg_tree;
+
+public:
+    SegmentTree(int vec)
+    {
+        seg_tree.resize(4 * vec, 0);
+    }
+
+    void Update(int ind, int start, int end, int index)
+    {
+        if (index < start || end < index)
+            return;
+
+        if (start == end)
+        {
+            seg_tree[ind]++;
+            return;
+        }
+
+        int mid = start + (end - start) / 2;
+
+        Update(2 * ind + 1, start, mid, index);
+        Update(2 * ind + 2, mid + 1, end, index);
+
+        seg_tree[ind] = seg_tree[2 * ind + 1] + seg_tree[2 * ind + 2];
+    }
+
+    int Query(int ind, int start, int end, int query_st, int query_end)
+    {
+        if (query_end < start || end < query_st)
+            return 0;
+
+        if (query_st <= start && end <= query_end)
+            return seg_tree[ind];
+
+        int mid = start + (end - start) / 2;
+
+        return Query(2 * ind + 1, start, mid, query_st, query_end) +
+               Query(2 * ind + 2, mid + 1, end, query_st, query_end);
+    }
+};
+
+int CountReversePairs(std::vector<int> &numbers)
+{
+    if (numbers.empty())
+        throw std::invalid_argument("Vector is empty");
+
+    std::set<long long> nums;
+    for (std::vector<int>::iterator it = numbers.begin(); it != numbers.end(); ++it)
+    {
+        if (*it < INT_MIN || *it > INT_MAX) 
+            throw std::invalid_argument("Number out of range");
+        nums.insert(1LL * *it);
+        nums.insert(1LL * 2 * *it);
+    }
+
+    std::unordered_map<long long, int> nums_comp;
+    int index = 0;
+    for (std::set<long long>::iterator it = nums.begin(); it != nums.end(); ++it)
+    {
+        if (index > 5 * 104)
+            throw std::invalid_argument("Number of unique numbers exceeds the constraint");
+        nums_comp[*it] = index;
+        index++;
+    }
+
+    int result = 0;
+    int maxi = 1e5 + 2;
+    SegmentTree root(maxi);
+    for (int i = 0; i < numbers.size(); i++)
+    {
+        if (numbers[i] < INT_MIN || numbers[i] > INT_MAX) 
+            throw std::invalid_argument("Number out of range");
+
+        int answer = root.Query(0, 0, maxi - 1, nums_comp[1LL * 2 * numbers[i]] + 1, maxi - 1);
+        result += answer;
+        root.Update(0, 0, maxi - 1, nums_comp[1LL * numbers[i]]);
+    }
+
+    return result;
+}
+
+int main(){
+
+    //TEST
+        std::vector<int> nums_1 = {-1,1,-1,2};
+        int expected_1=2;
+        int result_1 = CountReversePairs(nums_1);
+        assert(result_1 == expected_1);
+    //TEST_END
+
+    //TEST
+    std::vector<int> nums_2 = {1, -1, 2, -1, 1};
+    int expected_2 = 4;
+    int result_2 = CountReversePairs(nums_2);
+    assert(result_2 == expected_2);
+    //TEST_END
+
+    //TEST
+    std::vector<int> nums_3 = {2, -1, 3, -2, 4};
+    int expected_3 = 4;
+    int result_3 = CountReversePairs(nums_3);
+    assert(result_3 == expected_3);
+    //TEST_END
+
+    //TEST
+    std::vector<int> nums_4 = {0, -1, 1, -1, 2};
+    int expected_4 = 4;
+    int result_4 = CountReversePairs(nums_4);
+    assert(result_4 == expected_4);
+    //TEST_END
+
+    //TEST
+    std::vector<int> nums_5 = {5, -5, 10, -10, 5};
+    int expected_5 = 4;
+    int result_5 = CountReversePairs(nums_5);
+    assert(result_5 == expected_5);
+    //TEST_END
+
+    //TEST
+    std::vector<int> nums_6 = {-3, 3, -3, 3, -3, 3};
+    int expected_6 = 6;
+    int result_6 = CountReversePairs(nums_6);
+    assert(result_6 == expected_6);
+    //TEST_END
+
+    //TEST
+    std::vector<int> nums_7 = {4, -4, 8, -8, 4, -4};
+    int expected_7 = 8;
+    int result_7 = CountReversePairs(nums_7);
+    assert(result_7 == expected_7);
+    //TEST_END
+
+    //TEST
+    std::vector<int> nums_8 = {7, -7, 14, -14, 7};
+    int expected_8 = 4;
+    int result_8 = CountReversePairs(nums_8);
+    assert(result_8 == expected_8);
+    //TEST_END
+
+    //TEST
+    std::vector<int> nums_9 = {1, 2, 3, 4, 5};
+    int expected_9 = false;
+    int result_9 = CountReversePairs(nums_9);
+    assert(result_9 == expected_9);
+    //TEST_END
+
+    //TEST
+        std::vector<int> nums_10 = {};
+        int expected_10;
+        try
+        {
+            CountReversePairs(nums_10);
+            assert(false);
+        }
+        catch (const std::invalid_argument &e)
+        {
+            assert(true);
+        }
+    // TEST_END
+
+    //TEST
+        std::vector<int> nums_11 = {};
+        int expected_11;
+        try
+        {
+            CountReversePairs(nums_11);
+            assert(false);
+        }
+        catch (const std::invalid_argument &e)
+        {
+            assert(true);
+        }
+    // TEST_END
+    std::cout << "All test cases passed!\n";
+    return 0;
+}
