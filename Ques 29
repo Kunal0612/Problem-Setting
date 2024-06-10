@@ -1,0 +1,335 @@
+// https://leetcode.com/problems/maximum-sum-queries/description/
+
+// Create a C++ function MaximumSumQueries to find vector answer where answer[i] is the answer to the ith query.
+
+// In the bustling city of Numville, there lived two famous mathematicians, Dr. Array and Professor Vector. They were known for their passion for solving intricate problems using arrays and queries. One day, they stumbled upon an intriguing problem that needed a solution. The problem involved two 0-indexed integer arrays, nums1 and nums2, each of length n, and a series of queries that needed careful analysis.
+
+// The two arrays, nums_1 and nums_2, were full of unique numbers that held great significance to the people of Numville. The queries, however, came from the citizens who sought answers to their mathematical conundrums. Each query was represented as a 1-indexed 2D array where queries[i] = [xi, yi]. The goal of each query was to find the maximum sum of nums1[j] + nums2[j] for all indices j (where 0 <= j < n), but only under the condition that nums1[j] >= xi and nums2[j] >= yi.
+
+// Dr. Array and Professor Vector had to come up with a solution that could provide answers efficiently, even if no index j satisfied the constraints of a query. If such a scenario occurred, the answer for that particular query would be -1.
+
+// The task was to return an vector answer where result[i] held the solution to the i-th query. 
+
+// Input :
+
+// A vector of integers nums_1.
+// A vector of integers nums_2
+// A vector of vector of integers queries where queries[i] = [xi, yi].
+
+// Output :
+
+// A vector of integers result where result[i] held the solution to the i-th query. 
+
+// Constraints :
+
+// The lengths of the arrays nums1 and nums2 must be the same.
+// The variable size, which is the length of nums1 (and thus nums2), must satisfy 1≤size≤105.
+// nums_1 : Each element in the nums_1 array must be between 1 and 10^9 inclusive.
+// nums_2 : Each element in the nums_2 array must be between 1 and 10^9 inclusive.
+// queries.size() : The length of the queries array must be between 1 and 10^5 inclusive.
+// queries : Each query in the queries array must contain exactly 2 elements.
+// In each query [xi, yi], xi and yi must be between 1 and 10^9 inclusive.
+
+#include <vector>
+#include <algorithm>
+#include <functional>
+#include <cassert>
+#include <iostream>
+
+template <typename InfoType>
+class SegmentTree
+{
+public:
+    int size;
+    std::vector<InfoType> info_array;
+
+    SegmentTree(int num_elements)
+    {
+        size = num_elements;
+        info_array = std::vector<InfoType>(4 * size + 1);
+    }
+
+    SegmentTree(const std::vector<InfoType> &initial) : SegmentTree(initial.size())
+    {
+        std::function<void(int, int, int)> BuildTree = [&](int index, int left, int right) -> void
+        {
+            if (left == right)
+            {
+                info_array[index] = initial[left];
+                return;
+            }
+            int mid = left + (right - left) / 2;
+            BuildTree(2 * index + 1, left, mid);
+            BuildTree(2 * index + 2, mid + 1, right);
+            Pull(index);
+        };
+        BuildTree(0, 0, size - 1);
+    }
+
+    void Pull(int index)
+    {
+        info_array[index] = info_array[2 * index + 1] + info_array[2 * index + 2];
+    }
+
+    void Modify(int index, int left, int right, int position, const InfoType &value)
+    {
+        if (right == left)
+        {
+            info_array[index] = value;
+            return;
+        }
+
+        int mid = left + (right - left) / 2;
+        if (position <= mid)
+        {
+            Modify(2 * index + 1, left, mid, position, value);
+        }
+        else
+        {
+            Modify(2 * index + 2, mid + 1, right, position, value);
+        }
+        Pull(index);
+    }
+
+    void Modify(int position, const InfoType &value)
+    {
+        Modify(0, 0, size - 1, position, value);
+    }
+
+    InfoType RangeQuery(int index, int left, int right, int start, int end)
+    {
+        if (end < left or right < start)
+        {
+            return InfoType();
+        }
+
+        if (start <= left and right <= end)
+        {
+            return info_array[index];
+        }
+
+        int mid = left + (right - left) / 2;
+        return RangeQuery(2 * index + 1, left, mid, start, end) + RangeQuery(2 * index + 2, mid + 1, right, start, end);
+    }
+
+    InfoType RangeQuery(int start, int end)
+    {
+        return RangeQuery(0, 0, size - 1, start, end);
+    }
+};
+
+class Maximum
+{
+public:
+    long long value = -1;
+
+    Maximum() {}
+
+    Maximum(long long num)
+    {
+        value = num;
+    }
+};
+
+Maximum operator+(const Maximum &left, const Maximum &right)
+{
+    return Maximum(std::max(left.value, right.value));
+}
+
+std::vector<int> MaximumSumQueries(std::vector<int> &nums_1, std::vector<int> &nums_2, std::vector<std::vector<int>> &queries)
+{
+    const int array_length = static_cast<int>(nums_1.size()), query_length = static_cast<int>(queries.size());
+    std::vector<int> result(query_length, -1);
+    if(nums_1.empty() or nums_2.empty() or nums_1.size() != nums_2.size()){
+        throw std::invalid_argument("vector is empty or size are different.");
+    }
+    for (int i = 0; i < query_length; i++)
+    {
+        queries[i].push_back(i);
+        std::swap(queries[i][0], queries[i][1]);
+        if (queries[i][0] <= 0 || queries[i][0] > 1e9 || queries[i][1] <= 0 || queries[i][1] > 1e9)
+        {
+            throw std::invalid_argument("Invalid query coordinates.");
+        }
+    } 
+    std::sort(queries.begin(), queries.end(), std::greater<std::vector<int>>());
+
+    std::vector<std::pair<int, int>> pair_array(array_length);
+    for (int i = 0; i < array_length; i++)
+        pair_array[i] = {nums_1[i], nums_2[i]};
+    std::sort(pair_array.begin(), pair_array.end());
+
+    std::vector<std::vector<int>> temp(array_length);
+    for (int i = 0; i < array_length; i++)
+    {
+        temp[i].push_back(pair_array[i].second);
+        temp[i].push_back(pair_array[i].first);
+        temp[i].push_back(i);
+        if (pair_array[i].first <= 0 || pair_array[i].first > 1e9 || pair_array[i].second <= 0 || pair_array[i].second > 1e9)
+        {
+            throw std::invalid_argument("Invalid array values.");
+        }
+    } 
+    std::sort(temp.begin(), temp.end(), std::greater<std::vector<int>>());
+    SegmentTree<Maximum> seg_tree(array_length);
+
+    auto FindStart = [&](int x) -> int
+    {
+        int left_index = -1, right_index = array_length;
+        while (right_index - left_index > 1)
+        {
+            int mid_index = left_index + (right_index - left_index) / 2;
+            if (x <= pair_array[mid_index].first)
+                right_index = mid_index;
+            else
+                left_index = mid_index;
+        }
+        return right_index;
+    };
+
+    int pointer = 0;
+    for (int i=0;i<queries.size();i++)
+    {
+        std::vector<int> query=queries[i];
+        int y_query = query[0], x_query = query[1], id = query[2];
+        while (pointer < array_length and temp[pointer][0] >= y_query)
+        {
+            int sum = temp[pointer][0] + temp[pointer][1];
+            int current_id = temp[pointer][2];
+            seg_tree.Modify(current_id, sum);
+            pointer++;
+        }
+        int index = FindStart(x_query);
+        if (index == array_length)
+            result[id] = -1;
+        else
+            result[id] = seg_tree.RangeQuery(index, array_length - 1).value;
+    }
+    return result;
+}
+
+int main(){
+    // TEST
+    std::vector<int> nums_1_1 = {4, 3, 1, 2};
+    std::vector<int> nums_2_1 = {2, 4, 9, 5};
+    std::vector<std::vector<int>> queries_1 = {{4, 1}, {1, 3}, {2, 5}};
+    std::vector<int> expected_1 = {6, 10, 7};
+    std::vector<int> result_1 = MaximumSumQueries(nums_1_1, nums_2_1, queries_1);
+    assert(result_1 == expected_1);
+    // TEST_END
+
+    // TEST
+    std::vector<int> nums_1_2 = {10, 20, 30, 40};
+    std::vector<int> nums_2_2 = {20, 10, 40, 30};
+    std::vector<std::vector<int>> queries_2 = {{15, 15}, {25, 5}, {10, 20}};
+    std::vector<int> expected_2 = {70,70,70};
+    std::vector<int> result_2 = MaximumSumQueries(nums_1_2, nums_2_2, queries_2);
+    assert(result_2 == expected_2);
+    // TEST_END
+
+    // TEST
+    std::vector<int> nums_1_3 = {5, 5, 5, 5};
+    std::vector<int> nums_2_3 = {5, 5, 5, 5};
+    std::vector<std::vector<int>> queries_3 = {{5, 5}, {4, 4}, {3, 3}};
+    std::vector<int> expected_3 = {10, 10, 10};
+    std::vector<int> result_3 = MaximumSumQueries(nums_1_3, nums_2_3, queries_3);
+    assert(result_3 == expected_3);
+    // TEST_END
+
+    // TEST
+    std::vector<int> nums_1_4 = {1, 2, 3, 4};
+    std::vector<int> nums_2_4 = {4, 3, 2, 1};
+    std::vector<std::vector<int>> queries_4 = {{1, 1}, {2, 2}, {3, 3}};
+    std::vector<int> expected_4 = {5, 5, -1};
+    std::vector<int> result_4 = MaximumSumQueries(nums_1_4, nums_2_4, queries_4);
+    assert(result_4 == expected_4);
+    // TEST_END
+
+    // TEST
+    std::vector<int> nums_1_5 = {6, 7, 8, 9};
+    std::vector<int> nums_2_5 = {9, 8, 7, 6};
+    std::vector<std::vector<int>> queries_5 = {{7, 7}, {6, 6}, {8, 8}};
+    std::vector<int> expected_5 = {15, 15, -1};
+    std::vector<int> result_5 = MaximumSumQueries(nums_1_5, nums_2_5, queries_5);
+    assert(result_5 == expected_5);
+    // TEST_END
+
+    // TEST
+    std::vector<int> nums_1_6 = {1, 3, 5, 7};
+    std::vector<int> nums_2_6 = {2, 4, 6, 8};
+    std::vector<std::vector<int>> queries_6 = {{3, 3}, {5, 5}, {7, 7}};
+    std::vector<int> expected_6 = {15, 15, 15};
+    std::vector<int> result_6 = MaximumSumQueries(nums_1_6, nums_2_6, queries_6);
+    assert(result_6 == expected_6);
+    // TEST_END
+
+    // TEST
+    std::vector<int> nums_1_7 = {1, 1, 1, 1};
+    std::vector<int> nums_2_7 = {1, 1, 1, 1};
+    std::vector<std::vector<int>> queries_7 = {{1, 1}, {1, 1}, {1, 1}};
+    std::vector<int> expected_7 = {2, 2, 2};
+    std::vector<int> result_7 = MaximumSumQueries(nums_1_7, nums_2_7, queries_7);
+    assert(result_7 == expected_7);
+    // TEST_END
+
+    // TEST
+    std::vector<int> nums_1_8 = {1000000000, 1000000000, 1000000000, 1000000000};
+    std::vector<int> nums_2_8 = {1000000000, 1000000000, 1000000000, 1000000000};
+    std::vector<std::vector<int>> queries_8 = {{1000000000, 1000000000}, {999999999, 999999999}};
+    std::vector<int> expected_8 = {2000000000, 2000000000};
+    std::vector<int> result_8 = MaximumSumQueries(nums_1_8, nums_2_8, queries_8);
+    assert(result_8 == expected_8);
+    // TEST_END
+    // TEST
+    std::vector<int> nums_1_9 = {};
+    std::vector<int> nums_2_9 = {};
+    std::vector<std::vector<int>> queries_9 = {{0, 1}}; 
+    std::vector<int> result_9;
+    try
+    {
+
+        MaximumSumQueries(nums_1_9, nums_2_9, queries_9);
+        assert(false);
+    }
+    catch (const std::invalid_argument &e)
+    {
+        assert(true);
+    }
+    // TEST_END
+
+    // TEST
+    std::vector<int> nums_1_10 = {1,0};
+    std::vector<int> nums_2_10 = {0};
+    std::vector<std::vector<int>> queries_10 = {{0, 1}}; 
+    std::vector<int> result_10;
+    try
+    {
+
+        MaximumSumQueries(nums_1_10, nums_2_10, queries_10);
+        assert(false);
+    }
+    catch (const std::invalid_argument &e)
+    {
+        assert(true);
+    }
+    // TEST_END
+
+    // TEST
+    std::vector<int> nums_1_13 = {1,0};
+    std::vector<int> nums_2_13 = {0,0};
+    std::vector<std::vector<int>> queries_13 = {{1, 1000000001}}; 
+    std::vector<int> result_13;
+    try
+    {
+
+        MaximumSumQueries(nums_1_13, nums_2_13, queries_13);
+        assert(false);
+    }
+    catch (const std::invalid_argument &e)
+    {
+        assert(true);
+    }
+    
+    std::cout << "All test cases passed!\n";
+    return 0;
+}
