@@ -72,7 +72,8 @@ public:
 int UniqueArray(std::vector<int> &nums) {
     int size = nums.size();
     if(size<1 or size>300000) throw std::invalid_argument("Invalid Size.");
-    for (auto& element : nums){
+    for (int i=0;i<size;i++){
+        int element=nums[i];
         if(element<1 or element>size) throw std::invalid_argument("Element must be between 1 and size");
         --element;
     } 
