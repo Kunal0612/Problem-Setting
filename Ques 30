@@ -1,0 +1,292 @@
+// https://leetcode.com/problems/longest-substring-of-one-repeating-character/description/
+
+// Create a C++ function LongestRepeating to find the answer for each query.
+
+// Once upon a time, in the land of Algorithmia, there existed a magical string, s. This string was special, for it could change its characters when commanded. Alongside this string, there were two powerful artifacts: a string of query characters, queryCharacters, and an array of indices, queryIndices. These artifacts held the key to altering the magical string.
+
+// The wise old sorcerers of Algorithmia devised a series of k queries to be performed on the string s. Each query would change a character in s at a specified index to a new character. The ith query would transform the character at queryIndices[i] to queryCharacters[i].
+
+// However, the sorcerers were not only interested in the transformations themselves but also in the aftermath. They wanted to know the length of the longest substring consisting of only one repeating character after each query was performed.
+
+// Input :
+
+// A string str.
+// A string query_characters.
+// A vector of integers query_indices where ith query updates the character in s at index query_indices[i] to the character query_characters[i].
+
+// Output :
+
+// A vector of integers results where results[i] is the length of the longest substring of s consisting of only one repeating character after the ith query is performed.
+
+// Constraints :
+
+// str.size() : The length of string s will be between 1 and 105 (inclusive).
+// str : String str will consist only of lowercase English letters.
+// query_characters.size() : The number of queries  will be between 1 and 105 (inclusive).
+// query_characters : The string queryCharacters consisting only of lowercase English letters.
+// query_indicies : The indices in the queryIndices array will be between 0 and the length of string s - 1, inclusive.
+
+
+#include <vector>
+#include <string>
+#include <cassert>
+#include <iostream>
+#include <algorithm>
+
+class Node {
+public:
+    int size;
+    int prefix_length, suffix_length, best_length;
+    char prefix_char, suffix_char;
+    Node(int size = 0, int prefix_length = 0, int suffix_length = 0, int best_length = 0, char prefix_char = '#', char suffix_char = '#')
+        : size(size), prefix_length(prefix_length), suffix_length(suffix_length), best_length(best_length), prefix_char(prefix_char), suffix_char(suffix_char) {}
+};
+
+class SegmentTree {
+public:
+    std::vector<Node*> segment_array;
+    SegmentTree(int num_elements = 0) {
+        this->segment_array.resize(4 * num_elements + 1, nullptr);
+    }
+
+    inline void UpdateNode(Node* root, int size = 0, int prefix_length = 0, int suffix_length = 0, int best_length = 0, char prefix_char = '#', char suffix_char = '#') {
+        root->size = size;
+        root->prefix_length = prefix_length;
+        root->prefix_char = prefix_char;
+        root->suffix_length = suffix_length;
+        root->suffix_char = suffix_char;
+        root->best_length = best_length;
+    }
+
+    inline Node* Merge(Node* node_1, Node* node_2) {
+        Node* result = new Node();
+
+        result->size = node_1->size + node_2->size;
+
+        if (node_1->prefix_length != node_1->size || node_1->prefix_char != node_2->prefix_char) {
+            result->prefix_length = node_1->prefix_length;
+            result->prefix_char = node_1->prefix_char;
+        } else {
+            result->prefix_length = node_1->prefix_length + node_2->prefix_length;
+            result->prefix_char = node_1->prefix_char;
+        }
+
+        if (node_2->suffix_length != node_2->size || node_2->suffix_char != node_1->suffix_char) {
+            result->suffix_length = node_2->suffix_length;
+            result->suffix_char = node_2->suffix_char;
+        } else {
+            result->suffix_length = node_2->suffix_length + node_1->suffix_length;
+            result->suffix_char = node_2->suffix_char;
+        }
+
+        result->best_length = std::max({result->prefix_length, result->suffix_length, node_1->best_length, node_2->best_length});
+        if (node_1->suffix_char == node_2->prefix_char) {
+            result->best_length = std::max({result->best_length, node_1->suffix_length + node_2->prefix_length});
+        }
+
+        return result;
+    }
+
+    void Build(int index, int low, int high, std::string& str) {
+        if (low == high) {
+            this->segment_array[index] = new Node(1, 1, 1, 1, str[low], str[low]);
+            return;
+        }
+        int mid = low + ((high - low) >> 1);
+        Build(2 * index + 1, low, mid, str);
+        Build(2 * index + 2, mid + 1, high, str);
+        this->segment_array[index] = Merge(this->segment_array[2 * index + 1], this->segment_array[2 * index + 2]);
+    }
+
+    void Update(int index, int low, int high, int update_index, char update_char) {
+        if (low == high) {
+            UpdateNode(this->segment_array[index], 1, 1, 1, 1, update_char, update_char);
+            return;
+        }
+        int mid = low + ((high - low) >> 1);
+        if (update_index <= mid) {
+            Update(2 * index + 1, low, mid, update_index, update_char);
+        } else {
+            Update(2 * index + 2, mid + 1, high, update_index, update_char);
+        }
+        this->segment_array[index] = Merge(this->segment_array[2 * index + 1], this->segment_array[2 * index + 2]);
+    }
+};
+
+std::vector<int> LongestRepeating(std::string str, std::string query_characters, std::vector<int> &query_indices)
+{
+    int num_elements = str.length();
+    int num_queries = query_characters.length();
+
+    if (num_elements < 1 || num_elements > 100000)
+    {
+        throw std::invalid_argument("The length of str must be between 1 and 105.");
+    }
+    if (num_queries != query_indices.size())
+    {
+        throw std::invalid_argument("The length of queryCharacters and queryIndices must be the same.");
+    }
+    if (num_queries < 1 || num_queries > 100000)
+    {
+        throw std::invalid_argument("The length of queryCharacters must be between 1 and 105.");
+    }
+    for (int index : query_indices)
+    {
+        if (index < 0 || index >= num_elements)
+        {
+            throw std::out_of_range("queryIndices elements must be within the range of str indices.");
+        }
+    }
+
+    SegmentTree *seg_tree = new SegmentTree(num_elements);
+    seg_tree->Build(0, 0, num_elements - 1, str);
+    std::vector<int> results;
+    for (int i = 0; i < num_queries; i++)
+    {
+        seg_tree->Update(0, 0, num_elements - 1, query_indices[i], query_characters[i]);
+        results.push_back(seg_tree->segment_array[0]->best_length);
+    }
+    return results;
+}
+
+int main(){
+
+    // TEST
+    std::string str_1 = "babacc";
+    std::string query_characters_1 = "bcb";
+    std::vector<int> query_indices_1 = {1, 3, 3};
+    std::vector<int> expected_1 = {3, 3, 4};
+    std::vector<int> result_1 = LongestRepeating(str_1, query_characters_1, query_indices_1);
+    assert(result_1 == expected_1);
+    // TEST_END
+
+    // TEST
+    std::string str_2 = "programming";
+    std::string query_characters_2 = "agmn";
+    std::vector<int> query_indices_2 = {1, 5, 7, 9};
+    std::vector<int> expected_2 = {2,2,2,2};
+    std::vector<int> result_2 = LongestRepeating(str_2, query_characters_2, query_indices_2);
+    
+    assert(result_2 == expected_2);
+    // TEST_END
+
+    // TEST
+    std::string str_3 = "hello";
+    std::string query_characters_3 = "l";
+    std::vector<int> query_indices_3 = {2};
+    std::vector<int> expected_3 = {2};
+    std::vector<int> result_3 = LongestRepeating(str_3, query_characters_3, query_indices_3);
+    assert(result_3 == expected_3);
+    // TEST_END
+
+    // TEST
+    std::string str_4 = "mississippi";
+    std::string query_characters_4 = "si";
+    std::vector<int> query_indices_4 = {1, 4};
+    std::vector<int> expected_4 = {3,3};
+    std::vector<int> result_4 = LongestRepeating(str_4, query_characters_4, query_indices_4);
+    assert(result_4 == expected_4);
+    // TEST_END
+
+    // TEST
+    std::string str_5 = "aaaaa";
+    std::string query_characters_5 = "a";
+    std::vector<int> query_indices_5 = {0};
+    std::vector<int> expected_5 = {5};
+    std::vector<int> result_5 = LongestRepeating(str_5, query_characters_5, query_indices_5);
+    assert(result_5 == expected_5);
+    // TEST_END
+
+    // TEST
+    std::string str_6 = "abcd";
+    std::string query_characters_6 = "xy";
+    std::vector<int> query_indices_6 = {1, 2};
+    std::vector<int> expected_6 = {1, 1};
+    std::vector<int> result_6 = LongestRepeating(str_6, query_characters_6, query_indices_6);
+    assert(result_6 == expected_6);
+    // TEST_END
+
+    // TEST
+    std::string str_7 = "abcabcabc";
+    std::string query_characters_7 = "xyz";
+    std::vector<int> query_indices_7 = {3, 6, 8};
+    std::vector<int> expected_7 = {1,1,1};
+    std::vector<int> result_7 = LongestRepeating(str_7, query_characters_7, query_indices_7);
+    assert(result_7 == expected_7);
+    // TEST_END
+
+    // TEST
+    std::string str_8 = "xyzxyzxyz";
+    std::string query_characters_8 = "abc";
+    std::vector<int> query_indices_8 = {0, 3, 6};
+    std::vector<int> expected_8 = {1,1,1};
+    std::vector<int> result_8 = LongestRepeating(str_8, query_characters_8, query_indices_8);
+    assert(result_8 == expected_8);
+    // TEST_END
+    // TEST
+    std::string str_9 = "invalidstring";
+    std::string query_characters_9 = "abc";
+    std::vector<int> query_indices_9 = {0, 2, 4, 6, 8, 10, 12, 14, 16, 18, -1};
+    std::vector<int> result_9;
+    try
+    {
+        result_9 = LongestRepeating(str_9, query_characters_9, query_indices_9);
+        assert(false); 
+    }
+    catch (const std::invalid_argument &e)
+    {
+        assert(true);
+    }
+    // TEST_END
+
+    // TEST
+    std::string str_10 = "anotherinvalid";
+    std::string query_characters_10 = "xyz";
+    std::vector<int> query_indices_10 = {5, 10, 15, 20, -1};
+    std::vector<int> result_10;
+    try
+    {
+        result_10 = LongestRepeating(str_10, query_characters_10, query_indices_10);
+        assert(false);
+    }
+    catch (const std::invalid_argument &e)
+    {
+        assert(true);
+    }
+    // TEST_END
+
+    // TEST
+    std::string str_11 = "yetanotherinvalid";
+    std::string query_characters_11 = "def";
+    std::vector<int> query_indices_11 = {1, 3, 5, 7, 9, 11, 13, -1};
+    std::vector<int> result_11;
+    try
+    {
+        result_11 = LongestRepeating(str_11, query_characters_11, query_indices_11);
+        assert(false); 
+    }
+    catch (const std::invalid_argument &e)
+    {
+        assert(true);
+    }
+    // TEST_END
+
+    // TEST
+    std::string str_12 = "yetanothertest";
+    std::string query_characters_12 = "abc";
+    std::vector<int> query_indices_12 = {-1, 2, 4, 6, 8, 10, 12, 14, 16, 18};
+    std::vector<int> result_12;
+    try
+    {
+        result_12 = LongestRepeating(str_12, query_characters_12, query_indices_12);
+        assert(false);
+    }
+    catch (const std::invalid_argument &e)
+    {
+        assert(true);
+    }
+    // TEST_END
+
+    std::cout << "All test cases passed!\n";
+    return 0;
+}
