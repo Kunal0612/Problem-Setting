@@ -1,0 +1,190 @@
+// https://practice.geeksforgeeks.org/contest/gfg-weekly-coding-contest-141/problems
+
+// Create a C++ function GreatCount to find answer the count of Great Substrings of str.
+
+// In the realm of Binaryia, where zeros and ones tell the tale of existence, a captivating puzzle awaits the intrepid souls who dare to venture forth. Within the digital tapestry of a binary string str, comprised of N characters, lies a mystery waiting to be unraveled.
+
+// The challenge is clear: traverse the landscape of str and discern the count of "great substrings." But what defines greatness in this binary domain? A substring earns the esteemed title of "great" if the tally of ones it contains surpasses half of its length.
+
+// Armed with wit and algorithmic prowess, adventurers set out on their quest. Through the labyrinth of binary digits, they navigate, counting, calculating, and categorizing each substring they encounter.
+
+// As the journey progresses, patterns emerge, revealing the intricate dance between zeros and ones. With each calculation, the veil of mystery lifts, inch by inch, until the true count of great substrings within str stands revealed.
+
+// Input :
+
+// A binary string str.
+
+// Output :
+
+// A integer answer the count of Great Substrings of S. 
+
+// Constraints :
+
+// str : size of str should be between 1 to 20000 Inclusive , and it should either 0 or 1.
+      
+
+
+
+
+
+#include <cassert>
+#include <vector>
+#include <string>
+#include <map>
+#include <iostream>
+
+struct Fenwick {
+    std::vector<int> binary_indexed_tree;
+    int size;
+
+    Fenwick(int size) {
+        this->size = size + 1;
+        binary_indexed_tree.assign(size + 1, 0);
+    }
+
+    Fenwick(std::vector<int> arr)
+        : Fenwick(arr.size()) {
+        for (size_t i = 0; i < arr.size(); i++)
+            Add(i, arr[i]);
+    }
+
+    int Sum(int index) {
+        if(index < 0) return 0;
+        int result = 0;
+        for (++index; index > 0; index -= index & -index)
+            result += binary_indexed_tree[index];
+        return result;
+    }
+
+    int Sum(int left, int right) {
+        return Sum(right) - Sum(left - 1);
+    }
+
+    void Add(int index, int delta) {
+        for (++index; index < size; index += index & -index)
+            binary_indexed_tree[index] += delta;
+    }
+};
+
+long long GreatCount(std::string str)
+{
+    if(str.size()<=0 or str.size()>20000){
+        throw std::invalid_argument("Invalid length");
+    }
+    for(int i=0;i<str.size();i++){
+        if(str[i]!='0' and str[i]!='1'){
+            throw std::invalid_argument("Invalid character");
+        }
+    }
+    
+    int size = str.length();
+    std::map<int, int> freq_map;
+    long long result = 0;
+    int current = 0;
+    freq_map[0] = -1;
+    Fenwick fenwick_tree(3 * size + 1);
+    fenwick_tree.Add(size, 1);
+    for (int j = 0; j < size; j++)
+    {
+        if (str[j] == '1')
+            current++;
+        else
+            current--;
+        fenwick_tree.Add(current + size, 1);
+        int right_index = current - 1;
+        result += fenwick_tree.Sum(0, right_index + size);
+    }
+    return result;
+}
+
+int main(){
+
+    // TEST
+    std::string str_1 = "11111";
+    int expected_1 = 15;
+    int result_1 = GreatCount(str_1);
+    assert(result_1 == expected_1);
+    // TEST_END
+
+    // TEST
+    std::string str_2 = "10101";
+    int expected_2 = 6;
+    int result_2 = GreatCount(str_2);
+    assert(result_2 == expected_2);
+    // TEST_END
+
+    // TEST
+    std::string str_3 = "11110000";
+    int expected_3 = 16;
+    int result_3 = GreatCount(str_3);
+    assert(result_3 == expected_3);
+    // TEST_END
+
+    // TEST
+    std::string str_4 = "100000001";
+    int expected_4 = 2;
+    int result_4 = GreatCount(str_4);
+    assert(result_4 == expected_4);
+    // TEST_END
+
+    // TEST
+    std::string str_5 = "0000";
+    int expected_5 = 0;
+    int result_5 = GreatCount(str_5);
+    assert(result_5 == expected_5);
+    // TEST_END
+
+    // TEST
+    std::string str_6 = "111";
+    int expected_6 = 6;
+    int result_6 = GreatCount(str_6);
+    assert(result_6 == expected_6);
+    // TEST_END
+
+    // TEST
+    std::string str_7 = "001100";
+    int expected_7 = 5;
+    int result_7 = GreatCount(str_7);
+    assert(result_7 == expected_7);
+    // TEST_END
+
+    // TEST
+    std::string str_8 = "111111111111";
+    int expected_8 = 78;
+    int result_8 = GreatCount(str_8);
+    assert(result_8 == expected_8);
+    // TEST_END
+
+    // TEST
+    std::string str_9 = "";
+    int expected_9 = 78;
+    int result_9;
+    try
+    {
+        GreatCount(str_9);
+        assert(false);
+    }
+    catch (const std::invalid_argument &e)
+    {
+        assert(true);
+    }
+    // TEST_END
+
+    // TEST
+    std::string str_10 = "c10";
+    int expected_10 = 78;
+    int result_10;
+    try
+    {
+        GreatCount(str_10);
+        assert(false);
+    }
+    catch (const std::invalid_argument &e)
+    {
+        assert(true);
+    }
+    // TEST_END
+
+    std::cout << "All test cases passed!\n";
+    return 0;
+}
