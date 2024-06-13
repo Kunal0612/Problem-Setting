@@ -1,0 +1,63 @@
+// https://leetcode.com/problems/number-of-beautiful-integers-in-the-range/description/
+
+#include <iostream>
+#include <string>
+#include <cstring>
+#include <stdexcept>
+
+int Helper(const std::string &number, int tight, int index, int odd_count, int even_count, int remainder, bool leading_zero, int k, int dp_array[2][12][12][12][20][2])
+{
+    if (index == number.size())
+    {
+        return (!leading_zero && remainder == 0 && odd_count == even_count);
+    }
+    if (dp_array[tight][index][odd_count][even_count][remainder][leading_zero] != -1)
+    {
+        return dp_array[tight][index][odd_count][even_count][remainder][leading_zero];
+    }
+
+    int end_digit = (tight ? number[index] - '0' : 9);
+    int result = 0;
+
+    if (leading_zero)
+    {
+        result += Helper(number, 0, index + 1, odd_count, even_count, remainder, true, k, dp_array); 
+    }
+
+    for (int digit = 0; digit <= end_digit; ++digit)
+    {
+        int new_tight = (tight && (digit == number[index] - '0'));
+        int new_odd_count = odd_count + (digit % 2);
+        int new_even_count = even_count + ((!leading_zero || digit > 0) && digit % 2 == 0);
+        int new_remainder = ((remainder * 10) + digit) % k;
+
+        if ((leading_zero && digit != 0) || !leading_zero)
+        {
+            result += Helper(number, new_tight, index + 1, new_odd_count, new_even_count, new_remainder, false, k, dp_array);
+        }
+    }
+
+    return dp_array[tight][index][odd_count][even_count][remainder][leading_zero] = result;
+}
+
+int NumberOfBeautifulIntegers(int low, int high, int k)
+{
+    
+    if (low <= 0 || high <= 0 || low > high || high > 1000000000 || k <= 0 || k > 20)
+    {
+        throw std::invalid_argument("Invalid input: constraints not met.");
+    }
+
+    std::string low_str = std::to_string(low - 1);
+    std::string high_str = std::to_string(high);
+
+    int dp_array[2][12][12][12][20][2]; 
+    std::memset(dp_array, -1, sizeof(dp_array));
+
+    int max_count = Helper(high_str, 1, 0, 0, 0, 0, true, k, dp_array);
+
+    std::memset(dp_array, -1, sizeof(dp_array));
+    int min_count = Helper(low_str, 1, 0, 0, 0, 0, true, k, dp_array);
+
+    return max_count - min_count;
+}
