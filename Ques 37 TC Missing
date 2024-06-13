@@ -1,0 +1,92 @@
+// https://leetcode.com/problems/numbers-with-repeated-digits/
+
+#include <iostream>
+#include <string>
+#include <cstring>
+#include <stdexcept>
+
+int Helper(const std::string &number_str, int position, bool is_strictly, int s_value, bool has_repeated_digit, int dp_array[11][2][1024][2])
+{
+    if (position == number_str.size())
+    {
+        return has_repeated_digit ? 1 : 0;
+    }
+    if (dp_array[position][is_strictly][s_value][has_repeated_digit] != -1)
+    {
+        return dp_array[position][is_strictly][s_value][has_repeated_digit];
+    }
+
+    int current_count = 0;
+    int num = number_str[position] - '0';
+
+    if (is_strictly)
+    {
+        for (int i = 0; i <= num; ++i)
+        {
+            if (i == 0 && s_value == 0)
+            {
+                current_count += Helper(number_str, position + 1, false, s_value, has_repeated_digit, dp_array); // leading zero
+            }
+            else if (i == num)
+            {
+                if (s_value & (1 << i))
+                {
+                    current_count += Helper(number_str, position + 1, true, s_value, true, dp_array);
+                }
+                else
+                {
+                    current_count += Helper(number_str, position + 1, true, s_value ^ (1 << i), has_repeated_digit, dp_array);
+                }
+            }
+            else
+            {
+                if (s_value & (1 << i))
+                {
+                    current_count += Helper(number_str, position + 1, false, s_value, true, dp_array);
+                }
+                else
+                {
+                    current_count += Helper(number_str, position + 1, false, s_value ^ (1 << i), has_repeated_digit, dp_array);
+                }
+            }
+        }
+    }
+    else
+    {
+        for (int i = 0; i <= 9; ++i)
+        {
+            if (i == 0 && s_value == 0)
+            {
+                current_count += Helper(number_str, position + 1, false, s_value, has_repeated_digit, dp_array); // leading zero
+            }
+            else
+            {
+                if (s_value & (1 << i))
+                {
+                    current_count += Helper(number_str, position + 1, false, s_value, true, dp_array);
+                }
+                else
+                {
+                    current_count += Helper(number_str, position + 1, false, s_value ^ (1 << i), has_repeated_digit, dp_array);
+                }
+            }
+        }
+    }
+
+    return dp_array[position][is_strictly][s_value][has_repeated_digit] = current_count;
+}
+
+int NumDupDigitsAtMostN(int num)
+{
+    if (num < 1 || num > 1000000000)
+    {
+        throw std::invalid_argument("Input number must be between 1 and 10^9 inclusive.");
+    }
+
+    std::string number_str = std::to_string(num);
+    int dp_array[11][2][1024][2];
+    std::memset(dp_array, -1, sizeof(dp_array));
+
+    int ans=Helper(number_str, 0, true, 0, false, dp_array);
+    return ans;
+}
