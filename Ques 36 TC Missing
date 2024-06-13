@@ -1,0 +1,99 @@
+// https://leetcode.com/problems/numbers-at-most-n-given-digit-set/description/
+
+#include <iostream>
+#include <vector>
+#include <algorithm>
+#include <stdexcept>
+#include <unordered_map>
+
+
+long long Helper(int index, int track_1, int track_2, const std::string &number1, const std::string &number2, int flag, std::unordered_map<long long, long long> &digit_map, long long dp_array[25][2][2][2])
+{
+    if (index >= number2.size())
+        return (!flag);
+    if (dp_array[index][track_1][track_2][flag] != -1)
+        return dp_array[index][track_1][track_2][flag];
+
+    int lower_bound = (track_1) ? number1[index] - '0' : 0;
+    int upper_bound = (track_2) ? number2[index] - '0' : 9;
+    long long count = 0;
+
+    for (int digit = lower_bound; digit <= upper_bound; digit++)
+    {
+        if (flag == 1 && digit == 0)
+        {
+            count += Helper(index + 1, track_1 & (digit == lower_bound), track_2 & (digit == upper_bound), number1, number2, flag, digit_map, dp_array);
+        }
+        else if (digit_map.count(digit))
+        {
+            count += Helper(index + 1, track_1 & (digit == lower_bound), track_2 & (digit == upper_bound), number1, number2, 0, digit_map, dp_array);
+        }
+    }
+
+    return dp_array[index][track_1][track_2][flag] = count;
+}
+
+
+int AtMostNGivenDigitSet(std::vector<std::string> &digits, int number)
+{
+    if (digits.size() < 1 || digits.size() > 9)
+    {
+        throw std::invalid_argument("Number of digits must be between 1 and 9.");
+    }
+
+    for (int i = 1; i < digits.size(); i++)
+    {
+        if (digits[i - 1].compare(digits[i]) > 0)
+        {
+            throw std::invalid_argument("Digits must be sorted in non-decreasing order.");
+        }
+    }
+    std::unordered_map<char, bool> seen;
+    for (const auto &digit : digits)
+    {
+        if (digit.length() != 1 || digit[0] < '1' || digit[0] > '9' || seen.count(digit[0]))
+        {
+            throw std::invalid_argument("Digits must be single characters between '1' and '9', and all values must be unique.");
+        }
+        seen[digit[0]] = true;
+    }
+
+    if (number < 1 || number > 1000000000)
+    {
+        throw std::invalid_argument("Input number must be between 1 and 10^9 inclusive.");
+    }
+
+    std::unordered_map<long long, long long> digit_map;
+    for (int i = 0; i < digits.size(); i++)
+    {
+        std::string digit = digits[i];
+        long long res = std::stoll(digit);
+        digit_map[res] = 1;
+    }
+
+    std::string num_str = "";
+    std::string num2_str = std::to_string(number);
+    int num2_len = num2_str.size();
+    int remaining_digits = num2_len;
+    while (remaining_digits--)
+        num_str += "0";
+
+    long long dp_array[25][2][2][2];
+    for (int i = 0; i < 25; i++)
+    {
+        for (int j = 0; j < 2; j++)
+        {
+            for (int k = 0; k < 2; k++)
+            {
+                for (int l = 0; l < 2; l++)
+                {
+                    dp_array[i][j][k][l] = -1;
+                }
+            }
+        }
+    }
+
+    long long answer = Helper(0, 1, 1, num_str, num2_str, 1, digit_map, dp_array);
+    return answer;
+}
+
