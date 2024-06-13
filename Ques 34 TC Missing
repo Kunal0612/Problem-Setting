@@ -1,0 +1,75 @@
+// https://leetcode.com/problems/number-of-digit-one/description/
+
+// Create a C++ function CountDigitOne to find the count the total number of digit 1 appearing in all non-negative integers less than or equal to num.
+
+// In a mystical kingdom, there exists a legendary book that reveals the secrets of numbers and their occurrences. One day, a curious scholar discovered an intriguing challenge hidden within its pages:
+
+// Given an integer n, you are to count the total number of times the digit '1' appears in all non-negative integers less than or equal to n.
+// For example, if n=13, the numbers are 0,1,2,…,13. The digit '1' appears in the numbers 1,10,11,12,13, counting a total of 6 occurrences.
+
+// Your task is to write a magical incantation, a function or algorithm, to solve this enigmatic problem. The answers you derive will unveil the hidden wisdom of the numbers and reveal the secrets within the legendary book.
+
+// May your journey be filled with enlightenment and discovery!
+
+// This story-based problem description sets the stage for the task of counting the occurrences of the digit '1' in all numbers from 0 to num. It invites readers to engage with the challenge in a whimsical and imaginative manner.
+
+// Input :
+
+// An integer num.
+
+// Output :
+
+// An integer ans the count the total number of digit 1 appearing in all non-negative integers less than or equal to num.
+
+// Constraints :
+
+// num : it ranges from 0 to 1000000000 inclusive.
+
+#include <vector>
+#include <iostream>
+#include <cstring>
+#include <string>
+#include <stdexcept>
+
+long long int Helper(long long int idx, bool is_t1, bool is_t2, long long int current_sum, std::string &num1, std::string &num2, const long long int mod, std::vector<std::vector<std::vector<std::vector<long long int>>>> &dp_table)
+{
+    if (idx >= num2.size())
+        return current_sum;
+    if (dp_table[idx][is_t1][is_t2][current_sum] != -1)
+        return dp_table[idx][is_t1][is_t2][current_sum];
+    long long int lower_bound = (is_t1 ? num1[idx] - '0' : 0);
+    long long int upper_bound = (is_t2 ? num2[idx] - '0' : 9);
+    long long int count = 0;
+    for (long long int digit = lower_bound; digit <= upper_bound; digit++)
+    {
+        if (digit == 1)
+        {
+            count += Helper(idx + 1, is_t1 & (digit == lower_bound), is_t2 & (digit == upper_bound), current_sum + 1, num1, num2, mod, dp_table);
+        }
+        else
+        {
+            count += Helper(idx + 1, is_t1 & (digit == lower_bound), is_t2 & (digit == upper_bound), current_sum, num1, num2, mod, dp_table);
+        }
+        count %= mod;
+    }
+    return dp_table[idx][is_t1][is_t2][current_sum] = count;
+}
+
+int CountDigitOne(int num)
+{
+    if (num < 1 and num > 1000000000)
+    {
+        throw std::invalid_argument("Invalid n");
+    }
+    const long long int mod_value = 1e9 + 7;
+    std::string num1_str = "";
+    std::string num2_str = std::to_string(num);
+    long long int num2_size = num2_str.size();
+    long long int num1_padding = num2_size;
+    while (num1_padding--)
+        num1_str += "0";
+    std::vector<std::vector<std::vector<std::vector<long long int>>>> dp_table(num2_size, std::vector<std::vector<std::vector<long long int>>>(2, std::vector<std::vector<long long int>>(2, std::vector<long long int>(num2_size + 1, -1))));
+    long long int result = Helper(0, 1, 1, 0, num1_str, num2_str, mod_value, dp_table);
+
+    return result;
+}
