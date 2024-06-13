@@ -1,0 +1,128 @@
+// https://leetcode.com/problems/count-of-integers/description/
+
+// Create a C++ function Count to find answer he number of good integers.
+
+// Once upon a time in the enchanted Kingdom of Numerica, there was a wise and curious mathematician named Alarithmus. He loved exploring the mystical properties of numbers and solving intricate puzzles. One day, Alarithmus came across an ancient scroll that presented a challenging riddle. The scroll described a realm of numbers between two magical boundaries and spoke of the concept of "good" integers.
+
+// According to the scroll, an integer x is considered "good" if it meets two important criteria:
+
+// The integer x lies within a specified range between two numeric strings, num1 and num2.
+// The sum of the digits of x falls within a certain range, defined by the integers min_sum and max_sum.
+// Intrigued by the riddle, Alarithmus decided to take on the challenge. His task was to count all the "good" integers x that satisfied these conditions:
+// num1≤x≤num2 min_sum≤digit_sum(x)≤max_sum
+// However, the kingdom's numerical system was vast, and the number of "good" integers could be enormous. To manage this, Alarithmus had to ensure that his answer was always given modulo 10^9+7, a prime number that helped keep calculations manageable.
+
+// The problem left by the ancient scroll was thus:
+
+// Given two numeric strings num1 and num2, and two integers max_sum and min_sum, determine the number of "good" integers x in the range from num1 to num2 such that 
+// min_sum≤digit_sum(x)≤max_sum. Return the count of such integers modulo 10^9+7.
+// Alarithmus, with his deep understanding of numbers and boundless curiosity, embarked on a quest to solve this enchanting riddle and uncover the secrets of the "good" integers in the Kingdom of Numerica.
+
+// Input :
+
+// num_1: A string representing the lower bound of the range.
+// num_2: A string representing the upper bound of the range.
+// min_sum: An integer representing the minimum digit sum.
+// max_sum: An integer representing the maximum digit sum.
+
+// Output :
+
+// An integer ans representing the number of "good" integers.
+
+// Constraints :
+
+// num1 and num2 Constraints:
+
+// num1 and num2 are numeric strings representing integers.
+// num1 must be less than or equal to num2.
+// Each of num1 and num2 will have at most 22 digits.
+
+// min_sum and max_sum Constraints:
+
+// min_sum and max_sum are integers representing the minimum and maximum values for the sum of digits of the integers 
+
+// min_sum : Ranges from 1 to max_sum.
+
+// max_sum : Ranges from min_sum to 400.
+
+
+#include <vector>
+#include <iostream>
+#include <cstring>
+#include <string>
+#include <stdexcept>
+
+class Solution
+{
+public:
+    long long int CountStr(long long int idx, bool is_t1, bool is_t2, long long int current_sum, std::string &num_1, std::string &num_2, std::vector<std::vector<std::vector<std::vector<long long int>>>> &dp, const long long int mod)
+    {
+        if (current_sum < 0)
+            return 0;
+        if (idx == num_1.size())
+            return 1;
+        if (dp[idx][is_t1][is_t2][current_sum] != -1)
+            return dp[idx][is_t1][is_t2][current_sum];
+
+        long long int lower_bound = (is_t1) ? num_1[idx] - '0' : 0;
+        long long int upper_bound = (is_t2) ? num_2[idx] - '0' : 9;
+        long long int count = 0;
+
+        for (long long int digit = lower_bound; digit <= upper_bound; digit++)
+        {
+            count = (count % mod + CountStr(idx + 1, is_t1 & (digit == lower_bound), is_t2 & (digit == upper_bound), current_sum - digit, num_1, num_2, dp, mod) % mod) % mod;
+        }
+
+        return dp[idx][is_t1][is_t2][current_sum] = count;
+    }
+
+    int count(std::string num_1, std::string num_2, int min_sum, int max_sum)
+    {
+        if (num_1.empty() || num_2.empty() || num_1.size() > 22 || num_2.size() > 22)
+        {
+            throw std::invalid_argument("num_1 and num_2 must be between 1 and 10^22.");
+        }
+        for (int i = 1; i < num_1.size() and num_1.size() == 23; i++)
+        {
+            if (num_1[i] == '1')
+            {
+                throw std::invalid_argument("num_1 must be >= 1 and <= num_2, and num_2 must be <= 10^22.");
+            }
+        }
+        for (int i = 1; i < num_2.size() and num_2.size() == 23; i++)
+        {
+            if (num_2[i] == '1')
+            {
+                throw std::invalid_argument("num_1 must be >= 1 and <= num_2, and num_2 must be <= 10^22.");
+            }
+        }
+        if (min_sum < 1 || max_sum > 400 || min_sum > max_sum)
+        {
+            throw std::invalid_argument("min_sum must be >= 1 and <= max_sum, and max_sum must be <= 400.");
+        }
+
+        const long long int mod = 1e9 + 7;
+        long long int num_2_size = num_2.size();
+        std::vector<std::vector<std::vector<std::vector<long long int>>>> dp(num_2_size, std::vector<std::vector<std::vector<long long int>>>(2, std::vector<std::vector<long long int>>(2, std::vector<long long int>(max_sum + 1, -1))));
+
+        std::string padded_num_1 = "";
+        int num_1_size = num_1.size();
+        long long int padding_diff = num_2_size - num_1_size;
+
+        while (padding_diff--)
+            padded_num_1 += "0";
+        padded_num_1 += num_1;
+
+        long long int count_a = CountStr(0, 1, 1, max_sum, padded_num_1, num_2, dp, mod);
+
+        for (auto &matrix1 : dp)
+            for (auto &matrix2 : matrix1)
+                for (auto &matrix3 : matrix2)
+                    std::fill(matrix3.begin(), matrix3.end(), -1);
+
+        long long int count_b = CountStr(0, 1, 1, min_sum - 1, padded_num_1, num_2, dp, mod);
+        long long int result = (count_a - count_b) % mod;
+
+        return (result < 0) ? result + mod : result;
+    }
+};
