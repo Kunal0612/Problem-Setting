@@ -311,11 +311,11 @@ int main()
     // TEST_END
 
     // TEST
-    std::vector<std::vector<int>> graph_invalid_1 = {{1, 1}, {1, 1}};
-    std::vector<int> initial_invalid_1 = {0,1,2};
+    std::vector<std::vector<int>> graph_9 = {};
+    std::vector<int> initial_9 = {0,1,2};
     try
     {
-        MinMalwareSpread(graph_invalid_1, initial_invalid_1);
+        MinMalwareSpread(graph_9, initial_9);
         assert(false); 
     }
     catch (const std::invalid_argument &e)
@@ -324,11 +324,11 @@ int main()
     }
     // TEST_END
     // TEST
-    std::vector<std::vector<int>> graph_invalid_2 = {{1, 1, 0}, {0, 1, 0}, {0, 0, 1}};
-    std::vector<int> initial_invalid_2 = {0, 1, 2};
+    std::vector<std::vector<int>> graph_10 = {{1, 1, 0}, {0, 1, 0}, {0, 0, 1}};
+    std::vector<int> initial_10 = {};
     try
     {
-        MinMalwareSpread(graph_invalid_2, initial_invalid_2);
+        MinMalwareSpread(graph_10, initial_10);
         assert(false);
     }
     catch (const std::invalid_argument &e)
@@ -337,11 +337,11 @@ int main()
     }
     // TEST_END
     // TEST
-    std::vector<std::vector<int>> graph_invalid_3 = {{1, 0, 0}, {0, 1, 1}, {0, 1, 1}};
-    std::vector<int> initial_invalid_3 = {0, 2,1};
+    std::vector<std::vector<int>> graph_11 = {{1, 0, 0}, {0, 1, 1}, {0, 1, 1}};
+    std::vector<int> initial_11 = {0, 2,1};
     try
     {
-        MinMalwareSpread(graph_invalid_3, initial_invalid_3);
+        MinMalwareSpread(graph_11, initial_11);
         assert(false);
     }
     catch (const std::invalid_argument &e)
@@ -350,11 +350,11 @@ int main()
     }
     // TEST_END
     // TEST
-    std::vector<std::vector<int>> graph_invalid_4 = {{1, 1, 1}, {1, 1, 1}, {1, 1, 2}}; 
-    std::vector<int> initial_invalid_4 = {0, 1, 2};
+    std::vector<std::vector<int>> graph_12 = {{1, 1, 1}, {1, 1, 1}, {1, 1, 2}}; 
+    std::vector<int> initial_12 = {0, 1, 2};
     try
     {
-        MinMalwareSpread(graph_invalid_4, initial_invalid_4);
+        MinMalwareSpread(graph_12, initial_12);
         assert(false); 
     }
     catch (const std::invalid_argument &e)
