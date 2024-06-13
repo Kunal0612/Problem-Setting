@@ -201,7 +201,7 @@ int main() {
     // TEST_END
 
     // TEST
-    std::vector<int> nums_9 = {1,2,3};
+    std::vector<int> nums_9 = {1,2,100000};
     std::vector<int> parents_9 = {-1,0,1,2};
     try {
         SmallestMissingValueSubtree(parents_9, nums_9);
@@ -213,7 +213,7 @@ int main() {
 
     // TEST
     std::vector<int> nums_10 = {1,2,3,4};
-    std::vector<int> parents_10 = {-1,0,1};
+    std::vector<int> parents_10 = {5,0,1};
     try {
         SmallestMissingValueSubtree(parents_10, nums_10);
         assert(false); 
@@ -245,8 +245,8 @@ int main() {
     // TEST_END
 
     // TEST
-    std::vector<int> nums_13 = {1};
-    std::vector<int> parents_13 = {-1};
+    std::vector<int> nums_13 = {};
+    std::vector<int> parents_13 = {};
     try {
         SmallestMissingValueSubtree(parents_13, nums_13);
         assert(false); 
