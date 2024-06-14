@@ -1,7 +1,5 @@
-// https://www.geeksforgeeks.org/maximize-length-of-longest-subarray-consisting-of-same-elements-by-at-most-k-decrements/
-
-// Write a function LongestSubArray that find the longest subarray where all elements are equal after decrementing atmost k times.
-
+// https://leetcode.com/problems/find-number-of-coins-to-place-in-tree-nodes/
+// Write a function PlacedCoins that find the array coins of size n, where coins[i] is the number of coins to be placed at node i.
 // In a mystical forest, there exists an ancient and enchanted tree with n nodes, each labeled from 0 to n - 1. This tree is not just any tree; it is the backbone of the forest's magical ecosystem, rooted at node 0. The tree's structure is defined by a series of mystical connections, described in a 2D integer array called edges. Each element in edges represents a magical link between two nodes, ensuring the connectivity and harmony of the tree.
 
 // However, the balance of magic in the forest has recently been disturbed. To restore this balance, the forest's guardian needs to place a certain number of enchanted coins on each node. The number of coins to be placed on any given node is determined by the following rules:
