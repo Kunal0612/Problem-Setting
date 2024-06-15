@@ -1,28 +1,31 @@
-// https://leetcode.com/problems/reverse-pairs/description/
+/*
+https://leetcode.com/problems/reverse-pairs/description/
 
-// Create a C++ function ReversePairs to find the number of reverse pairs in the vector
+Create a C++ function ReversePairs to find the number of reverse pairs in the vector
 
-// In the enchanting town of Numeria, where numbers come to life and tell stories of their own, lived a curious mathematician named Elara. Numeria's numerical inhabitants lived in harmony, except for a peculiar phenomenon known as the "reverse pairs." These pairs created disturbances in the otherwise orderly world of numbers.
+In the enchanting town of Numeria, where numbers come to life and tell stories of their own, lived a curious mathematician named Elara. Numeria's numerical inhabitants lived in harmony, except for a peculiar phenomenon known as the "reverse pairs." These pairs created disturbances in the otherwise orderly world of numbers.
 
-// A reverse pair was an unusual occurrence where one number was more than double another number that appeared after it in the sequence. For the Numerians, identifying and understanding these reverse pairs was crucial, as they held the key to unlocking deeper secrets of their numerical world.
+A reverse pair was an unusual occurrence where one number was more than double another number that appeared after it in the sequence. For the Numerians, identifying and understanding these reverse pairs was crucial, as they held the key to unlocking deeper secrets of their numerical world.
 
-// One day, Elara was given a task by the wise elder of Numeria. She was handed an ancient scroll containing a sequence of numbers and asked to determine how many reverse pairs existed within the sequence. The criteria were simple yet intriguing: find all pairs (i,j) such that: 0≤i<j<length of the sequence, and The number at position i was greater than twice the number at position j.
+One day, Elara was given a task by the wise elder of Numeria. She was handed an ancient scroll containing a sequence of numbers and asked to determine how many reverse pairs existed within the sequence. The criteria were simple yet intriguing: find all pairs (i,j) such that: 0≤i<j<length of the sequence, and The number at position i was greater than twice the number at position j.
 
-// Elara knew that solving this puzzle required more than just a cursory glance. She needed to devise an efficient method, as the sequences could be quite lengthy and the task complex.
+Elara knew that solving this puzzle required more than just a cursory glance. She needed to devise an efficient method, as the sequences could be quite lengthy and the task complex.
 
 
-// Input:
+Input:
 
-// A vector of long long integers nums containing the elements of the vector.
+A vector of long long integers numbers containing the elements of the vector.
 
-// Constraints:
+Constraints:
 
-// nums.size() : Should be at least 1 and at most 200,000.
-// nums: Each element should be between - 2^31 - 1  and 2^31 + 1 inclusive.
+numbers.size() : Should be at least 1 and at most 200,000.
+numbers: Each element should be between - 2^31 - 1  and 2^31 + 1 inclusive.
 
-// Output:
+Output:
 
-// A integer result which return the number of reverse pairs in the vector.
+A integer result which return the number of reverse pairs in the vector.
+
+*/
 
 #include <vector>
 #include <set>
@@ -77,7 +80,7 @@ public:
 
 int CountReversePairs(std::vector<int> &numbers)
 {
-    if (numbers.empty())
+    if (numbers.empty() or numbers.size()>200000)
         throw std::invalid_argument("Vector is empty");
 
     std::set<long long> nums;
@@ -182,7 +185,6 @@ int main(){
 
     //TEST
         std::vector<int> nums_10 = {};
-        int expected_10;
         try
         {
             CountReversePairs(nums_10);
@@ -195,8 +197,7 @@ int main(){
     // TEST_END
 
     //TEST
-        std::vector<int> nums_11 = {};
-        int expected_11;
+        std::vector<int> nums_11(200005,1);
         try
         {
             CountReversePairs(nums_11);
