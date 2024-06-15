@@ -1,47 +1,55 @@
-// https://leetcode.com/problems/minimize-malware-spread/description/
+/*
+https://leetcode.com/problems/minimize-malware-spread/description/
 
-// Write a C++ Function MinMalware to find a node with the smallest index that would minimize M(initial).
+Write a C++ Function MinMalware to find a node with the smallest index that would minimize M(initial).
 
 
-// In the futuristic city of Technopolis, the central computer network is under attack by a malicious virus. The network consists of n nodes, each representing critical infrastructure, interconnected by a complex web of direct connections. The connections are represented as an n x n adjacency matrix, where each node i is directly connected to node j if graph[i][j] == 1.
+In the futuristic city of Technopolis, the central computer network is under attack by a 
+malicious virus. The network consists of n nodes, each representing critical infrastructure, interconnected by a complex web of direct connections. The connections are represented as an n x n adjacency matrix, where each node i is directly connected to node j if graph[i][j] == 1.
 
-// At the outbreak, several nodes are initially infected with malware. These nodes are listed in the array initial. The virus spreads through direct connections, meaning if node i is infected and directly connected to node j, node j will also be infected. This chain reaction continues until no more nodes can be infected.
+At the outbreak, several nodes are initially infected with malware. These nodes are listed 
+in the array initial. The virus spreads through direct connections, meaning if node i is infected and directly connected to node j, node j will also be infected. This chain reaction continues until no more nodes can be infected.
 
-// The city's cybersecurity team is tasked with minimizing the final damage caused by the malware. They can achieve this by removing exactly one node from the initial list of infected nodes. The goal is to determine which node, when removed, would result in the smallest possible number of infected nodes by the time the malware can no longer spread.
+The city's cybersecurity team is tasked with minimizing the final damage caused by the malware. 
+They can achieve this by removing exactly one node from the initial list of infected nodes. 
+The goal is to determine which node, when removed, would result in the smallest possible number 
+of infected nodes by the time the malware can no longer spread.
 
-// The team defines M(initial) as the final number of nodes infected with malware after the spread stops. Your mission is to help them find the node that, if removed, would minimize M(initial). If there are multiple nodes that can achieve this, return the one with the smallest index.
+The team defines M(initial) as the final number of nodes infected with malware after the 
+spread stops. Your mission is to help them find the node that, if removed, would minimize M(initial). If there are multiple nodes that can achieve this, return the one with the smallest index.
 
-// Input :
+Input :
 
-// graph: An n x n adjacency matrix where graph[i][j] == 1 indicates a direct connection between node i and node j.
-// initial: An array of initially infected nodes.
+graph: An size x size adjacency matrix where graph[i][j] == 1 indicates a direct connection between node i and node j.
+initial: An array of initially infected nodes.
 
-// Output : 
+Output : 
 
-// The answer node that, if removed, minimizes the final number of infected nodes. If there are multiple such nodes, return the smallest index.
+The answer node that, if removed, minimizes the final number of infected nodes. If there are multiple such nodes, return the smallest index.
 
-// Constraint : 
+Constraint : 
 
-// Graph Dimensions:
+Graph Dimensions:
 
-// The number of nodes n in the network is equal to the length of the adjacency matrix, i.e., n==graph.length.
-// The adjacency matrix is a square matrix, meaning the number of rows is equal to the number of columns, i.e. n==graph[i].length for all i.
+The number of nodes size in the network is equal to the length of the adjacency matrix, i.e., size==graph.length.
+The adjacency matrix is a square matrix, meaning the number of rows is equal to the number of columns, i.e. size==graph[i].length for all i.
 
-// Node Connections:
+Node Connections:
 
-// The value of each element in the adjacency matrix graph[i][j] is either 0 or 1, representing the absence or presence of a direct connection between nodes i and j, respectively.
-// The adjacency matrix is symmetric, which means graph[i][j]==graph[j][i] for all i and j. This ensures that if node i is directly connected to node j, then node j is also directly connected to node i.
+The value of each element in the adjacency matrix graph[i][j] is either 0 or 1, representing the absence or presence of a direct connection between nodes i and j, respectively.
+The adjacency matrix is symmetric, which means graph[i][j]==graph[j][i] for all i and j. This ensures that if node i is directly connected to node j, then node j is also directly connected to node i.
 
-// Self-loops:
+Self-loops:
 
-// Each node is considered to be connected to itself, which is represented by the diagonal elements of the adjacency matrix being 1, i.e. graph[i][i]==1 for all i.
+Each node is considered to be connected to itself, which is represented by the diagonal elements of the adjacency matrix being 1, i.e. graph[i][i]==1 for all i.
 
-// Initial Infection:
+Initial Infection:
 
-// The number of initially infected nodes is at least 1 and at most n, i.e, 1≤initial.length≤n.
-// The indices of the initially infected nodes range from 0 to 0≤initial[i]≤n−1.
-// All the integers in the initial array are unique, meaning no node is listed more than once as initially infected.
+The number of initially infected nodes is at least 1 and at most n, i.e, 1≤initial.length≤n.
+The indices of the initially infected nodes range from 0 to 0≤initial[i]≤size−1.
+All the integers in the initial array are unique, meaning no node is listed more than once as initially infected.
 
+*/
 
 #include <vector>
 #include <unordered_map>
@@ -301,6 +309,103 @@ int main()
     try
     {
         MinMalware(graph_12, initial_12);
+        assert(false); 
+    }
+    catch (const std::invalid_argument &e)
+    {
+        assert(true); 
+    }
+    // TEST_END
+
+    // TEST
+    std::vector<std::vector<int>> graph_13 = {{-1, 1, 1}, {1, -1, 1}, {1, 1, 2}}; 
+    std::vector<int> initial_13 = {0, 1, 2};
+    try
+    {
+        MinMalware(graph_13, initial_13);
+        assert(false); 
+    }
+    catch (const std::invalid_argument &e)
+    {
+        assert(true); 
+    }
+    // TEST_END
+
+    // TEST
+    std::vector<std::vector<int>> graph_14(200,std::vector<int> (21,0)); 
+    std::vector<int> initial_14 = {0, 1, 2};
+    try
+    {
+        MinMalware(graph_14, initial_14);
+        assert(false); 
+    }
+    catch (const std::invalid_argument &e)
+    {
+        assert(true); 
+    }
+    // TEST_END
+
+    // TEST
+    std::vector<std::vector<int>> graph_15(200,std::vector<int> (200,0)); 
+    std::vector<int> initial_15 = {0, 1, 0};
+    try
+    {
+        MinMalware(graph_15, initial_15);
+        assert(false); 
+    }
+    catch (const std::invalid_argument &e)
+    {
+        assert(true); 
+    }
+    // TEST_END
+
+    // TEST
+    std::vector<std::vector<int>> graph_16(200,std::vector<int> (200,0)); 
+    std::vector<int> initial_16 = {};
+    try
+    {
+        MinMalware(graph_16, initial_16);
+        assert(false); 
+    }
+    catch (const std::invalid_argument &e)
+    {
+        assert(true); 
+    }
+    // TEST_END
+    // TEST
+    std::vector<std::vector<int>> graph_17(2,std::vector<int> (2,0)); 
+    std::vector<int> initial_17 = {-5,1};
+    try
+    {
+        MinMalware(graph_17, initial_17);
+        assert(false); 
+    }
+    catch (const std::invalid_argument &e)
+    {
+        assert(true); 
+    }
+    // TEST_END
+
+    // TEST
+    std::vector<std::vector<int>> graph_18(2,std::vector<int> (2,0)); 
+    std::vector<int> initial_18 = {5,1};
+    try
+    {
+        MinMalware(graph_18, initial_18);
+        assert(false); 
+    }
+    catch (const std::invalid_argument &e)
+    {
+        assert(true); 
+    }
+    // TEST_END
+
+    // TEST
+    std::vector<std::vector<int>> graph_19(2000,std::vector<int> (2000,0)); 
+    std::vector<int> initial_19 = {5,1};
+    try
+    {
+        MinMalware(graph_19, initial_19);
         assert(false); 
     }
     catch (const std::invalid_argument &e)
