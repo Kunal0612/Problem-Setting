@@ -235,7 +235,7 @@ int main(){
     // TEST_END
 
     // TEST
-    std::vector<std::vector<int>> grid_11 = {{0, 0, 0}, {0, 0, 0}, {0, 0, 1}};
+    std::vector<std::vector<int>> grid_11 = {{0, 0, 0}, {0, 0, 0}, {0, 0, -1}};
     try
     {
         MinimumVisitedCells(grid_11);
@@ -252,6 +252,19 @@ int main(){
     try
     {
         MinimumVisitedCells(grid_12);
+        assert(false);
+    }
+    catch (const std::invalid_argument &e)
+    {
+        assert(true);
+    }
+    // TEST_END
+
+// TEST
+    std::vector<std::vector<int>> grid_13 = {{0, 0, 0}, {0, 0, 0}, {0, 0, 1}};
+    try
+    {
+        MinimumVisitedCells(grid_13);
         assert(false);
     }
     catch (const std::invalid_argument &e)
