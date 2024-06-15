@@ -1,35 +1,54 @@
-// https://leetcode.com/problems/count-valid-paths-in-a-tree/description/
-// Write a C++ Function CountPaths to find the number of paths.
-// Once upon a time, in the lush green kingdom of Arborea, there stood a magnificent tree known as the Prime Tree. This tree was no ordinary tree; it was a mystical entity that held within it the secrets of the prime numbers.
+/*
+https://leetcode.com/problems/count-valid-paths-in-a-tree/description/
 
-// The Prime Tree had its roots deeply embedded in the fertile soil, and its branches stretched far and wide, reaching toward the heavens. Nestled within its branches were n nodes, each labeled from 1 to n, connected by edges forming a beautiful undirected tree.
+Write a C++ Function CountPaths to find the number of paths.
+Once upon a time, in the lush green kingdom of Arborea, there stood a magnificent tree 
+known as the Prime Tree. This tree was no ordinary tree; it was a mystical entity that 
+held within it the secrets of the prime numbers.
 
-// Legends spoke of a peculiar phenomenon within the Prime Tree. It was said that traversing from one node to another, following the path of branches, one could encounter the magic of prime numbers. A path between two nodes, a and b, was considered valid if and only if there existed exactly one prime number among the labels of the nodes along that path.
+The Prime Tree had its roots deeply embedded in the fertile soil, and its branches 
+stretched far and wide, reaching toward the heavens. Nestled within its branches were 
+size nodes, each labeled from 1 to size, connected by edges forming a beautiful undirected tree.
 
-// Adventurers from distant lands would come seeking the wisdom and blessings of the Prime Tree. They would embark on journeys through its branches, hoping to unlock the secrets hidden within its depths. But such journeys were not without challenges, for the paths were shrouded in mystery, and only those who could decipher the language of primes could truly navigate its complexities.
+Legends spoke of a peculiar phenomenon within the Prime Tree. It was said that traversing 
+from one node to another, following the path of branches, one could encounter the magic of 
+prime numbers. A path between two nodes, node_u and node_v, was considered valid if and only if there 
+existed exactly one prime number among the labels of the nodes along that path.
 
-// You, too, have been drawn to the enchanting allure of the Prime Tree. Armed with your knowledge of mathematics and the spirit of adventure, you set forth on a quest to uncover the number of valid paths within this mystical arboreal realm.
+Adventurers from distant lands would come seeking the wisdom and blessings of the Prime Tree. 
+They would embark on journeys through its branches, hoping to unlock the secrets hidden within 
+its depths. But such journeys were not without challenges, for the paths were shrouded in mystery, 
+and only those who could decipher the language of primes could truly navigate its complexities.
 
-// With the aid of your trusty map, represented by the 2D integer array edges, you traverse the branches of the Prime Tree, counting each valid path you encounter. Your journey is fraught with excitement and discovery as you unravel the mathematical marvels concealed within the heart of the tree.
+You, too, have been drawn to the enchanting allure of the Prime Tree. Armed with your knowledge 
+of mathematics and the spirit of adventure, you set forth on a quest to uncover the number of 
+valid paths within this mystical arboreal realm.
 
-// Now, dear traveler, as you venture forth into the realm of Arborea, let your keen intellect guide you through the labyrinthine paths of the Prime Tree. Count the valid paths, unlock the secrets of the primes, and may your quest be filled with wonder and enlightenment.
+With the aid of your trusty map, represented by the 2D integer array edges, you traverse the 
+branches of the Prime Tree, counting each valid path you encounter. Your journey is fraught with 
+excitement and discovery as you unravel the mathematical marvels concealed within the heart of the tree.
 
-// Input:
+Now, dear traveler, as you venture forth into the realm of Arborea, let your keen intellect 
+guide you through the labyrinthine paths of the Prime Tree. Count the valid paths, unlock 
+the secrets of the primes, and may your quest be filled with wonder and enlightenment.
 
-// A integers size denoting number of nodes.
-// A vector of vector of integers edges denoting there is a edge from node_u to node_v.
+Input:
 
-// Output : 
+A integers size denoting number of nodes.
+A vector of vector of integers edges denoting there is a edge from node_u to node_v.
 
-// A integer ans denoting number of valid paths in the tree.
+Output : 
 
-// Constraint : 
+A integer ans denoting number of valid paths in the tree.
 
-// size : The tree consists of size nodes, where size ranges from 1 to 105,The labels of the nodes range from 1 to n.
-// edges : Each element in the 'edges' array, denoted as edges[i], contains two integers node_u and node_v, indicating an edge between nodes node_u and node_v in the tree.
-// The edges of the tree are represented by a 2D integer array called 'edges', with a length of n - 1.
-// The input is structured in such a way that the 'edges' array represents a valid tree.
+Constraint : 
 
+size : The tree consists of size nodes, where size ranges from 1 to 10^5,The labels of the nodes range from 1 to size.
+edges : Each element in the 'edges' array, denoted as edges[i], contains two integers node_u and node_v, indicating an edge between nodes node_u and node_v in the tree.
+The edges of the tree are represented by a 2D integer array called 'edges', with a length of size - 1.
+The input is structured in such a way that the 'edges' array represents a valid tree.
+
+*/
 
 #include <vector>
 #include <numeric>
@@ -77,8 +96,8 @@ public:
 long long CountPaths(int size, std::vector<std::vector<int>> &edges)
 {
     
-    if (size < 1 || size > 105)
-        throw std::invalid_argument("Size must be between 1 and 105");
+    if (size < 1 || size > 100000)
+        throw std::invalid_argument("Size must be between 1 and 10^5");
     if (edges.size() != size - 1)
         throw std::invalid_argument("Number of edges must be exactly size - 1");
 
@@ -210,9 +229,8 @@ int main()
     // TEST_END
 
     // TEST
-    int size_9 = 5;
+    int size_9 = -5;
     std::vector<std::vector<int>> edges_9 = {{1, 2}, {1, 3}, {2, 4}, {2, 5}, {3, 6}, {3, 7}, {4, 8}};
-    std::vector<int> result_9;
     try
     {
         CountPaths(size_9,edges_9);
@@ -226,8 +244,7 @@ int main()
 
     // TEST
     int size_10 = 8;
-    std::vector<std::vector<int>> edges_10 = {{1, 2}, {1, 3}, {2, 4}, {2, 5}, {3, 6}, {3, 9}, {4, 8}};
-    std::vector<int> result_10;
+    std::vector<std::vector<int>> edges_10 = {{1, -2}, {1, 3}, {2, 4}, {2, -5}, {3, 6}, {3, 9}, {4, 8}};
     try
     {
         CountPaths(size_10,edges_10);
@@ -238,10 +255,10 @@ int main()
         assert(true);
     }
     // TEST_END
+
     // TEST
     int size_11 = 200000;
     std::vector<std::vector<int>> edges_11 = {{1, 2}, {1, 3}, {2, 4}, {2, 5}, {3, 6}, {3, 9}, {4, 8}};
-    std::vector<int> result_11;
     try
     {
         CountPaths(size_11,edges_11);
@@ -254,11 +271,52 @@ int main()
     // TEST_END
     // TEST
     int size_12 = 2;
-    std::vector<std::vector<int>> edges_12 = {};
-    std::vector<int> result_12;
+    std::vector<std::vector<int>> edges_12 = {{1,2,3}};
     try
     {
         CountPaths(size_12,edges_12);
+        assert(false);
+    }
+    catch (const std::invalid_argument &e)
+    {
+        assert(true);
+    }
+    // TEST_END
+
+    // TEST
+    int size_13 = 2;
+    std::vector<std::vector<int>> edges_13 = {};
+    try
+    {
+        CountPaths(size_13,edges_13);
+        assert(false);
+    }
+    catch (const std::invalid_argument &e)
+    {
+        assert(true);
+    }
+    // TEST_END
+
+    // TEST
+    int size_14 = 5;
+    std::vector<std::vector<int>> edges_14 = {{1, 3}, {2, 4}, {2, 5}, {3, 6}, {3, 9}, {4, 8}};
+    try
+    {
+        CountPaths(size_14,edges_14);
+        assert(false);
+    }
+    catch (const std::invalid_argument &e)
+    {
+        assert(true);
+    }
+    // TEST_END
+
+    // TEST
+    int size_15 = 5;
+    std::vector<std::vector<int>> edges_15 = {{1, 3}, {2, 4}, {2, 5}, {3, 6}, {3, 9}};
+    try
+    {
+        CountPaths(size_15,edges_15);
         assert(false);
     }
     catch (const std::invalid_argument &e)
