@@ -1,28 +1,31 @@
-// https://codeforces.com/problemset/problem/1969/E
+/*
+https://codeforces.com/problemset/problem/1969/E
 
-// Once upon a time, in a land ruled by numbers, there existed a kingdom named Arraya. Arraya was a long, linear kingdom made up of integers arranged in a line, each holding a unique position from 1 to n. The length of the kingdom, n, defined the number of elements in this linear arrangement, also known as an array.
+Once upon a time, in a land ruled by numbers, there existed a kingdom named Arraya. Arraya was a long, linear kingdom made up of integers arranged in a line, each holding a unique position from 1 to n. The length of the kingdom, n, defined the number of elements in this linear arrangement, also known as an array.
 
-// Within Arraya, there were smaller regions called subarrays. These subarrays were special, as they represented contiguous sequences of elements from the larger kingdom. For example, a subarray could be any sequence starting from the l-th position to the r-th position in the kingdom, where 1 ≤ l < r ≤ n. Each subarray had to be unique to maintain the harmony of Arraya.
+Within Arraya, there were smaller regions called subarrays. These subarrays were special, as they represented contiguous sequences of elements from the larger kingdom. For example, a subarray could be any sequence starting from the l-th position to the r-th position in the kingdom, where 1 ≤ l < r ≤ n. Each subarray had to be unique to maintain the harmony of Arraya.
 
-// A subarray was considered unique if it contained at least one integer that appeared exactly once within that subarray. This uniqueness was essential for the prosperity of the kingdom, ensuring that every subarray had its own distinct character.
+A subarray was considered unique if it contained at least one integer that appeared exactly once within that subarray. This uniqueness was essential for the prosperity of the kingdom, ensuring that every subarray had its own distinct character.
 
-// However, Arraya faced a grave challenge. Not all subarrays were unique, as some contained integers that appeared more than once, disrupting the kingdom's balance. This issue called for a solution to restore the uniqueness of every subarray.
+However, Arraya faced a grave challenge. Not all subarrays were unique, as some contained integers that appeared more than once, disrupting the kingdom's balance. This issue called for a solution to restore the uniqueness of every subarray.
 
-// The wise mathematicians of Arraya proposed a magical operation to address this problem. They could choose any element of the array and replace it with any other integer of their choice. Their goal was to perform this operation as few times as possible, thereby minimizing the changes needed to ensure that every subarray contained at least one unique integer.
+The wise mathematicians of Arraya proposed a magical operation to address this problem. They could choose any element of the array and replace it with any other integer of their choice. Their goal was to perform this operation as few times as possible, thereby minimizing the changes needed to ensure that every subarray contained at least one unique integer.
 
 
-// Input:
+Input:
 
-// A vector of long long integers nums containing the elements of the vector.
+A vector of long long integers nums containing the elements of the vector.
 
-// Constraints:
+Constraints:
 
-// nums.size() : Should be at least 1 and at most 300,000.
-// nums: Each element should be between 1  and size inclusive.
+nums.size() : Should be at least 1 and at most 300,000.
+nums: Each element should be between 1  and size inclusive.
 
-// Output:
+Output:
 
-// The minimum number of operation answer in order for all the subarrays of the array a to be unique.
+The minimum number of operation answer in order for all the subarrays of the array a to be unique.
+
+*/
 
 #include <vector>
 #include <algorithm>
@@ -34,49 +37,55 @@ public:
     std::vector<int> tree, lazy;
 
     SegmentTree(int n) {
-        tree = lazy = std::vector<int>(4 * n);
+        tree = lazy = std::vector<int>(4 * n, 0);
     }
 
-    void Push(int node) {
-        if (node * 2 + 2 >= tree.size()) return;
-        tree[node * 2 + 1] += lazy[node]; lazy[node * 2 + 1] += lazy[node];
-        tree[node * 2 + 2] += lazy[node]; lazy[node * 2 + 2] += lazy[node];
-        lazy[node] = 0;
+    void Push(int node, int start, int end) {
+        if (start + 1 == end) return;
+        if (lazy[node] != 0) {
+            int mid = (start + end) / 2;
+            tree[node * 2 + 1] += lazy[node];
+            tree[node * 2 + 2] += lazy[node];
+            lazy[node * 2 + 1] += lazy[node];
+            lazy[node * 2 + 2] += lazy[node];
+            lazy[node] = 0;
+        }
     }
 
     void Update(int node, int start, int end, int left, int right, int value) {
         if (left >= right) return;
         if (start == left && end == right) {
-            tree[node] += value; lazy[node] += value;
+            tree[node] += value;
+            lazy[node] += value;
             return;
         }
+        Push(node, start, end);
         int mid = (start + end) / 2;
-        Push(node);
-        Update(node * 2 + 1, start, mid, left, std::min(mid, right), value);
-        Update(node * 2 + 2, mid, end, std::max(mid, left), right, value);
+        Update(node * 2 + 1, start, mid, left, std::min(right, mid), value);
+        Update(node * 2 + 2, mid, end, std::max(left, mid), right, value);
         tree[node] = std::min(tree[node * 2 + 1], tree[node * 2 + 2]);
     }
 
     int Get(int node, int start, int end, int left, int right) {
         if (left >= right) return 1e9;
         if (start == left && end == right) return tree[node];
+        Push(node, start, end);
         int mid = (start + end) / 2;
-        Push(node);
         return std::min(
-            Get(node * 2 + 1, start, mid, left, std::min(mid, right)),
-            Get(node * 2 + 2, mid, end, std::max(mid, left), right)
+            Get(node * 2 + 1, start, mid, left, std::min(right, mid)),
+            Get(node * 2 + 2, mid, end, std::max(left, mid), right)
         );
     }
 };
 
 int UniqueArray(std::vector<int> &nums) {
     int size = nums.size();
-    if(size<1 or size>300000) throw std::invalid_argument("Invalid Size.");
-    for (int i=0;i<size;i++){
-        int element=nums[i];
-        if(element<1 or element>size) throw std::invalid_argument("Element must be between 1 and size");
-        --element;
-    } 
+    if (size < 1 || size > 300000) throw std::invalid_argument("Invalid Size.");
+    for (int i = 0; i < size; i++) {
+        int element = nums[i];
+        if (element < 1 || element > size) throw std::invalid_argument("Element must be between 1 and size.");
+        nums[i]--;
+    }
     SegmentTree segTree(size);
     std::vector<std::vector<int>> positions(size);
     int answer = 0, start = 0;
@@ -162,8 +171,6 @@ int main()
 
     //TEST
     std::vector<int> nums_10 = {};
-    int expected_10 = 0;
-    int result_10;
         try
         {
             UniqueArray(nums_10);
@@ -177,8 +184,6 @@ int main()
 
     //TEST
     std::vector<int> nums_11 = {1, 2, -3, -4, 5, 6, -7, 8, 9, 10};
-    int expected_11 = 0;
-    int result_11;
         try
         {
             UniqueArray(nums_11);
@@ -192,11 +197,22 @@ int main()
 
     //TEST
     std::vector<int> nums_12 = {5};
-    int expected_12 = 0;
-    int result_12;
         try
         {
             UniqueArray(nums_12);
+            assert(false);
+        }
+        catch (const std::invalid_argument &e)
+        {
+            assert(true);
+        }
+    // TEST_END
+
+    //TEST
+    std::vector<int> nums_13(400000,0);
+        try
+        {
+            UniqueArray(nums_13);
             assert(false);
         }
         catch (const std::invalid_argument &e)
