@@ -1,31 +1,33 @@
-// https://leetcode.com/problems/longest-substring-of-one-repeating-character/description/
+/*
+https://leetcode.com/problems/longest-substring-of-one-repeating-character/description/
 
-// Create a C++ function LongestRepeating to find the answer for each query.
+Create a C++ function LongestRepeating to find the answer for each query.
 
-// Once upon a time, in the land of Algorithmia, there existed a magical string, s. This string was special, for it could change its characters when commanded. Alongside this string, there were two powerful artifacts: a string of query characters, queryCharacters, and an array of indices, queryIndices. These artifacts held the key to altering the magical string.
+Once upon a time, in the land of Algorithmia, there existed a magical string, s. This string was special, for it could change its characters when commanded. Alongside this string, there were two powerful artifacts: a string of query characters, queryCharacters, and an array of indices, queryIndices. These artifacts held the key to altering the magical string.
 
-// The wise old sorcerers of Algorithmia devised a series of k queries to be performed on the string s. Each query would change a character in s at a specified index to a new character. The ith query would transform the character at queryIndices[i] to queryCharacters[i].
+The wise old sorcerers of Algorithmia devised a series of k queries to be performed on the string s. Each query would change a character in s at a specified index to a new character. The ith query would transform the character at queryIndices[i] to queryCharacters[i].
 
-// However, the sorcerers were not only interested in the transformations themselves but also in the aftermath. They wanted to know the length of the longest substring consisting of only one repeating character after each query was performed.
+However, the sorcerers were not only interested in the transformations themselves but also in the aftermath. They wanted to know the length of the longest substring consisting of only one repeating character after each query was performed.
 
-// Input :
+Input :
 
-// A string str.
-// A string query_characters.
-// A vector of integers query_indices where ith query updates the character in s at index query_indices[i] to the character query_characters[i].
+A string str.
+A string query_characters.
+A vector of integers query_indices where ith query updates the character in s at index query_indices[i] to the character query_characters[i].
 
-// Output :
+Output :
 
-// A vector of integers results where results[i] is the length of the longest substring of s consisting of only one repeating character after the ith query is performed.
+A vector of integers results where results[i] is the length of the longest substring of s consisting of only one repeating character after the ith query is performed.
 
-// Constraints :
+Constraints :
 
-// str.size() : The length of string s will be between 1 and 105 (inclusive).
-// str : String str will consist only of lowercase English letters.
-// query_characters.size() : The number of queries  will be between 1 and 105 (inclusive).
-// query_characters : The string queryCharacters consisting only of lowercase English letters.
-// query_indicies : The indices in the queryIndices array will be between 0 and the length of string s - 1, inclusive.
+str.size() : The length of string s will be between 1 and 105 (inclusive).
+str : String str will consist only of lowercase English letters.
+query_characters.size() : The number of queries  will be between 1 and 105 (inclusive).
+query_characters : The string queryCharacters consisting only of lowercase English letters.
+query_indicies : The indices in the queryIndices array will be between 0 and the length of string s - 1, inclusive.
 
+*/
 
 #include <vector>
 #include <string>
@@ -243,10 +245,9 @@ int main(){
     std::string str_10 = "anotherinvalid";
     std::string query_characters_10 = "xyz";
     std::vector<int> query_indices_10 = {5, 10, 15, 20, -1};
-    std::vector<int> result_10;
     try
     {
-        result_10 = LongestRepeating(str_10, query_characters_10, query_indices_10);
+        LongestRepeating(str_10, query_characters_10, query_indices_10);
         assert(false);
     }
     catch (const std::invalid_argument &e)
@@ -259,10 +260,9 @@ int main(){
     std::string str_11 = "yetanotherinvalid";
     std::string query_characters_11 = "d^f";
     std::vector<int> query_indices_11 = {1, 3, 5, 7, 9, 11, 13, 1};
-    std::vector<int> result_11;
     try
     {
-        result_11 = LongestRepeating(str_11, query_characters_11, query_indices_11);
+        LongestRepeating(str_11, query_characters_11, query_indices_11);
         assert(false); 
     }
     catch (const std::invalid_argument &e)
@@ -275,10 +275,9 @@ int main(){
     std::string str_12 = "yetano$hertest";
     std::string query_characters_12 = "abc";
     std::vector<int> query_indices_12 = {1, 2, 4, 6, 8, 10, 12, 14, 16, 18};
-    std::vector<int> result_12;
     try
     {
-        result_12 = LongestRepeating(str_12, query_characters_12, query_indices_12);
+        LongestRepeating(str_12, query_characters_12, query_indices_12);
         assert(false);
     }
     catch (const std::invalid_argument &e)
@@ -290,10 +289,9 @@ int main(){
     std::string str_13 = "";
     std::string query_characters_13 = "abc";
     std::vector<int> query_indices_13 = {0, 2, 4, 6, 8, 13, 12, 14, 16, 18, -1};
-    std::vector<int> result_13;
     try
     {
-        result_13 = LongestRepeating(str_13, query_characters_13, query_indices_13);
+        LongestRepeating(str_13, query_characters_13, query_indices_13);
         assert(false); 
     }
     catch (const std::invalid_argument &e)
@@ -305,10 +303,9 @@ int main(){
     std::string str_14 = "a";
     std::string query_characters_14 = "";
     std::vector<int> query_indices_14 = {0, 2, 4, 6, 8, 14, 12, 14, 16, 18, -1};
-    std::vector<int> result_14;
     try
     {
-        result_14 = LongestRepeating(str_14, query_characters_14, query_indices_14);
+        LongestRepeating(str_14, query_characters_14, query_indices_14);
         assert(false); 
     }
     catch (const std::invalid_argument &e)
@@ -321,10 +318,39 @@ int main(){
     std::string str_15 = "a";
     std::string query_characters_15 = "aaaa";
     std::vector<int> query_indices_15 = {0, 2, 4, 6, 8, 15, 12, 15, 16, 18, -1};
-    std::vector<int> result_15;
     try
     {
-        result_15 = LongestRepeating(str_15, query_characters_15, query_indices_15);
+        LongestRepeating(str_15, query_characters_15, query_indices_15);
+        assert(false); 
+    }
+    catch (const std::invalid_argument &e)
+    {
+        assert(true);
+    }
+    // TEST_END
+
+    // TEST
+    std::string str_16=std::string(100005,'a');
+    std::string query_characters_16 = "aaaa";
+    std::vector<int> query_indices_16 = {0, 2, 4, 6, 8, 16, 12, 16, 16, 18, -1};
+    try
+    {
+        LongestRepeating(str_16, query_characters_16, query_indices_16);
+        assert(false); 
+    }
+    catch (const std::invalid_argument &e)
+    {
+        assert(true);
+    }
+    // TEST_END
+
+    // TEST
+    std::string str_17=std::string(100000,'a');
+    std::string query_characters_17 = std::string(100005,'a');;
+    std::vector<int> query_indices_17 = {0, 2, 4, 6, 8, 17, 12, 17, 17, 18, 18};
+    try
+    {
+        LongestRepeating(str_17, query_characters_17, query_indices_17);
         assert(false); 
     }
     catch (const std::invalid_argument &e)
