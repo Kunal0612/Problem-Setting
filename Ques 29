@@ -1,34 +1,37 @@
-// https://leetcode.com/problems/maximum-sum-queries/description/
+/*
+https://leetcode.com/problems/maximum-sum-queries/description/
 
-// Create a C++ function MaximumSumQueries to find vector answer where answer[i] is the answer to the ith query.
+Create a C++ function MaximumSumQueries to find vector answer where answer[i] is the answer to the ith query.
 
-// In the bustling city of Numville, there lived two famous mathematicians, Dr. Array and Professor Vector. They were known for their passion for solving intricate problems using arrays and queries. One day, they stumbled upon an intriguing problem that needed a solution. The problem involved two 0-indexed integer arrays, nums1 and nums2, each of length n, and a series of queries that needed careful analysis.
+In the bustling city of Numville, there lived two famous mathematicians, Dr. Array and Professor Vector. They were known for their passion for solving intricate problems using arrays and queries. One day, they stumbled upon an intriguing problem that needed a solution. The problem involved two 0-indexed integer arrays, nums1 and nums2, each of length n, and a series of queries that needed careful analysis.
 
-// The two arrays, nums_1 and nums_2, were full of unique numbers that held great significance to the people of Numville. The queries, however, came from the citizens who sought answers to their mathematical conundrums. Each query was represented as a 1-indexed 2D array where queries[i] = [xi, yi]. The goal of each query was to find the maximum sum of nums1[j] + nums2[j] for all indices j (where 0 <= j < n), but only under the condition that nums1[j] >= xi and nums2[j] >= yi.
+The two arrays, nums_1 and nums_2, were full of unique numbers that held great significance to the people of Numville. The queries, however, came from the citizens who sought answers to their mathematical conundrums. Each query was represented as a 1-indexed 2D array where queries[i] = [xi, yi]. The goal of each query was to find the maximum sum of nums1[j] + nums2[j] for all indices j (where 0 <= j < n), but only under the condition that nums1[j] >= xi and nums2[j] >= yi.
 
-// Dr. Array and Professor Vector had to come up with a solution that could provide answers efficiently, even if no index j satisfied the constraints of a query. If such a scenario occurred, the answer for that particular query would be -1.
+Dr. Array and Professor Vector had to come up with a solution that could provide answers efficiently, even if no index j satisfied the constraints of a query. If such a scenario occurred, the answer for that particular query would be -1.
 
-// The task was to return an vector answer where result[i] held the solution to the i-th query. 
+The task was to return an vector answer where result[i] held the solution to the i-th query. 
 
-// Input :
+Input :
 
-// A vector of integers nums_1.
-// A vector of integers nums_2
-// A vector of vector of integers queries where queries[i] = [xi, yi].
+A vector of integers nums_1.
+A vector of integers nums_2
+A vector of vector of integers queries where queries[i] = [xi, yi].
 
-// Output :
+Output :
 
-// A vector of integers result where result[i] held the solution to the i-th query. 
+A vector of integers result where result[i] held the solution to the i-th query. 
 
-// Constraints :
+Constraints :
 
-// The lengths of the arrays nums1 and nums2 must be the same.
-// The variable size, which is the length of nums1 (and thus nums2), must satisfy 1≤size≤105.
-// nums_1 : Each element in the nums_1 array must be between 1 and 10^9 inclusive.
-// nums_2 : Each element in the nums_2 array must be between 1 and 10^9 inclusive.
-// queries.size() : The length of the queries array must be between 1 and 10^5 inclusive.
-// queries : Each query in the queries array must contain exactly 2 elements.
-// In each query [xi, yi], xi and yi must be between 1 and 10^9 inclusive.
+The lengths of the arrays nums1 and nums2 must be the same.
+The variable size, which is the length of nums1 (and thus nums2), must satisfy 1≤size≤10^5.
+nums_1 : Each element in the nums_1 array must be between 1 and 10^9 inclusive.
+nums_2 : Each element in the nums_2 array must be between 1 and 10^9 inclusive.
+queries.size() : The length of the queries array must be between 1 and 10^5 inclusive.
+queries : Each query in the queries array must contain exactly 2 elements.
+In each query [xi, yi], xi and yi must be between 1 and 10^9 inclusive.
+
+*/
 
 #include <vector>
 #include <algorithm>
@@ -142,6 +145,9 @@ std::vector<int> MaximumSumQueries(std::vector<int> &nums_1, std::vector<int> &n
     std::vector<int> result(query_length, -1);
     if(nums_1.empty() or nums_2.empty() or nums_1.size() != nums_2.size()){
         throw std::invalid_argument("vector is empty or size are different.");
+    }
+    if(nums_1.size()>100000 or nums_1.size()<1){
+        throw std::invalid_argument("Invalid Size.");
     }
     for(int i=0;i<nums_1.size();i++){
         if (nums_1[i]<= 0 || nums_1[i]> 1e9 || nums_2[i]<= 0 || nums_2[i] > 1e9)
@@ -293,7 +299,6 @@ int main(){
     std::vector<int> nums_1_9 = {};
     std::vector<int> nums_2_9 = {};
     std::vector<std::vector<int>> queries_9 = {{0, 1}}; 
-    std::vector<int> result_9;
     try
     {
 
@@ -310,7 +315,6 @@ int main(){
     std::vector<int> nums_1_10 = {1000000001};
     std::vector<int> nums_2_10 = {1000000001};
     std::vector<std::vector<int>> queries_10 = {{0, 1}}; 
-    std::vector<int> result_10;
     try
     {
 
@@ -321,7 +325,7 @@ int main(){
     {
         assert(true);
     }
-    // TEST_END
+    
 
     // TEST
     std::vector<int> nums_1_13 = {1,0};
@@ -338,11 +342,11 @@ int main(){
     {
         assert(true);
     }
+    // TEST_END
     // TEST
     std::vector<int> nums_1_14 = {1};
     std::vector<int> nums_2_14 = {1};
     std::vector<std::vector<int>> queries_14 = {}; 
-    std::vector<int> result_14;
     try
     {
 
@@ -353,6 +357,53 @@ int main(){
     {
         assert(true);
     }
+    // TEST_END
+
+    // TEST
+    std::vector<int> nums_1_15 = {1,0};
+    std::vector<int> nums_2_15 = {1};
+    std::vector<std::vector<int>> queries_15 = {}; 
+    try
+    {
+
+        MaximumSumQueries(nums_1_15, nums_2_15, queries_15);
+        assert(false);
+    }
+    catch (const std::invalid_argument &e)
+    {
+        assert(true);
+    }
+    // TEST_END
+    // TEST
+    std::vector<int> nums_1_16 = {1,0};
+    std::vector<int> nums_2_16 = {1,-4};
+    std::vector<std::vector<int>> queries_16 = {}; 
+    try
+    {
+
+        MaximumSumQueries(nums_1_16, nums_2_16, queries_16);
+        assert(false);
+    }
+    catch (const std::invalid_argument &e)
+    {
+        assert(true);
+    }
+    // TEST_END
+    // TEST
+    std::vector<int> nums_1_17 = {1,0};
+    std::vector<int> nums_2_17 = {1,4};
+    std::vector<std::vector<int>> queries_17 = {{1,-4}}; 
+    try
+    {
+
+        MaximumSumQueries(nums_1_17, nums_2_17, queries_17);
+        assert(false);
+    }
+    catch (const std::invalid_argument &e)
+    {
+        assert(true);
+    }
+    // TEST_END
     std::cout << "All test cases passed!\n";
     return 0;
 }
