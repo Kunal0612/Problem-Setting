@@ -1,45 +1,66 @@
-// https://leetcode.com/problems/minimum-number-of-visited-cells-in-a-grid/
-// Write a C++ Function MinimumVisitedCells to find minimum number of cells you need to visit to reach.
+/*
+
+https://leetcode.com/problems/minimum-number-of-visited-cells-in-a-grid/
+
+Write a C++ Function MinimumVisitedCells to find minimum number of cells you need to visit to reach.
 
 
 
-// In the realm of Gridonia, a land adorned with m x n cells of numerical values, a brave adventurer embarks on a quest fraught with challenges and mysteries. Our story begins with our hero standing at the precipice of a vast grid, their initial position nestled within the top-left cell, (0, 0).
+In the realm of Gridonia, a land adorned with rows x cols cells of numerical values, a brave 
+adventurer embarks on a quest fraught with challenges and mysteries. Our story begins 
+with our hero standing at the precipice of a vast grid, their initial position nestled 
+within the top-left cell, (0, 0).
 
-// With determination in their heart and resolve in their soul, the adventurer sets forth, guided by the rules of movement dictated by the grid's numerical landscape. From their starting point, they have two choices: to move rightward or downward, each movement governed by the value of the cell they currently occupy.
+With determination in their heart and resolve in their soul, the adventurer sets forth, 
+guided by the rules of movement dictated by the grid's numerical landscape. From their 
+starting point, they have two choices: to move rightward or downward, each movement 
+governed by the value of the cell they currently occupy.
 
-// The rules are clear:
+The rules are clear:
 
-// From any cell at coordinates (i, j), our adventurer may move rightward to a cell at coordinates (i, k), where k lies within the range j < k <= grid[i][j] + j.
-// Alternatively, they may choose to move downward to a cell at coordinates (k, j), where k lies within the range i < k <= grid[i][j] + i.
-// With each step, our hero inches closer to their ultimate destination—the bottom-right cell of the grid, at coordinates (m - 1, n - 1). But the path is not without its challenges, for the grid's numerical values dictate the scope of their journey.
+From any cell at coordinates (i, j), our adventurer may move rightward to a cell at 
+coordinates (i, k), where k lies within the range j < k <= grid[i][j] + j.
+Alternatively, they may choose to move downward to a cell at coordinates (k, j), where 
+k lies within the range i < k <= grid[i][j] + i.
+With each step, our hero inches closer to their ultimate destination—the bottom-right 
+cell of the grid, at coordinates (rows - 1, cols - 1). But the path is not without its challenges, 
+for the grid's numerical values dictate the scope of their journey.
 
-// As our adventurer traverses the grid, navigating through its labyrinthine paths, they encounter obstacles and trials. Yet, with every movement, they persevere, driven by the desire to uncover the shortest route to their destination.
+As our adventurer traverses the grid, navigating through its labyrinthine paths, they encounter 
+obstacles and trials. Yet, with every movement, they persevere, driven by the desire to uncover 
+the shortest route to their destination.
 
-// But beware, for not all paths lead to success. In some instances, the grid's layout may present an impassable barrier, denying passage to the bottom-right cell. In such cases, the adventurer must concede defeat, returning empty-handed from their valiant endeavor.
+But beware, for not all paths lead to success. In some instances, the grid's layout may 
+present an impassable barrier, denying passage to the bottom-right cell. In such cases, 
+the adventurer must concede defeat, returning empty-handed from their valiant endeavor.
 
-// And so, with courage as their compass and determination as their guide, our hero ventures forth into the depths of Gridonia, their fate intertwined with the numerical tapestry that unfolds before them. Will they emerge victorious, or will the grid's challenges prove insurmountable? Only time will tell as the story of their quest unfolds.
+And so, with courage as their compass and determination as their guide, our hero ventures 
+forth into the depths of Gridonia, their fate intertwined with the numerical tapestry that 
+unfolds before them. Will they emerge victorious, or will the grid's challenges prove 
+insurmountable? Only time will tell as the story of their quest unfolds.
 
-// Input:
+Input:
 
-// A vector of vector of integers grid.
+A vector of vector of integers grid.
 
-// Output : 
+Output : 
 
-// A integer ans to find minimum number of cells you need to visit to reach.
+A integer ans to find minimum number of cells you need to visit to reach.
 
-// Constraint : 
+Constraint : 
 
-// grid : where m and n each range from 1 to 105.
-//        The total number of cells in the grid, represented by the product of m and n, ranges from 1 to 10^5.
-//        Each cell within the grid holds a numerical value, denoted by grid[i][j], where i represents the row index and j represents the column index.
-//        The numerical values in the grid range from 0 to m * n - 1, offering a diverse array of possibilities for navigation.
-//        The bottom-right cell of the grid, located at coordinates (m - 1, n - 1), holds a numerical value of 0, serving as the destination for the adventurers.
+grid : where rows and cols each range from 1 to 10^5.
+       The total number of cells in the grid, represented by the product of rows and cols, ranges from 1 to 10^5.
+       Each cell within the grid holds a numerical value, denoted by grid[i][j], where i represents the row index and j represents the column index.
+       The numerical values in the grid range from 0 to rows * cols - 1, offering a diverse array of possibilities for navigation.
+       The bottom-right cell of the grid, located at coordinates (rows- 1, cols - 1), holds a numerical value of 0, serving as the destination for the adventurers.
+
+*/
 
 #include <iostream>
 #include <vector>
 #include <algorithm>
 #include <cassert>
-
 
 
 
@@ -88,11 +109,11 @@ int MinimumVisitedCells(std::vector<std::vector<int>> &grid)
 {
     int rows = grid.size();
     int cols = grid[0].size();
-    if (rows < 1 || rows > 105 || cols < 1 || cols > 105)
-        throw std::invalid_argument("Rows and cols must be between 1 and 105");
+    if (rows < 1 || rows > 100000 || cols < 1 || cols > 100000)
+        throw std::invalid_argument("Rows and cols must be between 1 and 10^5");
 
-    if (rows * cols > 105)
-        throw std::invalid_argument("Product of rows and cols must be at most 105");
+    if (rows * cols > 100000)
+        throw std::invalid_argument("Product of rows and cols must be at most 10^5");
 
     if (grid[rows - 1][cols - 1] != 0)
         throw std::invalid_argument("Bottom right cell must be 0");
@@ -175,7 +196,6 @@ int main(){
 
     // TEST
     std::vector<std::vector<int>> grid_8 = {{}};
-    int result_8;
     try
     {
         MinimumVisitedCells(grid_8);
@@ -188,8 +208,7 @@ int main(){
     // TEST_END
 
     // TEST
-    std::vector<std::vector<int>> grid_9 = {{}};
-    int result_9;
+    std::vector<std::vector<int>> grid_9(100005,std::vector<int> (1,1));
     try
     {
         MinimumVisitedCells(grid_9);
@@ -202,8 +221,7 @@ int main(){
     // TEST_END
 
     // TEST
-    std::vector<std::vector<int>> grid_10(105, std::vector<int>(105, 0));
-    grid_10[104][104] = 1;
+    std::vector<std::vector<int>> grid_10(1, std::vector<int>(100005, 1));
     int result_10;
     try
     {
@@ -218,10 +236,22 @@ int main(){
 
     // TEST
     std::vector<std::vector<int>> grid_11 = {{0, 0, 0}, {0, 0, 0}, {0, 0, 1}};
-    int result_11;
     try
     {
         MinimumVisitedCells(grid_11);
+        assert(false);
+    }
+    catch (const std::invalid_argument &e)
+    {
+        assert(true);
+    }
+    // TEST_END
+
+    // TEST
+    std::vector<std::vector<int>> grid_12(1000,std::vector<int> (1000,0));
+    try
+    {
+        MinimumVisitedCells(grid_12);
         assert(false);
     }
     catch (const std::invalid_argument &e)
