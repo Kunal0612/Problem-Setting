@@ -1,38 +1,56 @@
-// https://leetcode.com/problems/maximum-sum-of-subsequence-with-non-adjacent-elements/description/
-// Write a C++ Function MaximumSumSubsequence to find  the sum of the answers to all queries.
+/*
+https://leetcode.com/problems/maximum-sum-of-subsequence-with-non-adjacent-elements/description/
+
+Write a C++ Function MaximumSumSubsequence to find  the sum of the answers to all queries.
 
 
-// In the bustling town of Numaria, there lived a group of skilled mathematicians known as the Sequence Seekers. These mathematicians were renowned for their prowess in unraveling the mysteries of arrays and sequences. Their latest challenge? The optimization of subsequences.
+In the bustling town of Numaria, there lived a group of skilled mathematicians known 
+as the Sequence Seekers. These mathematicians were renowned for their prowess in unraveling 
+the mysteries of arrays and sequences. Their latest challenge? The optimization of subsequences.
 
-// The tale begins with an array of integers, a treasure trove of numerical values waiting to be explored. Each element in this array held its own significance, but the Sequence Seekers sought something more—a subsequence of maximum sum, where no two adjacent elements were chosen.
+The tale begins with an array of integers, a treasure trove of numerical values waiting to 
+be explored. Each element in this array held its own significance, but the Sequence Seekers 
+sought something more—a subsequence of maximum sum, where no two adjacent elements were chosen.
 
-// To embark on their quest, the Sequence Seekers were equipped with a map of queries, each represented by a pair of coordinates: [posi, xi]. These coordinates served as clues, indicating positions within the array where transformations were permitted. With each query, the mathematicians would alter the array, setting the value of a specific element to a new integer.
+To embark on their quest, the Sequence Seekers were equipped with a map of queries, each 
+represented by a pair of coordinates: [posi, xi]. These coordinates served as clues, indicating 
+positions within the array where transformations were permitted. With each query, the mathematicians 
+would alter the array, setting the value of a specific element to a new integer.
 
-// But their mission went beyond mere manipulation. With each change to the array, they sought to uncover the maximum sum achievable for a subsequence, adhering to the rule of avoiding adjacent elements. This was their ultimate pursuit—a quest for optimization amidst the array's numerical landscape.
+But their mission went beyond mere manipulation. With each change to the array, they sought to 
+uncover the maximum sum achievable for a subsequence, adhering to the rule of avoiding adjacent 
+elements. This was their ultimate pursuit—a quest for optimization amidst the array's numerical landscape.
 
-// With nimble fingers and keen minds, the Sequence Seekers delved into the heart of each query, recalculating the sum of subsequences, ensuring no adjacent elements were selected. As they navigated through the array, they encountered challenges and triumphs, each query bringing them closer to their goal.
+With nimble fingers and keen minds, the Sequence Seekers delved into the heart of each query, 
+recalculating the sum of subsequences, ensuring no adjacent elements were selected. As they navigated through the array, they encountered challenges and triumphs, each query bringing them closer to their goal.
 
-// And finally, after a series of meticulous calculations, the Sequence Seekers arrived at their destination—the sum of the answers to all queries. But such a treasure was not easily measured; its magnitude was vast, potentially exceeding the limits of conventional representation. Thus, they employed the power of modulo arithmetic, ensuring that their answer remained within bounds defined by 109 + 7.
+And finally, after a series of meticulous calculations, the Sequence Seekers arrived at their 
+destination—the sum of the answers to all queries. But such a treasure was not easily measured; 
 
-// As the sun set over Numaria, the Sequence Seekers celebrated their victory, their minds filled with the satisfaction of unraveling yet another mathematical enigma. And thus, their legend grew, their exploits immortalized in the annals of numerical lore for generations to come.
+its magnitude was vast, potentially exceeding the limits of conventional representation. Thus, they employed the power of modulo arithmetic, ensuring that their answer remained within bounds defined by 109 + 7.
 
-// Input:
+As the sun set over Numaria, the Sequence Seekers celebrated their victory, their minds filled 
+with the satisfaction of unraveling yet another mathematical enigma. And thus, their legend grew, 
+their exploits immortalized in the annals of numerical lore for generations to come.
 
-// A vector of integers nums .
-// A vector of vector of integers queries.
+Input:
 
-// Output : 
+A vector of integers nums .
+A vector of vector of integers queries.
 
-// A integer ans denoting the sum of the answers to all queries.
+Output : 
 
-// Constraint : 
+A integer ans denoting the sum of the answers to all queries.
 
-// nums: The vector of integers contains between 1 and 5 * 104 elements.
-// nums[i]: Each element in the array ranges from -105 to 105, covering a wide range of numerical values.
-// queries : The queries provided to the Sequence Seekers are represented as a 2D array.
-//           Each query, denoted as [posi, xi], specifies a position within the array where a transformation is allowed.
-//           The position, posi, in each query ranges from 0 to the length of the array minus 1.
-//           The new integer, xi, that can be set at the specified position varies from -105 to 105.
+Constraint : 
+
+nums: The vector of integers contains between 1 and 5 * 10^4 elements.
+nums[i]: Each element in the array ranges from -10^5 to 10^5, covering a wide range of numerical values.
+queries : The queries provided to the Sequence Seekers are represented as a 2D array contain between 1 to 5 * 10^4.
+          Each query, denoted as [posi, xi], specifies a position within the array where a transformation is allowed.
+          The position, posi, in each query ranges from 0 to the length of the array minus 1.
+          The new integer, xi, that can be set at the specified position varies from -10^5 to 10^5.
+*/
 
 #include <vector>
 #include <algorithm>
@@ -142,8 +160,11 @@ public:
 
 int MaximumSumSubsequence(std::vector<int> &nums, std::vector<std::vector<int>> &queries)
 {
-    if (nums.size() < 1 || nums.size() > 5 * 104)
+    if (nums.size() < 1 || nums.size() > 5 * 10000)
         throw std::invalid_argument("Invalid length of nums");
+
+    if (queries.size() < 1 || queries.size() > 5 * 10000)
+        throw std::invalid_argument("Invalid length of queries");
 
     for (int i=0;i<queries.size();i++)
     {
@@ -244,7 +265,6 @@ int main()
     // TEST
     std::vector<int> nums_9 = {};                      
     std::vector<std::vector<int>> queries_9 = {{0, 1}}; 
-    int result_9;
     try
     {
         MaximumSumSubsequence(nums_9, queries_9);
@@ -259,7 +279,6 @@ int main()
     // TEST
     std::vector<int> nums_10(50001, 106);                               
     std::vector<std::vector<int>> queries_10(1, std::vector<int>{0, 5});
-    int result_10;
     try
     {
         MaximumSumSubsequence(nums_10, queries_10);
@@ -274,7 +293,6 @@ int main()
     // TEST
     std::vector<int> nums_11 = {1, 2, 3};
     std::vector<std::vector<int>> queries_11 = {{0, -106}}; 
-    int result_11;
     try
     {
         MaximumSumSubsequence(nums_11, queries_11);
@@ -287,12 +305,67 @@ int main()
     // TEST_END
 
     // TEST
-    std::vector<int> nums_12(100000, 100000);                                
+    std::vector<int> nums_12={1,2,3};                                
     std::vector<std::vector<int>> queries_12(100001, std::vector<int>{0, 1}); 
-    int result_12;
     try
     {
         MaximumSumSubsequence(nums_12, queries_12);
+        assert(false); 
+    }
+    catch (const std::invalid_argument &e)
+    {
+        assert(true);
+    }
+    // TEST_END
+
+    // TEST
+    std::vector<int> nums_13={1,2,3};                                
+    std::vector<std::vector<int>> queries_13={{-5,1}}; 
+    try
+    {
+        MaximumSumSubsequence(nums_13, queries_13);
+        assert(false); 
+    }
+    catch (const std::invalid_argument &e)
+    {
+        assert(true);
+    }
+    // TEST_END
+
+    // TEST
+    std::vector<int> nums_14={1,2,3};                                
+    std::vector<std::vector<int>> queries_14={{-1,-51}}; 
+    try
+    {
+        MaximumSumSubsequence(nums_14, queries_14);
+        assert(false); 
+    }
+    catch (const std::invalid_argument &e)
+    {
+        assert(true);
+    }
+    // TEST_END
+
+    // TEST
+    std::vector<int> nums_15={1,-2,3};                                
+    std::vector<std::vector<int>> queries_15={{1,2,3}}; 
+    try
+    {
+        MaximumSumSubsequence(nums_15, queries_15);
+        assert(false); 
+    }
+    catch (const std::invalid_argument &e)
+    {
+        assert(true);
+    }
+    // TEST_END
+
+    // TEST
+    std::vector<int> nums_16={1,2,3};                                
+    std::vector<std::vector<int>> queries_16={}; 
+    try
+    {
+        MaximumSumSubsequence(nums_16, queries_16);
         assert(false); 
     }
     catch (const std::invalid_argument &e)
