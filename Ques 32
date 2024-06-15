@@ -1,29 +1,30 @@
-// https://practice.geeksforgeeks.org/contest/gfg-weekly-coding-contest-141/problems
+/*
+https://practice.geeksforgeeks.org/contest/gfg-weekly-coding-contest-141/problems
 
-// Create a C++ function GreatCount to find answer the count of Great Substrings of str.
+Create a C++ function GreatCount to find answer the count of Great Substrings of str.
 
-// In the realm of Binaryia, where zeros and ones tell the tale of existence, a captivating puzzle awaits the intrepid souls who dare to venture forth. Within the digital tapestry of a binary string str, comprised of N characters, lies a mystery waiting to be unraveled.
+In the realm of Binaryia, where zeros and ones tell the tale of existence, a captivating puzzle awaits the intrepid souls who dare to venture forth. Within the digital tapestry of a binary string str, comprised of N characters, lies a mystery waiting to be unraveled.
 
-// The challenge is clear: traverse the landscape of str and discern the count of "great substrings." But what defines greatness in this binary domain? A substring earns the esteemed title of "great" if the tally of ones it contains surpasses half of its length.
+The challenge is clear: traverse the landscape of str and discern the count of "great substrings." But what defines greatness in this binary domain? A substring earns the esteemed title of "great" if the tally of ones it contains surpasses half of its length.
 
-// Armed with wit and algorithmic prowess, adventurers set out on their quest. Through the labyrinth of binary digits, they navigate, counting, calculating, and categorizing each substring they encounter.
+Armed with wit and algorithmic prowess, adventurers set out on their quest. Through the labyrinth of binary digits, they navigate, counting, calculating, and categorizing each substring they encounter.
 
-// As the journey progresses, patterns emerge, revealing the intricate dance between zeros and ones. With each calculation, the veil of mystery lifts, inch by inch, until the true count of great substrings within str stands revealed.
+As the journey progresses, patterns emerge, revealing the intricate dance between zeros and ones. With each calculation, the veil of mystery lifts, inch by inch, until the true count of great substrings within str stands revealed.
 
-// Input :
+Input :
 
-// A binary string str.
+A binary string str.
 
-// Output :
+Output :
 
-// A integer answer the count of Great Substrings of S. 
+A integer answer the count of Great Substrings of S. 
 
-// Constraints :
+Constraints :
 
-// str : size of str should be between 1 to 20000 Inclusive , and it should either 0 or 1.
+str : size of str should be between 1 to 20000 Inclusive , and it should either 0 or 1.
+
+*/
       
-
-
 
 
 
@@ -157,8 +158,6 @@ int main(){
 
     // TEST
     std::string str_9 = "";
-    int expected_9 = 78;
-    int result_9;
     try
     {
         GreatCount(str_9);
@@ -172,11 +171,22 @@ int main(){
 
     // TEST
     std::string str_10 = "c10";
-    int expected_10 = 78;
-    int result_10;
     try
     {
         GreatCount(str_10);
+        assert(false);
+    }
+    catch (const std::invalid_argument &e)
+    {
+        assert(true);
+    }
+    // TEST_END
+
+    // TEST
+    std::string str_11 = std::string(30000,'a');
+    try
+    {
+        GreatCount(str_11);
         assert(false);
     }
     catch (const std::invalid_argument &e)
