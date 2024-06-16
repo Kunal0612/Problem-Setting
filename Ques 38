@@ -35,7 +35,7 @@ A vector of integer long long integers nums.
 
 Output : 
 
-A vector of integer ans the maximum sum of values you can get with a partition.
+A integer ans the maximum sum of values you can get with a partition.
 
 Constraint :
 
