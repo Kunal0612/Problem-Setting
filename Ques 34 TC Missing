@@ -1,75 +1,242 @@
-// https://leetcode.com/problems/number-of-digit-one/description/
+/*
 
-// Create a C++ function CountDigitOne to find the count the total number of digit 1 appearing in all non-negative integers less than or equal to num.
+https://codeforces.com/problemset/problem/1667/B
 
-// In a mystical kingdom, there exists a legendary book that reveals the secrets of numbers and their occurrences. One day, a curious scholar discovered an intriguing challenge hidden within its pages:
+Write a C++ Function OptimalPartition to find out maximum sum of values you can get with a partition.
 
-// Given an integer n, you are to count the total number of times the digit '1' appears in all non-negative integers less than or equal to n.
-// For example, if n=13, the numbers are 0,1,2,…,13. The digit '1' appears in the numbers 1,10,11,12,13, counting a total of 6 occurrences.
+In a quaint village nestled between rolling hills and whispering forests, there lived a wise elder named Elara. Elara was known far and wide for her skill in solving the most perplexing of puzzles and dilemmas. One chilly evening, as the village gathered around a crackling fire, a young traveler arrived with a unique challenge.
 
-// Your task is to write a magical incantation, a function or algorithm, to solve this enigmatic problem. The answers you derive will unveil the hidden wisdom of the numbers and reveal the secrets within the legendary book.
+The traveler presented Elara with an array of integers, each representing a mysterious code engraved in ancient stones scattered across the land. The array, denoted as a, contained 
+n integers. Each integer held a significant value—some positive, some negative—each whispering tales of forgotten times.
 
-// May your journey be filled with enlightenment and discovery!
+Elara listened attentively as the traveler explained the task. The challenge was to divide the array a into continuous, non-empty subarrays in such a way that the sum of their values, based on a peculiar rule, would be maximized. The rule dictated that for any subarray a[l,r]:
 
-// This story-based problem description sets the stage for the task of counting the occurrences of the digit '1' in all numbers from 0 to num. It invites readers to engage with the challenge in a whimsical and imaginative manner.
+Let s=al+al+1+…+ar. The value of a subarray al,al+1,…,ar is:
 
-// Input :
+(r−l+1) if s>0,
 
-// An integer num.
+0 if s=0,
 
-// Output :
+−(r−l+1) if s<0.
 
-// An integer ans the count the total number of digit 1 appearing in all non-negative integers less than or equal to num.
+The challenge lay in finding the optimal strategy to partition the array into subarrays to achieve the maximum possible sum of their values, adhering strictly to these rules.
 
-// Constraints :
+Elara, her eyes twinkling with the fire's reflection, took on the challenge with a serene determination. She knew that to solve this puzzle, she must carefully navigate the array, identifying sequences where the sum s alternated between positive and negative, and where s=0 could strategically reset the scoring.
 
-// num : it ranges from 0 to 1000000000 inclusive.
+As the night deepened and the stars painted constellations above, Elara meticulously planned each division of the array, ensuring that every subarray contributed maximally to the total sum. Her wisdom shone as she pieced together the array, threading moments of positive and negative values into a tapestry that promised the highest sum of values possible.
 
-#include <vector>
+When the dawn broke, the solution emerged—a partitioning of the array that not only satisfied the rules but also maximized the sum of the subarray values beyond any expectation.
+
+And so, with a grateful heart, the traveler departed, carrying Elara's wisdom and the tale of the array whose puzzle had been unraveled in the quiet village nestled among hills and forests.
+
+Input :
+
+A vector of integer long long integers nums.
+
+Output : 
+
+A vector of integer ans the maximum sum of values you can get with a partition.
+
+Constraint :
+
+nums.size() : ranges from 1 to 500000
+nums[i] : ranges from -10^9 to 10^9
+
+*/
+
+
+
 #include <iostream>
-#include <cstring>
-#include <string>
+#include <vector>
+#include <algorithm>
+#include <cassert>
+#include <utility>
 #include <stdexcept>
 
-long long int Helper(long long int idx, bool is_t1, bool is_t2, long long int current_sum, std::string &num1, std::string &num2, const long long int mod, std::vector<std::vector<std::vector<std::vector<long long int>>>> &dp_table)
-{
-    if (idx >= num2.size())
-        return current_sum;
-    if (dp_table[idx][is_t1][is_t2][current_sum] != -1)
-        return dp_table[idx][is_t1][is_t2][current_sum];
-    long long int lower_bound = (is_t1 ? num1[idx] - '0' : 0);
-    long long int upper_bound = (is_t2 ? num2[idx] - '0' : 9);
-    long long int count = 0;
-    for (long long int digit = lower_bound; digit <= upper_bound; digit++)
-    {
-        if (digit == 1)
-        {
-            count += Helper(idx + 1, is_t1 & (digit == lower_bound), is_t2 & (digit == upper_bound), current_sum + 1, num1, num2, mod, dp_table);
-        }
-        else
-        {
-            count += Helper(idx + 1, is_t1 & (digit == lower_bound), is_t2 & (digit == upper_bound), current_sum, num1, num2, mod, dp_table);
-        }
-        count %= mod;
-    }
-    return dp_table[idx][is_t1][is_t2][current_sum] = count;
+
+
+int Lsb(int arr) {
+    return (arr & -arr);
 }
 
-int CountDigitOne(int num)
-{
-    if (num < 1 and num > 1000000000)
-    {
-        throw std::invalid_argument("Invalid n");
+void Add(int pos, long long int val, std::vector<long long int>& fen, int len) {
+    while (pos <= len) {
+        fen[pos] = std::max(fen[pos], val);
+        pos += Lsb(pos);
     }
-    const long long int mod_value = 1e9 + 7;
-    std::string num1_str = "";
-    std::string num2_str = std::to_string(num);
-    long long int num2_size = num2_str.size();
-    long long int num1_padding = num2_size;
-    while (num1_padding--)
-        num1_str += "0";
-    std::vector<std::vector<std::vector<std::vector<long long int>>>> dp_table(num2_size, std::vector<std::vector<std::vector<long long int>>>(2, std::vector<std::vector<long long int>>(2, std::vector<long long int>(num2_size + 1, -1))));
-    long long int result = Helper(0, 1, 1, 0, num1_str, num2_str, mod_value, dp_table);
+}
 
-    return result;
+long long int Ask(int pos, const std::vector<long long int>& fen) {
+    int inf = 10000000;
+    long long int val = -inf;
+    while (pos > 0) {
+        val = std::max(fen[pos], val);
+        pos -= Lsb(pos);
+    }
+    return val;
+}
+
+int OptimalPartition(std::vector<long long int>& nums) {
+    int len = nums.size();
+    if (len < 1 || len > 500000) {
+        throw std::invalid_argument("Invalid value of n. Expected 1 <= n <= 500000.");
+    }
+    
+    for (int i = 0; i < len; ++i) {
+        if (nums[i] < -1000000000 || nums[i] > 1000000000) {
+            throw std::invalid_argument("Invalid value in array nums.");
+        }
+    }
+
+    std::vector<long long int> num(len + 1), res(len + 1), ord(len + 1), fen(len + 1), pref(len + 1);
+    
+    for (int i = 1; i <= len; i++) {
+        num[i] = nums[i - 1];
+    }
+    
+    for (int i = 1; i <= len; i++) {
+        pref[i] = pref[i - 1] + num[i];
+    }
+    
+    std::vector<std::pair<long long, int>> v;
+    for (int i = 1; i <= len; i++) {
+        v.push_back({pref[i], -i});
+    }
+    int inf = 10000000;
+    
+    std::sort(v.begin(), v.end());
+    
+    for (int i = 0; i < len; i++) {
+        ord[-v[i].second] = i + 1;
+    }
+    
+    for (int i = 1; i <= len; i++) {
+        fen[i] = -inf;
+    }
+    
+    for (int i = 1; i <= len; i++) {
+        res[i] = res[i - 1] + (num[i] < 0 ? -1 : (num[i] > 0 ? 1 : 0));
+        
+        res[i] = std::max(res[i], Ask(ord[i], fen) + i);
+        if (pref[i] > 0) res[i] = i;
+        
+        Add(ord[i], res[i] - i, fen, len);
+    }
+    
+    int ans=res[len];
+    return ans;
+}
+
+
+int main(){
+
+    // TEST
+    std::vector<long long int> nums_1 = {1, 2, -3};
+    int expected_1 = 1;
+    int result_1 = OptimalPartition(nums_1);
+    assert(result_1 == expected_1);
+    // TEST_END
+
+    // TEST
+    std::vector<long long int> nums_2 = {0};
+    int expected_2 = 0;
+    int result_2 = OptimalPartition(nums_2);
+    assert(result_2 == expected_2);
+    // TEST_END
+
+    // TEST
+    std::vector<long long int> nums_3 = {1000000000, -1000000000};
+    int expected_3 = 0;
+    int result_3 = OptimalPartition(nums_3);
+    assert(result_3 == expected_3);
+    // TEST_END
+
+    // TEST
+    std::vector<long long int> nums_4 = {-1, -2, -3};
+    int expected_4 = -3;
+    int result_4 = OptimalPartition(nums_4);
+    assert(result_4 == expected_4);
+    // TEST_END
+
+    // TEST
+    std::vector<long long int> nums_5 = {1, 2, 3, 4, 5};
+    int expected_5 = 5;
+    int result_5 = OptimalPartition(nums_5);
+    assert(result_5 == expected_5);
+    // TEST_END
+
+    // TEST
+    std::vector<long long int> nums_6 = {5, 4, 3, 2, 1};
+    int expected_6 = 5;
+    int result_6 = OptimalPartition(nums_6);
+    assert(result_6 == expected_6);
+    // TEST_END
+
+    // TEST
+    std::vector<long long int> nums_7 = {-1000000000, 1000000000, -1000000000, 1000000000};
+    int expected_7 = 2;
+    int result_7 = OptimalPartition(nums_7);
+    assert(result_7 == expected_7);
+    // TEST_END
+
+    // TEST
+    std::vector<long long int> nums_8 = {1, 2, 3, 4, 5, 6, 7, 8, 9, 10};
+    int expected_8 = 10;
+    int result_8 = OptimalPartition(nums_8);
+    assert(result_8 == expected_8);
+    // TEST_END
+
+
+    // TEST
+    std::vector<long long int> nums_9 = {1000000001};
+    try
+    {
+        OptimalPartition(nums_9);
+        assert(false); 
+    }
+    catch (const std::invalid_argument &e)
+    {
+        assert(true); 
+    }
+    // TEST_END
+
+    // TEST
+    std::vector<long long int> nums_10 = {}; 
+    try
+    {
+        OptimalPartition(nums_10);
+        assert(false); 
+    }
+    catch (const std::invalid_argument &e)
+    {
+        assert(true); 
+    }
+    // TEST_END
+
+    // TEST
+    std::vector<long long int> nums_11(1000000,0); 
+    try
+    {
+        OptimalPartition(nums_11);
+        assert(false); 
+    }
+    catch (const std::invalid_argument &e)
+    {
+        assert(true); 
+    }
+    // TEST_END
+    // TEST
+    std::vector<long long int> nums_12 = {1, 2, -1000000001}; 
+    try
+    {
+        OptimalPartition(nums_12);
+        assert(false);
+    }
+    catch (const std::invalid_argument &e)
+    {
+        assert(true);
+    }
+    // TEST_END
+    std::cout << "All test cases passed!\n";
+    return 0;
 }
