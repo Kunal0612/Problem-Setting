@@ -69,18 +69,24 @@ std::vector<std::vector<long long>> DfsHelper(int node, std::vector<int> &cost, 
     std::priority_queue<long long, std::vector<long long>> pos;
     std::priority_queue<long long, std::vector<long long>, std::greater<long long>> neg;
 
-    if (cost[node] > 0)
+    if (cost[node] > 0){
         pos.push(cost[node]);
-    else
+    }
+    else{
         neg.push(cost[node]);
+    }
 
-    for (auto &itr : pre)
-        for (auto &it : itr)
+    for (auto &itr : pre){
+        for (auto &it : itr){
             pos.push(it);
+        }
+    }
 
-    for (auto &itr : nde)
-        for (auto &it : itr)
+    for (auto &itr : nde){
+        for (auto &it : itr){
             neg.push(it);
+        }
+    }
 
     int count = 3;
     std::vector<long long> top_pos, top_neg;
@@ -97,16 +103,20 @@ std::vector<std::vector<long long>> DfsHelper(int node, std::vector<int> &cost, 
     }
 
     long long sum1 = 0, sum2 = 0;
-    if (top_pos.size() >= 3)
+    if (top_pos.size() >= 3){
         sum1 = top_pos[0] * top_pos[1] * top_pos[2];
-    if (top_neg.size() >= 2 && top_pos.size() >= 1)
+    }
+    if (top_neg.size() >= 2 && top_pos.size() >= 1){
         sum2 = top_pos[0] * top_neg[0] * top_neg[1];
+    }
 
     int mem = top_pos.size() + top_neg.size();
-    if (mem < 3)
+    if (mem < 3){
         coins[node] = 1;
-    else
+    }
+    else{
         coins[node] = std::max(sum1, sum2);
+    }
 
     return {top_pos, top_neg};
 }
