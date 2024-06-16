@@ -206,6 +206,18 @@ int main() {
         assert(true);
     }
     // TEST_END
+// TEST
+    std::vector<int> nums_14(2000005,1); 
+    try
+    {
+        PermutationSorting(nums_14);
+        assert(false);
+    }
+    catch (const std::invalid_argument &e)
+    {
+        assert(true);
+    }
+    // TEST_END
     std::cout << "All test cases passed!\n";
     return 0;
 }
