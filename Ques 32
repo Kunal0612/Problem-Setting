@@ -87,10 +87,12 @@ long long GreatCount(std::string str)
     fenwick_tree.Add(size, 1);
     for (int j = 0; j < size; j++)
     {
-        if (str[j] == '1')
+        if (str[j] == '1'){
             current++;
-        else
+        }
+        else{
             current--;
+        }
         fenwick_tree.Add(current + size, 1);
         int right_index = current - 1;
         result += fenwick_tree.Sum(0, right_index + size);
