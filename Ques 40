@@ -49,24 +49,29 @@ const int mod = 1e9 + 7;
 int seg_tree[4 * max_n];
 
 void Update(int node, int left, int right, int position, int value) {
-    if (left == right)
+    if (left == right){
         seg_tree[node] = value;
+    }
     else {
         int mid = (left + right) >> 1;
-        if (position <= mid)
+        if (position <= mid){
             Update(node << 1, left, mid, position, value);
-        else
+        }
+        else{
             Update(node << 1 | 1, mid + 1, right, position, value);
+        }
         seg_tree[node] = std::min(seg_tree[node << 1 | 1], seg_tree[node << 1]);
     }
 }
 
 int Query(int node, int left, int right, int val) {
-    if (left == right)
+    if (left == right){
         return left;
+    }
     int mid = (left + right) >> 1;
-    if (seg_tree[node << 1] < val)
+    if (seg_tree[node << 1] < val){
         return Query(node << 1, left, mid, val);
+    }
     return Query(node << 1 | 1, mid + 1, right, val);
 }
 
