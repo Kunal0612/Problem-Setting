@@ -1,168 +1,339 @@
-// https://leetcode.com/problems/maximum-number-of-points-from-grid-queries/
+/*
+https://leetcode.com/problems/find-number-of-coins-to-place-in-tree-nodes/
 
-// Write a function MaxPoints that find the vector answer of size k such that answer[i] is the maximum number of points you can achieve starting from the top-left cell for each queries[i].
+Write a function PlacedCoins that find the array coins of size len, where coins[i] is the number 
+of coins to be placed at node i.
+In a mystical forest, there exists an ancient and enchanted tree with n nodes, each labeled from 
+0 to len - 1. This tree is not just any tree; it is the backbone of the forest's magical 
+ecosystem, rooted at node 0. The tree's structure is defined by a series of mystical 
+connections, described in a 2D integer array called edges. Each element in edges represents 
+a magical link between two nodes, ensuring the connectivity and harmony of the tree.
 
-// In a mystical realm, you are given an m x n integer matrix called grid and an array queries of size k. Your task is to determine how many points you can score by navigating the grid based on the given queries.
+However, the balance of magic in the forest has recently been disturbed. To restore this 
+balance, the forest's guardian needs to place a certain number of enchanted coins on 
+each node. The number of coins to be placed on any given node is determined by the following rules:
 
-// Each query in queries represents a challenge where you start from the top-left cell of the matrix and can move to adjacent cells (up, down, left, right) under certain conditions. For each integer queries[i], you will follow these steps:
+If the size of the subtree of a node is less than 3, place 1 coin on that node.
+Otherwise, the number of coins placed on a node is calculated as the maximum product 
+of the cost values assigned to three distinct nodes within that subtree. If this product is negative, place 0 coins instead.
+The cost values, a measure of the magical strength of each node, are given in a 
+0-indexed integer array called cost, where cost[i] represents the magical strength of the ith node.
 
-// Begin at the top-left cell (0, 0) of the matrix.
-// If queries[i] is strictly greater than the value of the current cell you are in, you earn one point if it is your first time visiting this cell. You can then move to any of the adjacent cells in all 4 directions (up, down, left, right).
-// If queries[i] is not strictly greater than the value of the current cell, you do not earn any points, and the process for this query ends.
-// The goal is to determine the maximum number of points you can accumulate for each query.
+Task:
+Your task is to determine and return an array coins of size n, where coins[i] is 
+the number of coins to be placed at node i.
 
-// Task:
+Input:
 
-// Determine and return an vector answer of size k such that answer[i] is the maximum number of points you can achieve starting from the top-left cell for each queries[i].
+A 2D integer array edges of length len - 1, where edges[i] = [a_i, b_i] indicates a magical connection between nodes a_i and b_i.
+A 0-indexed integer array cost of length len, where cost[i] is the magical strength of the ith node.
 
-// Input:
+Output:
 
-// An vector of vector of integer grid.
-// An integer vector queries of size k.
+An integer array coins of size n, where coins[i] is the number of coins placed on node i.
 
-// Output:
 
-// An integer array answer of size k, where answer[i] represents the maximum points for queries[i].
+Constraints :
 
-// Constraints:
-
-// The number of rows m in the matrix is at least 2 and at most 1,000.
-// The number of columns n in the matrix is at least 2 and at most 1,000.
-// The total number of elements m×n in the matrix is at least 4 and at most 100,000.
-// The length k of the queries array is between 1 and 10,000, inclusive.
-// Each element in the matrix grid[i][j] and each query queries[i] is between 1 and 1,000,000, inclusive.
-
+The number of nodes len in the tree is at least 2 and at most 20,000.
+The number of edges is exactly len−1, ensuring that the graph forms a valid tree.
+Each edge is described by a pair of integers, indicating a bidirectional connection between two distinct nodes ai and bi.
+The nodes are labeled from 0 to len−1, and each edge connects two valid nodes within this range.
+The cost array, which contains the magical strength of each node, has exactly len elements.
+The absolute value of the magical strength ∣cost[i]∣ for each node is between 1 and 10,000, inclusive.
+The input guarantees that the edges array forms a valid tree structure, meaning it is connected and acyclic.
+*/
 
 #include <iostream>
 #include <vector>
 #include <queue>
+#include <cassert>
 #include <algorithm>
 #include <stdexcept>
-#include <climits>
 
-class Solution {
-public:
-    struct Edge {
-        int start;
-        int end;
-        int max_value;
-        Edge(int node_a, int node_b, int maxi) : start(node_a), end(node_b), max_value(maxi) {}
-    };
+std::vector<std::vector<long long>> DfsHelper(int node, std::vector<int> &cost, std::vector<int> &vis, std::vector<long long> &coins, std::vector<int> adj[])
+{
+    vis[node] = 1;
 
-    class DSU {
-    private:
-        std::vector<int> parent;
-        std::vector<int> size;
-    public:
-        DSU(int num_nodes) {
-            parent.resize(num_nodes);
-            size.resize(num_nodes, 1);
-            for (int index = 0; index < num_nodes; index++) {
-                parent[index] = index;
-            }
-        }
-        int Find(int node) {
-            if (parent[node] == node)
-                return node;
-            parent[node] = Find(parent[node]);
-            return parent[node];
-        }
-        void Union(int node_x, int node_y) {
-            int root_x = Find(node_x);
-            int root_y = Find(node_y);
-            if (root_x == root_y)
-                return;
-            parent[root_y] = root_x;
-            size[root_x] += size[root_y];
-        }
-        int GetSize(int node) {
-            return size[Find(node)];
-        }
-    };
-
-    bool IsWithinGrid(int node_x, int node_y, int& row, int& col) {
-        if (node_x < 0 || node_y < 0 || node_x >= row || node_y >= col)
-            return false;
-        return true;
-    }
-
-    void ProcessEdges(std::vector<std::vector<int>>& grid, std::vector<Edge>& all_edges) {
-        int num_rows = grid.size();
-        int num_cols = grid[0].size();
-        int start, end;
-        for (int i = 0; i < num_rows; ++i) {
-            for (int j = 0; j < num_cols; ++j) {
-                start = i * num_cols + j;
-                if (IsWithinGrid(i, j + 1, num_rows, num_cols)) {
-                    end = i * num_cols + j + 1;
-                    Edge temp_edge(start, end, std::max(grid[i][j], grid[i][j + 1]));
-                    all_edges.push_back(temp_edge);
-                }
-                if (IsWithinGrid(i + 1, j, num_rows, num_cols)) {
-                    end = (i + 1) * num_cols + j;
-                    Edge temp_edge(start, end, std::max(grid[i][j], grid[i + 1][j]));
-                    all_edges.push_back(temp_edge);
-                }
-            }
+    std::vector<std::vector<long long>> pre, nde;
+    for (auto adj_node : adj[node])
+    {
+        if (!vis[adj_node])
+        {
+            auto it = DfsHelper(adj_node, cost, vis, coins, adj);
+            pre.push_back(it[0]);
+            nde.push_back(it[1]);
         }
     }
 
-    std::vector<int> maxPoints(std::vector<std::vector<int>>& grid, std::vector<int>& queries) {
-        int num_rows = grid.size();
-        int num_cols = grid[0].size();
-        int total_cells = num_rows * num_cols;
+    std::priority_queue<long long, std::vector<long long>> pos;
+    std::priority_queue<long long, std::vector<long long>, std::greater<long long>> neg;
 
-        if (num_rows < 2 || num_rows > 1000 || num_cols < 2 || num_cols > 1000 || total_cells < 4 || total_cells > 100000) {
-            throw std::invalid_argument("Invalid grid dimensions. Constraints: 2 <= m, n <= 1000 and 4 <= m * n <= 105.");
-        }
+    if (cost[node] > 0)
+        pos.push(cost[node]);
+    else
+        neg.push(cost[node]);
 
-        for (int i = 0; i < num_rows; ++i) {
-            for (int j = 0; j < num_cols; ++j) {
-                if (grid[i][j] < 1 || grid[i][j] > 1000000) {
-                    throw std::invalid_argument("Invalid grid value. Each value must be between 1 and 106.");
-                }
-            }
-        }
+    for (auto &itr : pre)
+        for (auto &it : itr)
+            pos.push(it);
 
-        if (queries.size() < 1 || queries.size() > 10000) {
-            throw std::invalid_argument("Invalid number of queries. Must be between 1 and 104.");
-        }
+    for (auto &itr : nde)
+        for (auto &it : itr)
+            neg.push(it);
 
-        for (int i = 0; i < queries.size(); ++i) {
-            if (queries[i] < 1 || queries[i] > 1000000) {
-                throw std::invalid_argument("Invalid query value. Each value must be between 1 and 106.");
-            }
-        }
-
-        std::vector<Edge> all_edges;
-        ProcessEdges(grid, all_edges);
-        std::sort(all_edges.begin(), all_edges.end(),
-                  [](Edge edge_a, Edge edge_b) {
-                      return edge_a.max_value < edge_b.max_value;
-                  });
-
-        DSU dsu_object(num_cols * num_rows);
-
-
-        std::vector<std::pair<int, int>> query_pairs;
-        for (int i = 0; i < queries.size(); ++i) {
-            query_pairs.push_back({queries[i], i});
-        }
-
-        std::sort(query_pairs.begin(), query_pairs.end());
-
-        std::vector<int> results(queries.size(), 0);
-        int edge_pointer = 0;
-
-        for (int i = 0; i < query_pairs.size(); ++i) {
-            while (edge_pointer < all_edges.size() && all_edges[edge_pointer].max_value < query_pairs[i].first) {
-                dsu_object.Union(all_edges[edge_pointer].start, all_edges[edge_pointer].end);
-                edge_pointer++;
-            }
-            if (grid[0][0] < query_pairs[i].first) {
-                results[query_pairs[i].second] = dsu_object.GetSize(0);
-            }
-        }
-        return results;
+    int count = 3;
+    std::vector<long long> top_pos, top_neg;
+    while (!pos.empty() && count--)
+    {
+        top_pos.push_back(pos.top());
+        pos.pop();
     }
-};
+    count = 3;
+    while (!neg.empty() && count--)
+    {
+        top_neg.push_back(neg.top());
+        neg.pop();
+    }
+
+    long long sum1 = 0, sum2 = 0;
+    if (top_pos.size() >= 3)
+        sum1 = top_pos[0] * top_pos[1] * top_pos[2];
+    if (top_neg.size() >= 2 && top_pos.size() >= 1)
+        sum2 = top_pos[0] * top_neg[0] * top_neg[1];
+
+    int mem = top_pos.size() + top_neg.size();
+    if (mem < 3)
+        coins[node] = 1;
+    else
+        coins[node] = std::max(sum1, sum2);
+
+    return {top_pos, top_neg};
+}
+
+std::vector<long long> PlacedCoins(std::vector<std::vector<int>> &edges, std::vector<int> &cost)
+{
+    int len = cost.size();
+
+    if (len < 2 || len > 2 * 10000)
+    {
+        throw std::invalid_argument("Invalid number of nodes. Must be between 2 and 2*10^4.");
+    }
+
+    if (edges.size() != len - 1)
+    {
+        throw std::invalid_argument("Invalid number of edges. Must be equal to len - 1.");
+    }
+
+    for (int i = 0; i < edges.size(); i++)
+    {
+        std::vector<int> edge = edges[i];
+        if (edge.size() != 2)
+        {
+            throw std::invalid_argument("Invalid edge size. Each edge must have exactly 2 vertices.");
+        }
+
+        int node_a = edge[0];
+        int node_b = edge[1];
+        if (node_a < 0 || node_a >= len || node_b < 0 || node_b >= len)
+        {
+            throw std::invalid_argument("Invalid edge vertices. Vertices must be between 0 and len-1.");
+        }
+    }
+
+    if (cost.size() != len)
+    {
+        throw std::invalid_argument("Invalid cost array size. Must be equal to len.");
+    }
+
+    for (int i = 0; i < cost.size(); i++)
+    {
+        int cst = cost[i];
+        if (std::abs(cst) < 1 || std::abs(cst) > 10000)
+        {
+            throw std::invalid_argument("Invalid cost value. Each cost must be between 1 and 10^4.");
+        }
+    }
+
+    std::vector<int> adj[len];
+    for (auto &it : edges)
+    {
+        int node_u = it[0], node_v = it[1];
+        adj[node_u].push_back(node_v);
+        adj[node_v].push_back(node_u);
+    }
+
+    std::vector<int> vis(len, 0);
+    std::vector<long long> coins(len, 0);
+
+    DfsHelper(0, cost, vis, coins, adj);
+    return coins;
+}
+
+int main() {
+
+    // TEST
+    std::vector<std::vector<int>> edges_1 = {{0, 1}, {0, 2}, {0, 3}, {0, 4}, {0, 5}};
+    std::vector<int> cost_1 = {1, 2, 3, 4, 5, 6};
+    std::vector<long long int> expected_1 = {120, 1, 1, 1, 1, 1};
+    std::vector<long long int> result_1 = PlacedCoins(edges_1, cost_1);
+    assert(result_1 == expected_1);
+    // TEST_END
+
+    // TEST
+    std::vector<std::vector<int>> edges_2 = {{0, 1}, {1, 2}, {2, 3}, {3, 4}};
+    std::vector<int> cost_2 = {1, 1, 1, 1, 1};
+    std::vector<long long int> expected_2 = {1, 1, 1, 1, 1};
+    std::vector<long long int> result_2 = PlacedCoins(edges_2, cost_2);
+    assert(result_2 == expected_2);
+    // TEST_END
+
+    // TEST
+    std::vector<std::vector<int>> edges_3 = {{0, 1}, {0, 2}, {1, 3}, {1, 4}};
+    std::vector<int> cost_3 = {1, 3, 2, 4, 5};
+    std::vector<long long int> expected_3 = {60, 60, 1, 1, 1};
+    std::vector<long long int> result_3 = PlacedCoins(edges_3, cost_3);
+    assert(result_3 == expected_3);
+    // TEST_END
+
+    // TEST
+    std::vector<std::vector<int>> edges_4 = {{0, 1}, {1, 2}, {1, 3}, {2, 4}};
+    std::vector<int> cost_4 = {1, 2, 3, 4, 5};
+    std::vector<long long int> expected_4 = {60, 60, 1, 1, 1};
+    std::vector<long long int> result_4 = PlacedCoins(edges_4, cost_4);
+    assert(result_4 == expected_4);
+    // TEST_END
+
+    // TEST
+    std::vector<std::vector<int>> edges_5 = {{0, 1}, {1, 2}, {2, 3}, {3, 4}, {4, 5}};
+    std::vector<int> cost_5 = {1, 1, 1, 1, 1, 1};
+    std::vector<long long int> expected_5 = {1, 1, 1, 1, 1, 1};
+    std::vector<long long int> result_5 = PlacedCoins(edges_5, cost_5);
+    assert(result_5 == expected_5);
+    // TEST_END
+
+    // TEST
+    std::vector<std::vector<int>> edges_6 = {{0, 1}, {0, 2}, {0, 3}};
+    std::vector<int> cost_6 = {10, 20, 30, 40};
+    std::vector<long long int> expected_6 = {24000, 1,1,1};
+    std::vector<long long int> result_6 = PlacedCoins(edges_6, cost_6);
+    assert(result_6 == expected_6);
+    // TEST_END
+
+    // TEST
+    std::vector<std::vector<int>> edges_7 = {{0, 1}, {1, 2}, {2, 3}, {3, 4}, {0, 5}, {5, 6}};
+    std::vector<int> cost_7 = {1, 2, 3, 4, 5, 6, 7};
+    std::vector<long long int> expected_7 = {210,60,60,1,1,1,1};
+    std::vector<long long int> result_7 = PlacedCoins(edges_7, cost_7);
+    assert(result_7 == expected_7);
+    // TEST_END
+
+    // TEST
+    std::vector<std::vector<int>> edges_8 = {{0, 1}, {1, 2}, {1, 3}, {3, 4}, {4, 5}};
+    std::vector<int> cost_8 = {5, 6, 7, 8, 9, 10};
+    std::vector<long long int> expected_8 = {720,720,1,720,1,1};
+    std::vector<long long int> result_8 = PlacedCoins(edges_8, cost_8);
+    assert(result_8 == expected_8);
+    // TEST_END
+
+    // TEST
+    std::vector<std::vector<int>> edges_9 = {{0, 1}, {0, 2}, {0, 3}};
+    std::vector<int> cost_9 = {1};
+    try
+    {
+        PlacedCoins(edges_9, cost_9);
+        assert(false);
+    }
+    catch (const std::invalid_argument &e)
+    {
+        assert(true);
+    }
+    // TEST_END
+
+    // TEST
+    std::vector<std::vector<int>> edges_10 = {};
+    std::vector<int> cost_10 = {1, 2}; 
+    try
+    {
+        PlacedCoins(edges_10, cost_10);
+        assert(false);
+    }
+    catch (const std::invalid_argument &e)
+    {
+        assert(true);
+    }
+    // TEST_END
+
+    // TEST
+    std::vector<std::vector<int>> edges_11 = {{0,-1},{1,-2},{2,3}};
+    std::vector<int> cost_11 = {1,2,3,4,5}; 
+    try
+    {
+        PlacedCoins(edges_11, cost_11);
+        assert(false);
+    }
+    catch (const std::invalid_argument &e)
+    {
+        assert(true);
+    }
+    // TEST_END
+
+    // TEST
+    std::vector<std::vector<int>> edges_12 = {{0,1,0},{1,2}};
+    std::vector<int> cost_12 = {1,2,3};
+    try
+    {
+        PlacedCoins(edges_12, cost_12);
+        assert(false);
+    }
+    catch (const std::invalid_argument &e)
+    {
+        assert(true);
+    }
+    // TEST_END
+
+    // TEST
+    std::vector<std::vector<int>> edges_13 = {{0,1},{1,2},{2,3}};
+    std::vector<int> cost_13 = {};
+    try
+    {
+        PlacedCoins(edges_13, cost_13);
+        assert(false); 
+    }
+    catch (const std::invalid_argument &e)
+    {
+        assert(true);
+    }
+    // TEST_END
+
+
+    // TEST
+    std::vector<std::vector<int>> edges_14 = {{0,1},{1,2},{2,3},{3,4},{4,5},{5,6},{6,7},{7,8},{8,9},{9,10},{10,11},{11,12},{12,13},{13,14},{14,15},{15,16},{16,17},{17,18},{18,19}};
+    std::vector<int> cost_14 = {100000,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20}; 
+    try
+    {
+        PlacedCoins(edges_14, cost_14);
+        assert(false);
+    }
+    catch (const std::invalid_argument &e)
+    {
+        assert(true);
+    }
+    // TEST_END
+
+    // TEST
+    std::vector<std::vector<int>> edges_15 = {{0,10000},{1,2},{2,3},{3,4},{4,5},{5,6},{6,7},{7,8},{8,9},{9,10},{10,11},{11,12},{12,13},{13,14},{14,15},{15,16},{16,17},{17,18},{18,19}};
+    std::vector<int> cost_15 = {1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19}; 
+    try
+    {
+        PlacedCoins(edges_15, cost_15);
+        assert(false);
+    }
+    catch (const std::invalid_argument &e)
+    {
+        assert(true);
+    }
+    // TEST_END
+    std::cout << "All test cases passed!\n";
+    return 0;
+}
