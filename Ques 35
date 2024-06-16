@@ -69,8 +69,9 @@ public:
     }
     int Find(int node)
     {
-        if (parent[node] == node)
+        if (parent[node] == node){
             return node;
+        }
         parent[node] = Find(parent[node]);
         return parent[node];
     }
@@ -78,8 +79,9 @@ public:
     {
         int root_x = Find(node_x);
         int root_y = Find(node_y);
-        if (root_x == root_y)
+        if (root_x == root_y){
             return;
+        }
         parent[root_y] = root_x;
         size[root_x] += size[root_y];
     }
@@ -91,8 +93,9 @@ public:
 
 bool IsWithinGrid(int node_x, int node_y, int &row, int &col)
 {
-    if (node_x < 0 || node_y < 0 || node_x >= row || node_y >= col)
+    if (node_x < 0 || node_y < 0 || node_x >= row || node_y >= col){
         return false;
+    }
     return true;
 }
 
