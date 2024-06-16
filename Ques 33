@@ -1,0 +1,319 @@
+/*
+https://www.geeksforgeeks.org/maximize-length-of-longest-subarray-consisting-of-same-elements-by-at-most-k-decrements/
+
+Write a function LongestSubArray that find the longest subarray where all elements are equal after decrementing atmost k times.
+
+In the land of Numerica, there lived a curious mathematician named Euler. He loved to solve puzzles involving numbers and arrays. One day, Euler discovered an intriguing challenge and decided to share it with his fellow Numericans.
+
+"Imagine," he began, "that you have an array of numbers, each representing a magical element. This array, which we'll call arr, contains N elements. Now, suppose you have a special power: the ability to decrement any element in the array by 1. But this power is limited—you can only use it K times in total."
+
+Euler continued, "The goal is to use your power wisely to transform the array such that you create the longest possible subarray where all elements are the same. This subarray must be contiguous, meaning all its elements are next to each other without any gaps."
+
+He presented the challenge to the Numericans in the form of a task:
+
+The Task:
+
+Given an array arr[] of size N and an integer K, determine the length of the longest subarray consisting of the same elements that can be obtained by decrementing the array elements by 1 at most K times.
+Example:
+Imagine you have the array arr = [3, 1, 2, 1, 1, 1, 3, 3] and K = 3. By decrementing some of the elements, you could transform a part of the array to create a subarray where all elements are the same. The goal is to find the length of the longest such subarray.
+
+
+
+Input :
+
+A vector of integer arr.
+A integer decrements.
+
+Output :
+
+An integer ans the longest subarray where all elements are equal after decrementing atmost k times.
+
+Constraints :
+
+arr : it ranges from 1 to 100000.
+arr[i] : it ranges from 1 to 1000000000 inclusive.
+decrements : it ranges from 1 to 1000000000 inclusive.
+*/
+
+#include <iostream>
+#include <vector>
+#include <algorithm>
+#include <climits>
+#include <cassert>
+
+int Build(int segment_tree[], std::vector<int> &arr, int start, int end, int node) {
+    if (start == end) {
+        segment_tree[node] = arr[start];
+        return segment_tree[node];
+    }
+
+    int mid = (start + end) / 2;
+    int left_min = Build(segment_tree, arr, start, mid, 2 * node + 1);
+    int right_min = Build(segment_tree, arr, mid + 1, end, 2 * node + 2);
+
+    return segment_tree[node] = std::min(left_min, right_min);
+}
+
+int Query(int segment_tree[], int start, int end, int left, int right, int node) {
+    if (start > right || end < left)
+        return INT_MAX;
+
+    if (start >= left && end <= right)
+        return segment_tree[node];
+
+    int mid = (start + end) / 2;
+    int left_min = Query(segment_tree, start, mid, left, right, 2 * node + 1);
+    int right_min = Query(segment_tree, mid + 1, end, left, right, 2 * node + 2);
+
+    return std::min(left_min, right_min);
+}
+
+int LongestSubarray(std::vector<int> &arr, int decrements) {
+    int length = arr.size();
+    const int MAX_N = 1e5;
+    const int MAX_VAL = 1e9;
+
+    if (length > MAX_N or length<1) {
+        throw std::invalid_argument("arr length exceeds the maximum allowed limit of 1e5.");
+    }
+    if (decrements < 1 || decrements > MAX_VAL) {
+        throw std::invalid_argument("Number of decrements is out of allowed range (1 to 1e9).");
+    }
+    for (int i = 0; i < length; i++) {
+        if (arr[i] < 1 || arr[i] > MAX_VAL) {
+            throw std::invalid_argument("arr element is out of allowed range (1 to 1e9).");
+        }
+    }
+
+    int result = 1;
+    std::vector<int> prefix_sum(length + 1);
+
+    prefix_sum[0] = arr[0];
+    for (int i = 0; i < length; i++)
+        prefix_sum[i + 1] = prefix_sum[i] + arr[i];
+
+    std::vector<int> segment_tree(4 * length + 5);
+    Build(segment_tree.data(), arr, 0, length - 1, 0);
+
+    for (int i = 0; i < length; i++) {
+        int start = i;
+        int end = length - 1;
+        int mid;
+        int max_index = i;
+
+        while (start <= end) {
+            mid = (start + end) / 2;
+            int min_element = Query(segment_tree.data(), 0, length - 1, i, mid, 0);
+            int expected_sum = (mid - i + 1) * min_element;
+            int actual_sum = prefix_sum[mid + 1] - prefix_sum[i];
+
+            if (actual_sum - expected_sum <= decrements) {
+                start = mid + 1;
+                max_index = std::max(max_index, mid);
+            } else {
+                end = mid - 1;
+            }
+        }
+
+        result = std::max(result, max_index - i + 1);
+    }
+
+    return result;
+}
+
+int main()
+{
+
+    // TEST
+    std::vector<int> arr_1 = {1, 7, 3, 4, 5, 6};
+    int decrements_1 = 6;
+    int expected_1 = 4;
+    int result_1 = LongestSubarray(arr_1, decrements_1);
+    assert(result_1 == expected_1);
+    // TEST_END
+
+    // TEST
+    std::vector<int> arr_2 = {1, 2, 3, 4, 5};
+    int decrements_2 = 3;
+    int expected_2 = 3;
+    int result_2 = LongestSubarray(arr_2, decrements_2);
+    assert(result_2 == expected_2);
+    // TEST_END
+
+    // TEST
+    std::vector<int> arr_3 = {10, 9, 8, 7, 6};
+    int decrements_3 = 15;
+    int expected_3 = 5;
+    int result_3 = LongestSubarray(arr_3, decrements_3);
+    assert(result_3 == expected_3);
+    // TEST_END
+
+    // TEST
+    std::vector<int> arr_4 = {5, 4, 3, 2, 1};
+    int decrements_4 = 1;
+    int expected_4 = 2;
+    int result_4 = LongestSubarray(arr_4, decrements_4);
+    assert(result_4 == expected_4);
+    // TEST_END
+
+    // TEST
+    std::vector<int> arr_5 = {1, 2, 2, 3, 1};
+    int decrements_5 = 4;
+    int expected_5 = 5;
+    int result_5 = LongestSubarray(arr_5, decrements_5);
+    assert(result_5 == expected_5);
+    // TEST_END
+
+    // TEST
+    std::vector<int> arr_6 = {4, 3, 3, 2, 1};
+    int decrements_6 = 2;
+    int expected_6 = 3;
+    int result_6 = LongestSubarray(arr_6, decrements_6);
+    assert(result_6 == expected_6);
+    // TEST_END
+
+    // TEST
+    std::vector<int> arr_7 = {1, 1, 1, 1, 1};
+    int decrements_7 = 1;
+    int expected_7 = 5;
+    int result_7 = LongestSubarray(arr_7, decrements_7);
+    assert(result_7 == expected_7);
+    // TEST_END
+
+    // TEST
+    std::vector<int> arr_8 = {10, 20, 30, 40, 50};
+    int decrements_8 = 50;
+    int expected_8 = 3;
+    int result_8 = LongestSubarray(arr_8, decrements_8);
+    assert(result_8 == expected_8);
+    // TEST_END
+
+    // TEST
+    std::vector<int> arr_9 = {5, 6, 7, 8, 9, 10};
+    int decrements_9 = 3;
+    int expected_9 = 3;
+    int result_9 = LongestSubarray(arr_9, decrements_9);
+    assert(result_9 == expected_9);
+    // TEST_END
+
+    // TEST
+    std::vector<int> arr_10 = {1, 1, 2, 2, 3, 3, 4, 4};
+    int decrements_10 = 4;
+    int expected_10 = 5;
+    int result_10 = LongestSubarray(arr_10, decrements_10);
+    assert(result_10 == expected_10);
+    // TEST_END
+    // TEST
+    std::vector<int> arr_11 = {1, 1, 2, 2, 3, 3, 4, 4};
+    int decrements_11 = -5;
+    try
+    {
+        LongestSubarray(arr_11, decrements_11);
+        assert(false);
+    }
+    catch (const std::invalid_argument &e)
+    {
+        assert(true);
+    }
+    // TEST_END
+
+    // TEST
+    std::vector<int> arr_12 = {1, 1, 2, 2, 3, 3, 4, 4};
+    int decrements_12 = 1e9 + 1;
+    try
+    {
+        LongestSubarray(arr_12, decrements_12);
+        assert(false);
+    }
+    catch (const std::invalid_argument &e)
+    {
+        assert(true);
+    }
+    // TEST_END
+
+    // TEST
+    std::vector<int> arr_13 = {1, 1, 2, 2, 3, 3, 4, 4};
+    int decrements_13 = 0;
+    try
+    {
+        LongestSubarray(arr_13, decrements_13);
+        assert(false);
+    }
+    catch (const std::invalid_argument &e)
+    {
+        assert(true);
+    }
+    // TEST_END
+
+    // TEST
+    std::vector<int> arr_14(100000 + 1, 1); 
+    int decrements_14 = 100;
+    try
+    {
+        LongestSubarray(arr_14, decrements_14);
+        assert(false);
+    }
+    catch (const std::invalid_argument &e)
+    {
+        assert(true);
+    }
+    // TEST_END
+
+    // TEST
+    std::vector<int> arr_15 = {1, 1, 2, 2, 3, 3, 4, 1000000000 + 1}; 
+    int decrements_15 = 10;
+    try
+    {
+        LongestSubarray(arr_15, decrements_15);
+        assert(false);
+    }
+    catch (const std::invalid_argument &e)
+    {
+        assert(true);
+    }
+    // TEST_END
+
+    // TEST
+    std::vector<int> arr_16 = {0}; 
+    int decrements_16 = 1;
+    try
+    {
+        LongestSubarray(arr_16, decrements_16);
+        assert(false);
+    }
+    catch (const std::invalid_argument &e)
+    {
+        assert(true);
+    }
+    // TEST_END
+
+    // TEST
+    std::vector<int> arr_17 = {-5};
+    int decrements_17 = 1000000000;
+    try
+    {
+        LongestSubarray(arr_17, decrements_17);
+        assert(false);
+    }
+    catch (const std::invalid_argument &e)
+    {
+        assert(true);
+    }
+    // TEST_END
+
+    // TEST
+    std::vector<int> arr_18 = {};
+    int decrements_18 = 1;
+    try
+    {
+        LongestSubarray(arr_18, decrements_18);
+        assert(false);
+    }
+    catch (const std::invalid_argument &e)
+    {
+        assert(true);
+    }
+    // TEST_END
+    std::cout << "All test cases passed!\n";
+    return 0;
+}
