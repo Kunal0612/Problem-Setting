@@ -170,8 +170,9 @@ std::vector<int> MaximumSumQueries(std::vector<int> &nums_1, std::vector<int> &n
     std::sort(queries.begin(), queries.end(), std::greater<std::vector<int>>());
 
     std::vector<std::pair<int, int>> pair_array(array_length);
-    for (int i = 0; i < array_length; i++)
+    for (int i = 0; i < array_length; i++){
         pair_array[i] = {nums_1[i], nums_2[i]};
+    }
     std::sort(pair_array.begin(), pair_array.end());
 
     std::vector<std::vector<int>> temp(array_length);
@@ -194,10 +195,12 @@ std::vector<int> MaximumSumQueries(std::vector<int> &nums_1, std::vector<int> &n
         while (right_index - left_index > 1)
         {
             int mid_index = left_index + (right_index - left_index) / 2;
-            if (x <= pair_array[mid_index].first)
+            if (x <= pair_array[mid_index].first){
                 right_index = mid_index;
-            else
+            }
+            else{
                 left_index = mid_index;
+            }
         }
         return right_index;
     };
@@ -215,10 +218,12 @@ std::vector<int> MaximumSumQueries(std::vector<int> &nums_1, std::vector<int> &n
             pointer++;
         }
         int index = FindStart(x_query);
-        if (index == array_length)
+        if (index == array_length){
             result[id] = -1;
-        else
+        }   
+        else{
             result[id] = seg_tree.RangeQuery(index, array_length - 1).value;
+        }
     }
     return result;
 }
