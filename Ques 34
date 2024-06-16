@@ -126,9 +126,9 @@ int FindMaximumLength(std::vector<int> &nums)
                 right = m - 1;
         }
         int j = left;
-        if (aux.Rmin(right, i) <= current_sum)
+        if (aux.Rmin(right, i) <= current_sum){
             j = right;
-
+        }
         ans[i] = 1 + ans[j];
         last[i] = prefix_sum[i] - prefix_sum[j];
         aux.Set(i, last[i] + prefix_sum[i]);
