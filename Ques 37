@@ -44,7 +44,7 @@ void Incre(int idx, int val, std::vector<int>& fenwick_tree, int len) {
     }
 }
 
-int query(int idx, const std::vector<int>& fenwick_tree) {
+int Query(int idx, const std::vector<int>& fenwick_tree) {
     int res = 0;
     for (; idx > 0; idx -= idx & -idx) {
         res += fenwick_tree[idx];
@@ -52,8 +52,8 @@ int query(int idx, const std::vector<int>& fenwick_tree) {
     return res;
 }
 
-int query(int start, int end, const std::vector<int>& fenwick_tree) {
-    return query(end, fenwick_tree) - query(start - 1, fenwick_tree);
+int Query(int start, int end, const std::vector<int>& fenwick_tree) {
+    return Query(end, fenwick_tree) - Query(start - 1, fenwick_tree);
 }
 
 std::vector<int> PermutationSorting(std::vector<int>& nums) {
@@ -83,7 +83,7 @@ std::vector<int> PermutationSorting(std::vector<int>& nums) {
         int left=itt.first;
         int right=itt.second;
         if (left < len) {
-            ans[nums[left] - 1] = right - left - query(left + 1, right + 1, fenwick_tree);
+            ans[nums[left] - 1] = right - left - Query(left + 1, right + 1, fenwick_tree);
         }
         Incre(right + 1, 1, fenwick_tree, len);
     }
