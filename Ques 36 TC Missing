@@ -1,99 +1,244 @@
-// https://leetcode.com/problems/numbers-at-most-n-given-digit-set/description/
+/*
+
+https://codeforces.com/contest/1436/problem/E
+
+Write a C++ Function FindMex to find out mex of mex of all subarrays.
+
+In a quaint village nestled amidst lush green hills, young Lesha had a penchant for unraveling mysteries of numbers and arrays. Every day, he would concoct new challenges revolving around his favorite mathematical concept—MEX.
+
+Today's challenge, however, was particularly intriguing even for Lesha. He had a single array a of length n at his disposal. With a gleam in his eye and a mind buzzing with excitement, Lesha devised a unique puzzle involving MEX.
+
+He began by exploring every possible non-empty subarray of  a, carefully extracting each one to analyze its contents. For each of these subarrays, Lesha calculated its MEX—the smallest positive integer not present within the subarray itself.
+
+As Lesha diligently computed MEX for each subarray, his excitement grew. Each MEX represented a unique glimpse into the array's structure—a hidden pattern waiting to be uncovered.
+
+But Lesha's quest did not stop there. With a collection of MEX values from all possible subarrays in hand, he faced the final challenge: determining the MEX of these MEX values. This ultimate MEX would encapsulate the essence of the array in a single number—a number that held the key to understanding the array's subarray dynamics in a new light.
+
+With pen in hand and calculations underway, Lesha immersed himself in the task, weaving together the intricate threads of numbers and subarrays. Each MEX he calculated brought him closer to the solution, unraveling the mystery layer by layer.
+
+As the sun dipped below the horizon, casting a warm glow over the village, Lesha's face lit up with satisfaction. He had found the MEX of MEXes—a number that not only satisfied his curiosity but also sparked new questions and possibilities in the realm of arrays and mathematics.
+
+And so, in that tranquil village where numbers danced in the air and challenges awaited at every turn, Lesha's fascination with MEX continued to inspire new adventures and discoveries.
+
+Input :
+
+A vector of integers nums.
+
+Output : 
+
+A integer ans which represent mex of mex of all subarrays.
+
+Constraint :
+
+nums.size() : ranges from 1 to 100000
+nums[i] : ranges from 1 to nums.size()
+
+
+*/
 
 #include <iostream>
 #include <vector>
-#include <algorithm>
-#include <stdexcept>
-#include <unordered_map>
+#include <map>
+#include <cassert>
 
+const int max_n = 1e5 + 5;
+const int max_m = 1e5 + 2;
+const int inf = 1e8;
+const int mod = 1e9 + 7;
 
-long long Helper(int index, int track_1, int track_2, const std::string &number1, const std::string &number2, int flag, std::unordered_map<long long, long long> &digit_map, long long dp_array[25][2][2][2])
-{
-    if (index >= number2.size())
-        return (!flag);
-    if (dp_array[index][track_1][track_2][flag] != -1)
-        return dp_array[index][track_1][track_2][flag];
+int seg_tree[4 * max_n];
 
-    int lower_bound = (track_1) ? number1[index] - '0' : 0;
-    int upper_bound = (track_2) ? number2[index] - '0' : 9;
-    long long count = 0;
-
-    for (int digit = lower_bound; digit <= upper_bound; digit++)
-    {
-        if (flag == 1 && digit == 0)
-        {
-            count += Helper(index + 1, track_1 & (digit == lower_bound), track_2 & (digit == upper_bound), number1, number2, flag, digit_map, dp_array);
-        }
-        else if (digit_map.count(digit))
-        {
-            count += Helper(index + 1, track_1 & (digit == lower_bound), track_2 & (digit == upper_bound), number1, number2, 0, digit_map, dp_array);
-        }
+void Update(int node, int left, int right, int position, int value) {
+    if (left == right)
+        seg_tree[node] = value;
+    else {
+        int mid = (left + right) >> 1;
+        if (position <= mid)
+            Update(node << 1, left, mid, position, value);
+        else
+            Update(node << 1 | 1, mid + 1, right, position, value);
+        seg_tree[node] = std::min(seg_tree[node << 1 | 1], seg_tree[node << 1]);
     }
-
-    return dp_array[index][track_1][track_2][flag] = count;
 }
 
-
-int AtMostNGivenDigitSet(std::vector<std::string> &digits, int number)
-{
-    if (digits.size() < 1 || digits.size() > 9)
-    {
-        throw std::invalid_argument("Number of digits must be between 1 and 9.");
-    }
-
-    for (int i = 1; i < digits.size(); i++)
-    {
-        if (digits[i - 1].compare(digits[i]) > 0)
-        {
-            throw std::invalid_argument("Digits must be sorted in non-decreasing order.");
-        }
-    }
-    std::unordered_map<char, bool> seen;
-    for (const auto &digit : digits)
-    {
-        if (digit.length() != 1 || digit[0] < '1' || digit[0] > '9' || seen.count(digit[0]))
-        {
-            throw std::invalid_argument("Digits must be single characters between '1' and '9', and all values must be unique.");
-        }
-        seen[digit[0]] = true;
-    }
-
-    if (number < 1 || number > 1000000000)
-    {
-        throw std::invalid_argument("Input number must be between 1 and 10^9 inclusive.");
-    }
-
-    std::unordered_map<long long, long long> digit_map;
-    for (int i = 0; i < digits.size(); i++)
-    {
-        std::string digit = digits[i];
-        long long res = std::stoll(digit);
-        digit_map[res] = 1;
-    }
-
-    std::string num_str = "";
-    std::string num2_str = std::to_string(number);
-    int num2_len = num2_str.size();
-    int remaining_digits = num2_len;
-    while (remaining_digits--)
-        num_str += "0";
-
-    long long dp_array[25][2][2][2];
-    for (int i = 0; i < 25; i++)
-    {
-        for (int j = 0; j < 2; j++)
-        {
-            for (int k = 0; k < 2; k++)
-            {
-                for (int l = 0; l < 2; l++)
-                {
-                    dp_array[i][j][k][l] = -1;
-                }
-            }
-        }
-    }
-
-    long long answer = Helper(0, 1, 1, num_str, num2_str, 1, digit_map, dp_array);
-    return answer;
+int Query(int node, int left, int right, int val) {
+    if (left == right)
+        return left;
+    int mid = (left + right) >> 1;
+    if (seg_tree[node << 1] < val)
+        return Query(node << 1, left, mid, val);
+    return Query(node << 1 | 1, mid + 1, right, val);
 }
 
+int FindMex(std::vector<int> nums) {
+    int size = nums.size();
+    if (size < 1 || size > 100000) {
+        throw std::invalid_argument("Invalid value of n. Expected 1 <= size <= 100000.");
+    }
+    
+    for (int i = 0; i < size; ++i) {
+        if (nums[i] < 1 || nums[i] > size) {
+            throw std::invalid_argument("Invalid value inarray nums.");
+        }
+    }
+    std::map<int, bool> used_positions;
+    int last_idx[2 * max_n] = {0};
+
+    for (int i = 0; i < size; i++) {
+        int current_element = nums[i];
+        if (last_idx[current_element] + 1 < i + 1) {
+            used_positions[Query(1, 1, max_m, last_idx[current_element] + 1)] = true;
+        }
+        Update(1, 1, max_m, nums[i], i + 1);
+        last_idx[current_element] = i + 1;
+    }
+
+    for (int i = 1; i <= max_m; i++) {
+        if (last_idx[i] && last_idx[i] != size) {
+            used_positions[Query(1, 1, max_m, last_idx[i] + 1)] = true;
+        }
+    }
+
+    used_positions[Query(1, 1, max_m, 1)] = true;
+    int ans = 0;
+    for (int i = 1; ; i++) {
+        if (!used_positions[i]) {
+            ans = i;
+            break;
+        }
+    }
+    return ans;
+}
+
+int main() {
+
+    // TEST
+    std::vector<int> nums_1 = {3,1,2};
+    int expected_1 = 5;
+    int result_1 = FindMex(nums_1);
+    assert(result_1 == expected_1);
+    // TEST_END
+
+    // TEST
+    std::vector<int> nums_2 = {4,1,5,4,1,1};
+    int expected_2 = 4;
+    int result_2 = FindMex(nums_2);
+    assert(result_2 == expected_2);
+    // TEST_END
+
+    // TEST
+    std::vector<int> nums_3 = {1, 2, 3};
+    int expected_3 = 2;
+    int result_3 = FindMex(nums_3);
+    assert(result_3 == expected_3);
+    // TEST_END
+
+    // TEST
+    std::vector<int> nums_4 = {4, 3, 2, 1};
+    int expected_4 = 1;
+    int result_4 = FindMex(nums_4);
+    assert(result_4 == expected_4);
+    // TEST_END
+
+    // TEST
+    std::vector<int> nums_5 = {2, 3, 1, 5, 4, 6};
+    int expected_5 = 3;
+    int result_5 = FindMex(nums_5);
+    assert(result_5 == expected_5);
+    // TEST_END
+
+    // TEST
+    std::vector<int> nums_6 = {5, 1, 2, 4, 3, 6, 7};
+    int expected_6 = 2;
+    int result_6 = FindMex(nums_6);
+    assert(result_6 == expected_6);
+    // TEST_END
+
+    // TEST
+    std::vector<int> nums_7 = {1, 3, 2, 5, 4, 6, 7};
+    int expected_7 = 2;
+    int result_7 = FindMex(nums_7);
+    assert(result_7 == expected_7);
+    // TEST_END
+
+    // TEST
+    std::vector<int> nums_8 = {4, 2, 3, 1, 5, 6, 7, 8};
+    int expected_8 = 3;
+    int result_8 = FindMex(nums_8);
+    assert(result_8 == expected_8);
+    // TEST_END
+
+    // TEST
+    std::vector<int> nums_9 = {3,2,4,1,5};
+    int expected_9 = 4;
+    int result_9 = FindMex(nums_9);
+    assert(result_9 == expected_9);
+    // TEST_END
+
+    // TEST
+    std::vector<int> nums_10 = {2, 3, -1}; 
+    try
+    {
+        FindMex(nums_10);
+        assert(false);
+    }
+    catch (const std::invalid_argument &e)
+    {
+        assert(true);
+    }
+    // TEST_END
+
+    // TEST
+    std::vector<int> nums_11 = {2, 3, 0}; 
+    try
+    {
+        FindMex(nums_11);
+        assert(false);
+    }
+    catch (const std::invalid_argument &e)
+    {
+        assert(true);
+    }
+    // TEST_END
+
+    // TEST
+    std::vector<int> nums_12 = {2, 3, 4}; 
+    try
+    {
+        FindMex(nums_12);
+        assert(false);
+    }
+    catch (const std::invalid_argument &e)
+    {
+        assert(true);
+    }
+    // TEST_END
+
+    // TEST
+    std::vector<int> nums_13 = {}; 
+    try
+    {
+        FindMex(nums_13);
+        assert(false);
+    }
+    catch (const std::invalid_argument &e)
+    {
+        assert(true);
+    }
+    // TEST_END
+
+    // TEST
+    std::vector<int> nums_14(200005,1); 
+    try
+    {
+        FindMex(nums_14);
+        assert(false);
+    }
+    catch (const std::invalid_argument &e)
+    {
+        assert(true);
+    }
+    // TEST_END
+    std::cout << "All test cases passed!\n";
+    return 0;
+}
