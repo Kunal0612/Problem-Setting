@@ -1,0 +1,323 @@
+/*
+
+https://codeforces.com/problemset/problem/1837/F
+
+Write a C++ Function Editorial to find out the duration of editorial.
+
+Berland Intercollegiate Contest has just finished. Monocarp and Polycarp, as 
+the jury, are going to conduct an editorial. Unfortunately, the time is limited, 
+since they have to finish before the closing ceremony.
+
+There were len problems in the contest. The problems are numbered from 1 to len. 
+The editorial for the i-th problem takes nus[i] minutes. Monocarp and Polycarp 
+are going to conduct an editorial for exactly k of the problems.
+
+The editorial goes as follows. They have a full problemset of len problems before 
+them, in order. They remove n−k problems without changing the order of the remaining 
+val problems. Then, Monocarp takes some prefix of these val problems (possibly, 
+an empty one or all problems). Polycarp takes the remaining suffix of them. After 
+that, they go to different rooms and conduct editorials for their problems in parallel. So, the editorial takes as much time as the longer of these two does.
+
+Please, help Monocarp and Polycarp to choose the problems and the split in such 
+a way that the editorial finishes as early as possible. 
+
+Input :
+
+A vector of integers nums.
+An integer val , the number of problem to they are going to conduct editorial for.
+
+Output : 
+
+A integer ans which represent he smallest amount of time the editorial takes.
+
+Constraint :
+
+val : ranges from 1 to 300000.
+nums.size() : ranges from val to 300000.
+nums[i] : ranges from 1 to 10^9.
+
+*/
+
+
+#include <cassert>
+#include <iostream>
+#include <vector>
+#include <algorithm>
+#include <set>
+
+int Editorial(std::vector<int>& nums, int val) {
+    
+    int len = nums.size();
+    std::vector<std::pair<int, int>> sorted_arr(len);
+    if (len < val || len > 300000) {
+        throw std::invalid_argument("Invalid value of n. Expected 1 <= len <= 300000.");
+    }
+    if (val < 1 || val > 300000) {
+        throw std::invalid_argument("Invalid value of n. Expected 1 <= val <= 300000.");
+    }
+    
+    for (int i = 0; i < len; ++i) {
+        if (nums[i] < 1 || nums[i] > 1000000000) {
+            throw std::invalid_argument("Invalid value inarray nums.");
+        }
+    }
+    
+    for (int idx = 0; idx < len; idx++) {
+        sorted_arr[idx] = {nums[idx], idx};
+    }
+    
+    std::sort(sorted_arr.begin(), sorted_arr.end());
+
+    for (int idx = 0; idx < len; idx++) {
+        nums[idx] = std::lower_bound(sorted_arr.begin(), sorted_arr.end(), std::make_pair(nums[idx], idx)) - sorted_arr.begin();
+    }
+
+    std::vector<int> last_prev(len), last_suf(len);
+    
+    for (int pass = 0; pass < 2; pass++) {
+        std::set<int> curr_set;
+        for (int idx = 0; idx < len; idx++) {
+            auto iter = curr_set.insert(nums[idx]).first;
+            if (iter == curr_set.begin()) {
+                last_prev[idx] = len;
+            } else {
+                last_prev[idx] = *(--iter);
+            }
+        }
+        std::swap(last_prev, last_suf);
+        std::reverse(nums.begin(), nums.end());
+    }
+
+    std::vector<int> prefix(len + 1), suffix(len + 1);
+    std::vector<int> prev_arr(len + 2), next_arr(len + 2);
+
+    auto check = [&](long long limit) {
+        for (int pass = 0; pass < 2; pass++) {
+            int count = 0;
+            prev_arr[len + 1] = len;
+            next_arr[len] = len + 1;
+            prefix[0] = 0;
+            int min_val = 1e9;
+            long long current_sum = 0;
+
+            for (int idx = 0; idx < len; idx++) {
+                if (min_val < nums[idx]) {
+                    prefix[idx + 1] = count;
+                    continue;
+                }
+                next_arr[nums[idx]] = next_arr[last_prev[idx]];
+                prev_arr[next_arr[nums[idx]]] = nums[idx];
+                prev_arr[nums[idx]] = last_prev[idx];
+                next_arr[prev_arr[nums[idx]]] = nums[idx];
+                current_sum += sorted_arr[nums[idx]].first;
+                ++count;
+                while (current_sum > limit) {
+                    min_val = std::min(min_val, prev_arr[len + 1]);
+                    current_sum -= sorted_arr[prev_arr[len + 1]].first;
+                    prev_arr[len + 1] = prev_arr[prev_arr[len + 1]];
+                    next_arr[prev_arr[len + 1]] = len + 1;
+                    --count;
+                }
+                prefix[idx + 1] = count;
+            }
+
+            std::reverse(nums.begin(), nums.end());
+            std::swap(last_prev, last_suf);
+            std::swap(prefix, suffix);
+        }
+        std::reverse(suffix.begin(), suffix.end());
+        for (int idx = 0; idx <= len; idx++) {
+            if (prefix[idx] + suffix[idx] >= val) return true;
+        }
+        return false;
+    };
+
+    long long left = 1, right = 0;
+    for (int val : nums) {
+        right += sorted_arr[val].first;
+    }
+    long long result = 0;
+    while (left <= right) {
+        long long mid = (left + right) / 2;
+        if (check(mid)) {
+            result = mid;
+            right = mid - 1;
+        } else {
+            left = mid + 1;
+        }
+    }
+    return result;
+}
+
+
+int main() {
+    // TEST
+    std::vector<int> nums_1 = {3,1,2};
+    int val_1=2;
+    int expected_1 = 2;
+    int result_1 = Editorial(nums_1,val_1);
+    assert(result_1 == expected_1);
+    // TEST_END
+
+    // TEST
+    std::vector<int> nums_2 = {4,1,5,4,1,1};
+    int val_2=4;
+    int expected_2 = 4;
+    int result_2 = Editorial(nums_2,val_2);
+    assert(result_2 == expected_2);
+    // TEST_END
+
+    // TEST
+    std::vector<int> nums_3 = {1, 2, 3};
+    int val_3=3;
+    int expected_3 = 3;
+    int result_3 = Editorial(nums_3,val_3);
+    assert(result_3 == expected_3);
+    // TEST_END
+
+    // TEST
+    std::vector<int> nums_4 = {4, 3, 2, 1};
+    int val_4=4;
+    int expected_4 = 6;
+    int result_4 = Editorial(nums_4,val_4);
+    assert(result_4 == expected_4);
+    // TEST_END
+
+    // TEST
+    std::vector<int> nums_5 = {2, 3, 1, 5, 4, 6};
+    int val_5=4;
+    int expected_5 = 5;
+    int result_5 = Editorial(nums_5,val_5);
+    assert(result_5 == expected_5);
+    // TEST_END
+
+    // TEST
+    std::vector<int> nums_6 = {5, 1, 2, 4, 3, 6, 7};
+    int val_6=4;
+    int expected_6 = 6;
+    int result_6 = Editorial(nums_6,val_6);
+    assert(result_6 == expected_6);
+    // TEST_END
+
+    // TEST
+    std::vector<int> nums_7 = {1, 3, 2, 5, 4, 6, 7};
+    int val_7=4;
+    int expected_7 = 6;
+    int result_7 = Editorial(nums_7,val_7);
+    assert(result_7 == expected_7);
+    // TEST_END
+
+    // TEST
+    std::vector<int> nums_8 = {4, 2, 3, 1, 5, 6, 7, 8};
+    int val_8=4;
+    int expected_8 = 6;
+    int result_8 = Editorial(nums_8,val_8);
+    assert(result_8 == expected_8);
+    // TEST_END
+
+    // TEST
+    std::vector<int> nums_9 = {3,2,4,1,5};
+    int val_9=2;
+    int expected_9 = 2;
+    int result_9 = Editorial(nums_9,val_9);
+    assert(result_9 == expected_9);
+    // TEST_END
+
+    // TEST
+    std::vector<int> nums_10 = {2, 3, -1}; 
+    int val_10=2;
+    try
+    {
+        Editorial(nums_10,val_10);
+        assert(false);
+    }
+    catch (const std::invalid_argument &e)
+    {
+        assert(true);
+    }
+    // TEST_END
+
+    // TEST
+    std::vector<int> nums_11 = {2, 3, 0}; 
+    int val_11=1;
+    try
+    {
+        Editorial(nums_11,val_11);
+        assert(false);
+    }
+    catch (const std::invalid_argument &e)
+    {
+        assert(true);
+    }
+    // TEST_END
+
+    // TEST
+    std::vector<int> nums_12 = {2, 3, 1000000002}; 
+    int val_12=2;
+    try
+    {
+        Editorial(nums_12,val_12);
+        assert(false);
+    }
+    catch (const std::invalid_argument &e)
+    {
+        assert(true);
+    }
+    // TEST_END
+
+    // TEST
+    std::vector<int> nums_13 = {}; 
+    int val_13=0;
+    try
+    {
+        Editorial(nums_13,val_13);
+        assert(false);
+    }
+    catch (const std::invalid_argument &e)
+    {
+        assert(true);
+    }
+    // TEST_END
+
+    // TEST
+    std::vector<int> nums_14(300005,1); 
+    int val_14=5;
+    try
+    {
+        Editorial(nums_14,val_14);
+        assert(false);
+    }
+    catch (const std::invalid_argument &e)
+    {
+        assert(true);
+    }
+    // TEST_END
+    // TEST
+    std::vector<int> nums_15(200005,1); 
+    int val_15=400000;
+    try
+    {
+        Editorial(nums_15,val_15);
+        assert(false);
+    }
+    catch (const std::invalid_argument &e)
+    {
+        assert(true);
+    }
+    // TEST_END
+    // TEST
+    std::vector<int> nums_16(200005,1); 
+    int val_16=-4;
+    try
+    {
+        Editorial(nums_16,val_16);
+        assert(false);
+    }
+    catch (const std::invalid_argument &e)
+    {
+        assert(true);
+    }
+    // TEST_END
+    std::cout << "All test cases passed!\n";
+    return 0;
+}
