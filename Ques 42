@@ -1,0 +1,427 @@
+/*
+
+https://codeforces.com/contest/878/problem/B
+
+Write a C++ Function TeamsFormation to find out number of remaining participants in the line.
+
+In the enchanting land of Berland, the prestigious Team Olympiad in Informatics is about to begin. This year, the event is hosted in a remote city, accessible only by a solitary, small bus. The bus has a limited number of seats, each seat designed specifically for participants from certain cities.
+
+Here’s how the journey unfolds:
+
+The bus has n seats.
+
+Each seat i can only be occupied by a participant from city arr_i.
+
+Over time, the bus makes m trips to the Olympiad venue. Each trip, the bus is fully loaded with n participants, and these participants are seated in the exact order of cities corresponding to the sequence a1, a2, ..., an. After arriving, all participants line up in the order they arrived. Consequently, the final sequence of cities of participants in the line is a1, a2, ..., an repeated repetitions times.
+
+Once all participants are lined up, team formation begins. The goal is to form teams of target_length participants, all from the same city, who are standing next to each other in the line. As soon as a team is formed, they leave the line to prepare for the competition. This process continues until no more teams can be formed.
+
+The task for you, the brilliant organizer, is to determine how many participants remain in the line after all possible teams have been formed. Remarkably, the answer will be the same regardless of the order in which the teams are formed.
+
+Input :
+
+A vector of integers arr.
+An integer repetitions.
+An integer target_length.
+
+Output : 
+
+A long long integer ans which represent number of remaining participants in the line.
+
+Constraint :
+
+repetitions : ranges from 1 to 1000000000.
+target_length : ranges from 2 to 1000000000.
+nums.size() : ranges from 1 to 100000.
+nums[i] : ranges from 1 to 10^5.
+
+
+*/
+
+
+#include <iostream>
+#include <algorithm>
+#include <vector>
+#include <deque>
+#include <climits>
+#include <cassert>
+#include <cstdio>
+
+struct Node {
+    int color, number, start;
+};
+
+long long TeamsFormation(int target_length, int repetitions, std::vector<int>& arr) {
+    int array_size=arr.size();
+    std::vector<int> array(2 * array_size);
+    std::vector<bool> visited(2 * array_size, false);
+    std::vector<Node> stack(2 * array_size);
+    if (array_size < 1 || array_size > 100000) {
+        throw std::invalid_argument("Invalid value of n. Expected 1 <= array_size <= 100000.");
+    }
+    if (repetitions < 1 || repetitions > 1000000000) {
+        throw std::invalid_argument("Invalid value of repetitions. Expected 1 <= repetitions <= 1000000000.");
+    }
+    if (target_length < 2 || target_length > 1000000000) {
+        throw std::invalid_argument("Invalid value of target_length. Expected 1 <= target_length <= 1000000000.");
+    }
+    
+    for (int i = 0; i < array_size; ++i) {
+        if (arr[i] < 1 || arr[i] > 100000) {
+            throw std::invalid_argument("Invalid value inarray nums.");
+        }
+    }
+
+    for (int index = 0; index < array_size; index++) {
+        array[index] = arr[index];
+    }
+    for (int index = 0; index < array_size; index++) {
+        array[index + array_size] = array[index];
+    }
+
+    std::deque<Node> queue;
+    for (int index = 0; index < array_size; index++) {
+        if (!queue.empty() && queue.back().color == array[index]) {
+            if (++queue.back().number == target_length) {
+                visited[queue.back().start] = true;
+                stack[queue.back().start] = queue.back();
+                queue.pop_back();
+            }
+        } else {
+            queue.push_back({array[index], 1, index});
+        }
+    }
+
+    if (repetitions == 1) {
+        int total = 0;
+        for (const Node& node : queue) {
+            total += node.number;
+        }
+        return total;
+    }
+
+    bool flag = false;
+    long long remaining = LLONG_MAX;
+    int left, right;
+
+    for (int index = array_size; index < 2 * array_size; index++) {
+        if (visited[index - array_size]) {
+            queue.push_front(stack[index - array_size]);
+            --queue.front().number;
+        } else {
+            if (--queue.front().number == 0) {
+                queue.pop_front();
+            }
+        }
+
+        if (!queue.empty() && queue.back().color == array[index]) {
+            if (++queue.back().number == target_length) {
+                visited[queue.back().start] = true;
+                stack[queue.back().start] = queue.back();
+                queue.pop_back();
+            }
+        } else {
+            queue.push_back({array[index], 1, index});
+        }
+
+        if (queue.empty() || queue.size() == 1) {
+            flag = true;
+            left = index - array_size + 1;
+            right = index + 1;
+            break;
+        } else {
+            if (remaining > queue.size()) {
+                remaining = queue.size();
+                left = index - array_size + 1;
+                right = index + 1;
+            }
+        }
+    }
+
+    queue.clear();
+    if (flag) {
+        for (int index = left; index < right; index++) {
+            if (!queue.empty() && queue.back().color == array[index]) {
+                if (++queue.back().number == target_length) {
+                    visited[queue.back().start] = true;
+                    stack[queue.back().start] = queue.back();
+                    queue.pop_back();
+                }
+            } else {
+                queue.push_back({array[index], 1, index});
+            }
+        }
+
+        int remaining_repeats = queue[0].number, current_color = queue[0].color;
+        int remaining_after_full_cycles = queue[0].number * (long long)(repetitions - 1) % (long long)target_length;
+        queue.clear();
+
+        for (int index = 0; index < left; index++) {
+            if (!queue.empty() && queue.back().color == array[index]) {
+                if (++queue.back().number == target_length) {
+                    visited[queue.back().start] = true;
+                    stack[queue.back().start] = queue.back();
+                    queue.pop_back();
+                }
+            } else {
+                queue.push_back({array[index], 1, index});
+            }
+        }
+
+        if (!queue.empty() && queue.back().color == current_color) {
+            if ((queue.back().number += remaining_after_full_cycles) >= target_length) {
+                queue.back().number %= target_length;
+                if (queue.back().number == 0) queue.pop_back();
+            }
+        } else {
+            queue.push_back({current_color, remaining_after_full_cycles, -1});
+        }
+
+        for (int index = right; index < 2 * array_size; index++) {
+            if (!queue.empty() && queue.back().color == array[index]) {
+                if (++queue.back().number == target_length) {
+                    queue.pop_back();
+                }
+            } else {
+                queue.push_back({array[index], 1, index});
+            }
+        }
+
+        long long total = 0;
+        for (const Node& node : queue) {
+            total += node.number;
+        }
+        return total;
+    }
+
+    flag = true;
+    for (int index = left; index < right; index++) {
+        if (!queue.empty() && queue.back().color == array[index]) {
+            if (++queue.back().number == target_length) {
+                queue.pop_back();
+            }
+        } else {
+            queue.push_back({array[index], 1, index});
+        }
+    }
+
+    long long segment = 0;
+    for (const Node& node : queue) {
+        segment += node.number;
+    }
+    std::deque<Node> static_queue = queue;
+    queue.clear();
+
+    for (int index = 0; index < left; index++) {
+        if (!queue.empty() && queue.back().color == array[index]) {
+            if (++queue.back().number == target_length) {
+                queue.pop_back();
+            }
+        } else {
+            queue.push_back({array[index], 1, index});
+        }
+    }
+
+    repetitions--;
+    while (flag && repetitions > 0) {
+        repetitions--;
+        flag = false;
+        for (const Node& node : static_queue) {
+            if (!queue.empty() && queue.back().color == node.color) {
+                if ((queue.back().number += node.number) >= target_length) {
+                    flag = true;
+                    queue.back().number %= target_length;
+                    if (queue.back().number == 0) {
+                        queue.pop_back();
+                    }
+                }
+            } else {
+                queue.push_back(node);
+            }
+        }
+    }
+
+    for (int index = right; index < 2 * array_size; index++) {
+        if (!queue.empty() && queue.back().color == array[index]) {
+            if (++queue.back().number == target_length) {
+                queue.pop_back();
+            }
+        } else {
+            queue.push_back({array[index], 1, index});
+        }
+    }
+
+    long long total = 0;
+    for (const Node& node : queue) {
+        total += node.number;
+    }
+    long long ans=total + ((long long)repetitions * segment);
+    return ans;
+}
+
+int main() {
+    // TEST 1
+    std::vector<int> nums_1 = {1, 2, 3, 1};
+    int repetitions_1 = 5;
+    int target_length_1 = 2;
+    long long int expected_1 = 12;
+    long long int result_1 = TeamsFormation(target_length_1, repetitions_1, nums_1);
+    assert(result_1 == expected_1);
+    // TEST_END
+
+    // TEST 2
+    std::vector<int> nums_2 = {4, 5, 6, 7, 8};
+    int repetitions_2 = 3;
+    int target_length_2 = 3;
+    long long int expected_2 = 15;
+    long long int result_2 = TeamsFormation(target_length_2, repetitions_2, nums_2);
+    assert(result_2 == expected_2);
+    // TEST_END
+
+    // TEST 3
+    std::vector<int> nums_3 = {10, 10, 10};
+    int repetitions_3 = 1;
+    int target_length_3 = 3;
+    long long int expected_3 = 0;
+    long long int result_3 = TeamsFormation(target_length_3, repetitions_3, nums_3);
+    assert(result_3 == expected_3);
+    // TEST_END
+
+    // TEST 4
+    std::vector<int> nums_4 = {1, 2, 1, 2, 1};
+    int repetitions_4 = 10;
+    int target_length_4 = 2;
+    long long int expected_4 = 0;
+    long long int result_4 = TeamsFormation(target_length_4, repetitions_4, nums_4);
+    assert(result_4 == expected_4);
+    // TEST_END
+
+    // TEST 5
+    std::vector<int> nums_5 = {5, 6, 7, 8, 9, 10, 11, 12};
+    int repetitions_5 = 100;
+    int target_length_5 = 4;
+    long long int expected_5 = 800;
+    long long int result_5 = TeamsFormation(target_length_5, repetitions_5, nums_5);
+    assert(result_5 == expected_5);
+    // TEST_END
+
+    // TEST 6
+    std::vector<int> nums_6 = {100000, 100000};
+    int repetitions_6 = 1;
+    int target_length_6 = 2;
+    long long int expected_6 = 0;
+    long long int result_6 = TeamsFormation(target_length_6, repetitions_6, nums_6);
+    assert(result_6 == expected_6);
+    // TEST_END
+
+    // TEST 7
+    std::vector<int> nums_7 = {1, 1, 1, 1, 1};
+    int repetitions_7 = 1000000000;
+    int target_length_7 = 3;
+    long long int expected_7 = 2;
+    long long int result_7 = TeamsFormation(target_length_7, repetitions_7, nums_7);
+    assert(result_7 == expected_7);
+    // TEST_END
+
+    // TEST 8
+    std::vector<int> nums_8 = {99999, 99999, 99999, 99999, 99999};
+    int repetitions_8 = 500000000;
+    int target_length_8 = 4;
+    long long int expected_8 = 0;
+    long long int result_8 = TeamsFormation(target_length_8, repetitions_8, nums_8);
+    assert(result_8 == expected_8);
+    // TEST_END
+
+    // TEST
+    std::vector<int> nums_9 = {2, 3, -1}; 
+    int repetitions_9 = 500000000;
+    int target_length_9 = 4;
+    try
+    {
+        TeamsFormation(target_length_9,repetitions_9,nums_9);
+        assert(false);
+    }
+    catch (const std::invalid_argument &e)
+    {
+        assert(true);
+    }
+    // TEST_END
+
+    // TEST
+    std::vector<int> nums_10 = {}; 
+    int repetitions_10 = 500000000;
+    int target_length_10 = 4;
+    try
+    {
+        TeamsFormation(target_length_10,repetitions_10,nums_10);
+        assert(false);
+    }
+    catch (const std::invalid_argument &e)
+    {
+        assert(true);
+    }
+    // TEST_END
+
+    // TEST
+    std::vector<int> nums_11 = {10000000}; 
+    int repetitions_11 = 500000000;
+    int target_length_11 = 4;
+    try
+    {
+        TeamsFormation(target_length_11,repetitions_11,nums_11);
+        assert(false);
+    }
+    catch (const std::invalid_argument &e)
+    {
+        assert(true);
+    }
+    // TEST_END
+    // TEST
+    std::vector<int> nums_12 = {1000}; 
+    int repetitions_12 = 500000000;
+    int target_length_12 = 1;
+    try
+    {
+        TeamsFormation(target_length_12,repetitions_12,nums_12);
+        assert(false);
+    }
+    catch (const std::invalid_argument &e)
+    {
+        assert(true);
+    }
+    // TEST_END
+
+    // TEST
+    std::vector<int> nums_13 = {1000}; 
+    int repetitions_13 = 50000000000;
+    int target_length_13 = 5;
+    try
+    {
+        TeamsFormation(target_length_13,repetitions_13,nums_13);
+        assert(false);
+    }
+    catch (const std::invalid_argument &e)
+    {
+        assert(true);
+    }
+    // TEST_END
+
+    // TEST
+    std::vector<int> nums_14 = {1000}; 
+    int repetitions_14 = 50000000000;
+    int target_length_14 = -5;
+    try
+    {
+        TeamsFormation(target_length_14,repetitions_14,nums_14);
+        assert(false);
+    }
+    catch (const std::invalid_argument &e)
+    {
+        assert(true);
+    }
+    // TEST_END
+
+    std::cout << "All test cases passed!" << std::endl;
+
+    return 0;
+}
