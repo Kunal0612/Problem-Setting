@@ -1,0 +1,242 @@
+/*
+
+https://codeforces.com/contest/1788/problem/E
+
+Write a C++ Function SumOverZero to find the maximum f(S) among every possible S.
+
+You are given an array nums[1],nums[2],…,nums[size] of size integers. 
+Consider S as a set of segments satisfying the following conditions.
+
+Each element of S should be in form [x,y], where x and y are integers between 
+1 and size, inclusive, and x≤y.
+No two segments in S intersect with each other. 
+Two segments [a,b] and [c,d] intersect if and only if there exists 
+an integer x such that a≤x≤b and c≤x≤d.
+For each [x,y] in S, nums[x]+nums[x+1]+…+nums[y]≥0.
+The length of the segment [x,y] is defined as y−x+1. f(S) is 
+defined as the sum of the lengths of every element in S. In a formal way, 
+f(S)=∑[x,y]∈S(y−x+1). Note that if S is empty, f(S) is 0.
+
+What is the maximum f(S) among all possible S ?
+
+Input :
+
+A vector of long long integers nums.
+
+Output : 
+
+A long long integer ans which represent find the maximum f(S) among every possible S.
+
+
+Constraint :
+
+nums.size() : ranges from 1 to 200000.
+nums[i] : ranges from -10^9 to 10^9.
+
+*/
+
+
+#include <iostream>
+#include <vector>
+#include <algorithm>
+#include <cassert>
+
+struct SegTree
+{
+    std::vector<long long int> tree;
+    SegTree(long long int size){
+        tree.resize(4*size+5);
+    }
+    long long int Merge(long long int a, long long int b){
+        return std::max(a,b);
+    }
+    void Build(std::vector<long long int> &arr, long long int node, long long int left_index, long long int right_index){
+        if(left_index == right_index)
+        {
+            tree[node] = arr[left_index];
+            return;
+        }
+        long long int mid_index = (left_index + right_index) / 2;
+        Build(arr, 2*node+1, left_index, mid_index);
+        Build(arr, 2*node+2, mid_index+1, right_index);
+        tree[node] = Merge(tree[2*node+1], tree[2*node+2]);
+    }
+
+    void Update(long long int node, long long int left_index, long long int right_index, long long int position, long long int value)
+    {
+        if(left_index == right_index){
+            tree[node] = value;
+            return;
+        }
+        long long int mid_index = (left_index + right_index) / 2;
+        if(position <= mid_index) 
+            Update(2*node+1, left_index, mid_index, position, value);
+        else
+            Update(2*node+2, mid_index+1, right_index, position, value);
+
+        tree[node] = Merge(tree[2*node+1], tree[2*node+2]);
+    }
+
+    long long int Query(long long int node, long long int left_index, long long int right_index, long long int query_left, long long int query_right){
+        if(left_index == query_left && right_index == query_right)
+        {
+            return tree[node];
+        }
+        long long int mid_index = (left_index + right_index) / 2;
+
+        long long int left_ans = -1e18, right_ans = -1e18;
+        if(mid_index >= query_left)
+            left_ans = Query(2*node+1, left_index, mid_index, query_left, std::min(query_right, mid_index));
+        if(query_right > mid_index)
+            right_ans = Query(2*node+2, mid_index+1, right_index, std::max(mid_index+1, query_left), query_right);
+
+        return Merge(left_ans, right_ans);
+    }
+};
+
+int SumOverZero(std::vector<long long int> &nums){
+    if (nums.size() <= 0 or nums.size()>200000) {
+        throw std::invalid_argument("vec length must be positive.");
+    }
+    for (int i = 0; i < nums.size(); ++i)
+    {
+        if (nums[i] < -1000000000 || nums[i] > 1000000000)
+        {
+            throw std::invalid_argument("Invalid element value");
+        }
+    }
+    long long int size=nums.size();
+    std::vector<std::pair<long long int,long long int>> prefix_sum(size+1);
+    std::vector<long long int> dp(size+1, -1e18);
+    SegTree segment_tree(size+1);
+    segment_tree.Build(dp, 0, 0, size);
+    prefix_sum[0] = {0, 0};
+    for(long long int i = 1; i <= size; i++){
+        prefix_sum[i] = {prefix_sum[i-1].first + nums[i-1], i}; 
+    }
+    std::sort(prefix_sum.begin(), prefix_sum.end());
+    std::vector<long long int> positions(size+1);
+    for(long long int i = 0; i <= size; i++){
+        positions[prefix_sum[i].second] = i;
+    }
+    segment_tree.Update(0, 0, size, positions[0], 0);
+    dp[0] = 0;
+    for(long long int i = 1; i <= size; i++){
+        long long int x_val = -1e18;
+        if(positions[i] > 0) x_val = segment_tree.Query(0, 0, size, 0, positions[i]-1);
+        long long int y_val = segment_tree.Query(0, 0, size, positions[i-1], positions[i-1]) - 1;
+        dp[i] = std::max(x_val, y_val);
+        segment_tree.Update(0, 0, size, positions[i], dp[i]);
+    }
+    int ans=dp[size] + size;
+    return ans;
+}
+
+int main(){
+
+    //TEST
+        std::vector<long long int> nums_1 = {-1,1,-1,2};
+        int expected_1=4;
+        int result_1 = SumOverZero(nums_1);
+        assert(result_1 == expected_1);
+    //TEST_END
+
+    //TEST
+    std::vector<long long int> nums_2 = {1, -1, 2, -1, 1};
+    int expected_2 = 5;
+    int result_2 = SumOverZero(nums_2);
+    assert(result_2 == expected_2);
+    //TEST_END
+
+    //TEST
+    std::vector<long long int> nums_3 = {2, -1, 3, -2, 4};
+    int expected_3 = 5;
+    int result_3 = SumOverZero(nums_3);
+    assert(result_3 == expected_3);
+    //TEST_END
+
+    //TEST
+    std::vector<long long int> nums_4 = {0, -1, 1, -1, 2};
+    int expected_4 = 5;
+    int result_4 = SumOverZero(nums_4);
+    assert(result_4 == expected_4);
+    //TEST_END
+
+    //TEST
+    std::vector<long long int> nums_5 = {5, -5, 10, -10, 5};
+    int expected_5 = 5;
+    int result_5 = SumOverZero(nums_5);
+    assert(result_5 == expected_5);
+    //TEST_END
+
+    //TEST
+    std::vector<long long int> nums_6 = {-3, 3, -3, 3, -3, 3};
+    int expected_6 = 6;
+    int result_6 = SumOverZero(nums_6);
+    assert(result_6 == expected_6);
+    //TEST_END
+
+    //TEST
+    std::vector<long long int> nums_7 = {4, -4, 8, -8, 4, -4};
+    int expected_7 = 6;
+    int result_7 = SumOverZero(nums_7);
+    assert(result_7 == expected_7);
+    //TEST_END
+
+    //TEST
+    std::vector<long long int> nums_8 = {7, -7, 14, -14, 7};
+    int expected_8 = 5;
+    int result_8 = SumOverZero(nums_8);
+    assert(result_8 == expected_8);
+    //TEST_END
+
+    //TEST
+    std::vector<long long int> nums_9 = {1, 2, 3, 4, 5};
+    int expected_9 = 5;
+    int result_9 = SumOverZero(nums_9);
+    assert(result_9 == expected_9);
+    //TEST_END
+
+    //TEST
+        std::vector<long long int> nums_10 = {};
+        int expected_10;
+        try
+        {
+            SumOverZero(nums_10);
+            assert(false);
+        }
+        catch (const std::invalid_argument &e)
+        {
+            assert(true);
+        }
+    // TEST_END
+
+    //TEST
+        std::vector<long long int> nums_11 = {-10000000002,10000000002};
+        int expected_11;
+        try
+        {
+            SumOverZero(nums_11);
+            assert(false);
+        }
+        catch (const std::invalid_argument &e)
+        {
+            assert(true);
+        }
+    // TEST_END
+    //TEST
+        std::vector<long long int> nums_12(300000,1);
+        int expected_12;
+        try
+        {
+            SumOverZero(nums_12);
+            assert(false);
+        }
+        catch (const std::invalid_argument &e)
+        {
+            assert(true);
+        }
+    // TEST_END
+    std::cout << "All test cases passed!\n";
+    return 0;
+}
