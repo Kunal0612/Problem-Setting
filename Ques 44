@@ -1,0 +1,301 @@
+/*
+
+https://codeforces.com/problemset/problem/1736/C2
+
+Write a C++ Function GoodSubarrays to find the result vector for each queries.
+
+Once upon a time in a distant land, there lived a group of talented mathematicians who were fascinated by the properties of arrays. They discovered a special kind of array called a "good array." An array b of length m was deemed good if every element in the array was greater than or equal to its index. In other words, an array b was good if and only if b[i]≥i for all i where 1≤i≤m.
+
+One day, the mathematicians came across a mysterious array a consisting of n positive integers. Intrigued by its potential, they devised a series of q queries to explore its properties further. Each query was characterized by two integers p and x, both ranging between 1 and n. The mathematicians would temporarily replace the p-th element of a with x, thus transforming a into a new array. Their task was to determine the number of pairs of indices (l,r) where 1≤l≤r≤n such that the subarray [nums[l],nums[l+1],…,nums[r]] formed a good array after the modification.
+
+However, there was a twist. Each query was independent, meaning that after evaluating each query, the array nums would revert to its original form before the next query was applied.
+
+Thus, the challenge was set: for each query, the mathematicians needed to identify how many subarrays of the modified array were good, before returning to the original array and proceeding to the next query. This intricate dance of transformation and evaluation would test their understanding of arrays and indices, revealing the hidden patterns within the mysterious array nums.
+
+Input :
+
+A vector of long long integers nums.
+A vector of vector of long long integers queries.
+
+Output : 
+
+A integer result which contain answer to each queries.
+
+Constraint :
+
+nums.size() : ranges from 1 to 200000.
+nums[i] : ranges from 1 to nums.size().
+queries : ranges from 1 to 200000.
+queries[i][0] and queries[i][1] : ranges from 1 to nums.size().
+
+*/
+
+
+
+#include <vector>
+#include <iostream>
+#include <algorithm>
+#include <cassert>
+
+long long int Calculate(long long int len) {
+    long long int now = (len * (len + 1)) / 2;
+    return now;
+}
+
+class SegmentTree {
+public:
+    std::vector<long long int> segments;
+    long long int size = 0;
+    long long int identity = 1e18;
+
+    SegmentTree(long long int sz) {
+        segments.assign(2 * sz, identity);
+        size = sz;
+    }
+
+    long long int Combine(long long int node_a, long long int node_b) {
+        return std::min(node_a, node_b);
+    }
+
+    void Update(long long int idx, long long int val) {
+        segments[idx += size] = val;
+        for(idx /= 2; idx; idx /= 2) {
+            segments[idx] = Combine(segments[2 * idx], segments[2 * idx + 1]);
+        }
+    }
+
+    long long int Query(long long int left, long long int right) {
+        long long int left_ans = identity, right_ans = identity;
+        for(left += size, right += size + 1; left < right; left /= 2, right /= 2) {
+            if(left & 1) left_ans = Combine(left_ans, segments[left++]);
+            if(right & 1) right_ans = Combine(segments[--right], right_ans);
+        }
+        return Combine(left_ans, right_ans);
+    }
+};
+
+std::vector<int> GoodSubarrays(std::vector<long long int> &nums, std::vector<std::vector<long long int>> &queries) {
+    long long int len = nums.size();
+    if (nums.size() <= 0 or nums.size()>200000) {
+        throw std::invalid_argument("Nums length must be positive.");
+    }
+    for (int i = 0; i < nums.size(); ++i)
+    {
+        if (nums[i] < 0 || nums[i] > len)
+        {
+            throw std::invalid_argument("Invalid element value");
+        }
+    }
+    if (queries.size() <= 0 or queries.size()>200000) {
+        throw std::invalid_argument("queries length must be positive.");
+    }
+    for (int i = 0; i < queries.size(); ++i)
+    {
+        if (queries[i][0] < 0 || queries[i][0] > len || queries[i][1] < 0 || queries[i][1] > len)
+        {
+            throw std::invalid_argument("Invalid Queries value");
+        }
+    }
+    std::vector<long long int> array(len + 5, 0), usage(len + 5, 0), prefix(len + 5, 0);
+    for(long long int i = 1; i <= len; i++) {
+        array[i] = nums[i - 1];
+        usage[i] = std::min(usage[i - 1] + 1, array[i]);
+        prefix[i] = prefix[i - 1] + usage[i];
+    }
+    SegmentTree seg_tree(len + 5);
+    auto get_till = [&](long long int left, long long int right, long long int till, long long int pos, long long int target) {
+        while(left <= right) {
+            long long int mid = (left + right) / 2;
+            if(seg_tree.Query(pos, mid) >= target) {
+                till = mid;
+                left = mid + 1;
+            } else {
+                right = mid - 1;
+            }
+        }
+        return till;
+    };
+    std::vector<long long int> track(len + 5, 0);
+    for(long long int i = len; i >= 1; i--) {
+        seg_tree.Update(i, array[i] - i);
+        long long int till = get_till(i, len, i, i, array[i] - i);
+        track[i] = track[till + 1] + Calculate(array[i] + till - i) - Calculate(array[i] - 1);
+    }
+    std::vector<int> result;
+    for(long long int i = 0; i < queries.size(); i++) {
+        long long int pos = queries[i][0];
+        long long int value = queries[i][1];
+        long long int target = std::min(value, usage[pos - 1] + 1);
+        long long int till = get_till(pos + 1, len, pos, pos + 1, target - pos);
+        int ans = prefix[pos - 1] + track[till + 1] + Calculate(target + till - pos) - Calculate(target - 1);
+        result.push_back(ans);
+    }
+    return result;
+}
+       
+int main()                                                                           
+{
+    // TEST
+    std::vector<long long int> nums_1 = {1};
+    std::vector<std::vector<long long int>> queries_1 = {{1, 1}};
+    std::vector<int> expected_1 = {1};
+    std::vector<int> result_1 = GoodSubarrays(nums_1, queries_1);
+    // TEST_END
+
+    // TEST
+    std::vector<long long int> nums_2 = {2, 3, 4, 1};
+    std::vector<std::vector<long long int>> queries_2 = {{1, 4}, {2, 2}, {3, 3}};
+    std::vector<int> expected_2 = {10, 6, 6};
+    std::vector<int> result_2 = GoodSubarrays(nums_2, queries_2);
+    // TEST_END
+
+    // TEST
+    std::vector<long long int> nums_3 = {5, 5, 5, 5, 5};
+    std::vector<std::vector<long long int>> queries_3 = {{1, 5}, {2, 2}, {3, 4}};
+    std::vector<int> expected_3 = {15, 1, 3};
+    std::vector<int> result_3 = GoodSubarrays(nums_3, queries_3);
+    // TEST_END
+
+    // TEST
+    std::vector<long long int> nums_4 = {1, 2, 3, 4, 5};
+    std::vector<std::vector<long long int>> queries_4 = {{1, 5}, {3, 4}, {2, 2}};
+    std::vector<int> expected_4 = {15, 7, 2};
+    std::vector<int> result_4 = GoodSubarrays(nums_4, queries_4);
+    // TEST_END
+
+    // TEST
+    std::vector<long long int> nums_5 = {1,2,3,4,5};
+    std::vector<std::vector<long long int>> queries_5 = {{1, 1}, {2, 5}, {4, 4}};
+    std::vector<int> expected_5 = {10, 40, 7};
+    std::vector<int> result_5 = GoodSubarrays(nums_5, queries_5);
+    // TEST_END
+
+    // TEST
+    std::vector<long long int> nums_6 = {3, 3, 3, 3};
+    std::vector<std::vector<long long int>> queries_6 = {{1, 4}, {3, 3}, {2, 2}};
+    std::vector<int> expected_6 = {12, 3, 3};
+    std::vector<int> result_6 = GoodSubarrays(nums_6, queries_6);
+    // TEST_END
+
+    // TEST
+    std::vector<long long int> nums_7 = {5, 5, 5, 5, 5, 5};
+    std::vector<std::vector<long long int>> queries_7 = {{1, 6}, {3, 4}, {2, 5}};
+    std::vector<int> expected_7 = {30, 10, 25};
+    std::vector<int> result_7 = GoodSubarrays(nums_7, queries_7);
+    // TEST_END
+
+    // TEST
+    std::vector<long long int> nums_8 = {1, 2, 3, 4};
+    std::vector<std::vector<long long int>> queries_8 = {{1, 3}, {2, 2}, {4, 4}};
+    std::vector<int> expected_8 = {6, 2, 4};
+    std::vector<int> result_8 = GoodSubarrays(nums_8, queries_8);
+    // TEST_END
+    // TEST
+    std::vector<long long int> nums_9(300000, 1);
+    std::vector<std::vector<long long int>> queries_9 = {{1, 3}, {2, 2}, {4, 4}};
+    try
+    {
+        GoodSubarrays(nums_9, queries_9);
+        assert(false); 
+    }
+    catch (const std::invalid_argument &e)
+    {
+        assert(true);
+    }
+    // TEST_END
+    // TEST
+    std::vector<long long int> nums_10(1, -1);
+    std::vector<std::vector<long long int>> queries_10 = {{1, 3}, {2, 2}, {4, 4}};
+    try
+    {
+        GoodSubarrays(nums_10, queries_10);
+        assert(false); 
+    }
+    catch (const std::invalid_argument &e)
+    {
+        assert(true);
+    }
+    // TEST_END
+    // TEST
+    std::vector<long long int> nums_11(1, -1);
+    std::vector<std::vector<long long int>> queries_11 = {{1, -3}, {2, 2}, {4, 4}};
+    try
+    {
+        GoodSubarrays(nums_11, queries_11);
+        assert(false); 
+    }
+    catch (const std::invalid_argument &e)
+    {
+        assert(true);
+    }
+    // TEST_END
+
+    // TEST
+    std::vector<long long int> nums_12(1, 0);
+    std::vector<std::vector<long long int>> queries_12 = {{1, 1}, {2, 2}, {4, 4}};
+    try
+    {
+        GoodSubarrays(nums_12, queries_12);
+        assert(false); 
+    }
+    catch (const std::invalid_argument &e)
+    {
+        assert(true);
+    }
+    // TEST_END
+    // TEST
+    std::vector<long long int> nums_13(1, 5);
+    std::vector<std::vector<long long int>> queries_13 = {{1, 1}, {2, 2}, {4, 4}};
+    try
+    {
+        GoodSubarrays(nums_13, queries_13);
+        assert(false); 
+    }
+    catch (const std::invalid_argument &e)
+    {
+        assert(true);
+    }
+    // TEST_END
+    // TEST
+    std::vector<long long int> nums_14(1, 1);
+    std::vector<std::vector<long long int>> queries_14 = {{0, 1}, {2, 2}, {4, 4}};
+    try
+    {
+        GoodSubarrays(nums_14, queries_14);
+        assert(false); 
+    }
+    catch (const std::invalid_argument &e)
+    {
+        assert(true);
+    }
+    // TEST_END
+    // TEST
+    std::vector<long long int> nums_15(1, 1);
+    std::vector<std::vector<long long int>> queries_15 = {{1, 10}, {2, 2}, {4, 4}};
+    try
+    {
+        GoodSubarrays(nums_15, queries_15);
+        assert(false); 
+    }
+    catch (const std::invalid_argument &e)
+    {
+        assert(true);
+    }
+    // TEST_END
+    // TEST
+    std::vector<long long int> nums_16(1, 1);
+    std::vector<std::vector<long long int>> queries_16(300000,std::vector<long long int> (2,1));
+    try
+    {
+        GoodSubarrays(nums_16, queries_16);
+        assert(false); 
+    }
+    catch (const std::invalid_argument &e)
+    {
+        assert(true);
+    }
+    // TEST_END
+
+    std::cout << "All test cases passed!\n";
+    return 0;
+} 
