@@ -19,7 +19,7 @@ A vector of vector of long long integers queries.
 
 Output : 
 
-A integer result which contain answer to each queries.
+A vector of integer result which contain answer to each queries.
 
 Constraint :
 
