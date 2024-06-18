@@ -1,0 +1,239 @@
+/*
+
+https://codeforces.com/contest/1736/problem/E
+
+Write a C++ Function MaximumScore to find the result vector for each queries.
+
+You're given an array consisting of len integers. You have to perform len turns.
+
+Initially your score is 0.
+
+On the i-th turn, you are allowed to leave the array as it is or swap any one pair of 2 adjacent elements in the array and change exactly one of them to 0
+(and leave the value of other element unchanged) after swapping. In either case(whether you swap or not), after this you add nums[i] to your score.
+
+What's the maximum possible score you can get?
+
+Input :
+
+A vector of integers nums.
+
+Output : 
+
+A integer max_ans the maximum possible Score.
+
+Constraint :
+
+nums.size() : ranges from 1 to 500.
+nums[i] : ranges from 1 to 1000000.
+
+*/
+
+
+
+#include <iostream>
+#include <vector>
+#include <cassert>
+#include <algorithm>
+
+int MaximumScore(std::vector<int>& nums) {
+    int size = nums.size();
+
+    if (size < 2 || size > 500) {
+        throw std::invalid_argument("Invalid value of len. Expected 2 <= size <= 500.");
+    }
+    
+    for (int i = 0; i < size; ++i) {
+        if (nums[i] < 1 || nums[i] > 1000000) {
+            throw std::invalid_argument("Invalid value nums.");
+        }
+    }
+
+    std::vector<int> arr(size + 1); 
+    const int MAX_SIZE = std::min(size + 5, 505);
+    std::vector<std::vector<std::vector<int>>> dp(MAX_SIZE, std::vector<std::vector<int>>(MAX_SIZE, std::vector<int>(MAX_SIZE, -(int)(1e9))));
+    std::vector<std::vector<int>> prefix(MAX_SIZE, std::vector<int>(MAX_SIZE, 0));
+    int max_ans = 0;
+
+    for (int i = 1; i <= size; i++) {
+        arr[i] = nums[i - 1];
+    }
+
+    for (int i = 1; i <= size; i++) {
+        for (int j = 1; j <= size; j++) {
+            for (int k = 0; k <= i; k++) {
+                if (k > 0) {
+                    dp[i][j][k] = dp[i - 1][j][k - 1] + arr[j];
+                }
+                if (j >= i) {
+                    int need = j - i;
+                    if (need > k) {
+                        continue;
+                    }
+                    dp[i][j][k] = std::max(dp[i][j][k], prefix[k - need][j - 1] + arr[j]);
+                }
+            }
+        }
+
+        for (int j = 1; j <= size; j++) {
+            for (int k = 0; k <= i; k++) {
+                prefix[k][j] = std::max(prefix[k][j], dp[i][j][k]);
+            }
+        }
+
+        for (int j = 0; j <= i; j++) {
+            for (int k = 1; k <= size; k++) {
+                prefix[j][k] = std::max(prefix[j][k], prefix[j][k - 1]);
+                max_ans = std::max(max_ans, prefix[j][k]);
+            }
+        }
+    }
+
+    return max_ans;
+}
+
+
+       
+int main() {
+
+    // TEST
+    std::vector<int> nums_1 = {3,1,2};
+    int expected_1 = 9;
+    int result_1 = MaximumScore(nums_1);
+    assert(result_1 == expected_1);
+    // TEST_END
+
+    // TEST
+    std::vector<int> nums_2 = {4,1,5,4,1,1};
+    int expected_2 = 29;
+    int result_2 = MaximumScore(nums_2);
+    assert(result_2 == expected_2);
+    // TEST_END
+
+    // TEST
+    std::vector<int> nums_3 = {1, 2, 3};
+    int expected_3 = 8;
+    int result_3 = MaximumScore(nums_3);
+    assert(result_3 == expected_3);
+    // TEST_END
+
+    // TEST
+    std::vector<int> nums_4 = {4, 3, 2, 1};
+    int expected_4 = 16;
+    int result_4 = MaximumScore(nums_4);
+    assert(result_4 == expected_4);
+    // TEST_END
+
+    // TEST
+    std::vector<int> nums_5 = {2, 3, 1, 5, 4, 6};
+    int expected_5 = 29;
+    int result_5 = MaximumScore(nums_5);
+    assert(result_5 == expected_5);
+    // TEST_END
+
+    // TEST
+    std::vector<int> nums_6 = {5, 1, 2, 4, 3, 6, 7};
+    int expected_6 = 41;
+    int result_6 = MaximumScore(nums_6);
+    assert(result_6 == expected_6);
+    // TEST_END
+
+    // TEST
+    std::vector<int> nums_7 = {1, 3, 2, 5, 4, 6, 7};
+    int expected_7 = 37;
+    int result_7 = MaximumScore(nums_7);
+    assert(result_7 == expected_7);
+    // TEST_END
+
+    // TEST
+    std::vector<int> nums_8 = {4, 2, 3, 1};
+    int expected_8 = 16;
+    int result_8 = MaximumScore(nums_8);
+    assert(result_8 == expected_8);
+    // TEST_END
+
+    // TEST
+    std::vector<int> nums_9 = {3,2,4,1,5};
+    int expected_9 = 22;
+    int result_9 = MaximumScore(nums_9);
+    assert(result_9 == expected_9);
+    // TEST_END
+
+    // TEST
+    std::vector<int> nums_10 = {2, 3, -1}; 
+    try
+    {
+        MaximumScore(nums_10);
+        assert(false);
+    }
+    catch (const std::invalid_argument &e)
+    {
+        assert(true);
+    }
+    // TEST_END
+
+    // TEST
+    std::vector<int> nums_11 = {2, 3, 10000000}; 
+    try
+    {
+        MaximumScore(nums_11);
+        assert(false);
+    }
+    catch (const std::invalid_argument &e)
+    {
+        assert(true);
+    }
+    // TEST_END
+
+    // TEST
+    std::vector<int> nums_12 = {0, 3, 4}; 
+    try
+    {
+        MaximumScore(nums_12);
+        assert(false);
+    }
+    catch (const std::invalid_argument &e)
+    {
+        assert(true);
+    }
+    // TEST_END
+
+    // TEST
+    std::vector<int> nums_13 = {}; 
+    try
+    {
+        MaximumScore(nums_13);
+        assert(false);
+    }
+    catch (const std::invalid_argument &e)
+    {
+        assert(true);
+    }
+    // TEST_END
+
+    // TEST
+    std::vector<int> nums_14(200005,1); 
+    try
+    {
+        MaximumScore(nums_14);
+        assert(false);
+    }
+    catch (const std::invalid_argument &e)
+    {
+        assert(true);
+    }
+    // TEST_END
+    // TEST
+    std::vector<int> nums_15(1,1); 
+    try
+    {
+        MaximumScore(nums_15);
+        assert(false);
+    }
+    catch (const std::invalid_argument &e)
+    {
+        assert(true);
+    }
+    // TEST_END
+    std::cout << "All test cases passed!\n";
+    return 0;
+}
