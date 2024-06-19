@@ -1,0 +1,391 @@
+/*
+
+https://codeforces.com/problemset/problem/1969/F
+
+Write a C++ Solution CardPairing to find the number of sequences.
+
+In the enchanting world of Cardopolis, there exists a magical deck of n cards, 
+each imbued with one of k mystical types. You, the Master Card Collector, 
+have been given the sequence 
+a1,a2,…,an which denotes the types of cards in the deck from top to bottom. 
+Both n and k are always even numbers, a peculiarity of this magical deck.
+
+You are challenged to play a fascinating game with these cards. Here’s how it unfolds:
+
+Initial Draw: You start by drawing the k topmost cards from the deck into your hand.
+
+Playing Turns:
+
+Choosing Cards: In each turn, you choose exactly two cards from your hand to play. 
+If these two cards have the same type, you earn a magical coin.
+
+Drawing More Cards: After playing your cards, if the deck still has cards, you draw 
+exactly two new cards from the top of the deck into your hand.
+
+Game Continuation: The game continues if either your hand or your deck is not empty.
+If both are empty, the game ends.
+
+Your mission is to calculate the maximum number of magical coins you can earn during the game. 
+
+Input:
+
+An integer length.
+A vector of integers deck
+
+Constraints:
+
+deck.size() : ranges from length to 1000.
+length : ranges from 2 to 1000.
+deck : ranges from 1 to k.
+deck.size and length both are even.
+
+Output:
+
+The integer result which is the the maximum number of coins you can earn.
+
+
+
+
+*/
+
+
+#include <iostream>
+#include <vector>
+#include <random>
+#include <cassert>
+#include <algorithm>
+
+
+
+bool bad(const std::vector<bool>& vec, int length) {
+    for (int i = 0; i < length; i++) {
+        if (!vec[i]) return false;
+    }
+    return true;
+}
+
+std::vector<bool> inv(const std::vector<bool>& vec, int length) {
+    std::vector<bool> result(length);
+    for (int i = 0; i < length; i++) {
+        result[i] = !vec[i];
+    }
+    return result;
+}
+
+std::vector<bool> get_suffix(const std::vector<int>& deck, int total_n, int length, int index) {
+    std::vector<bool> vec(length);
+    for (int i = index; i < total_n; i++) {
+        vec[deck[i]] = !vec[deck[i]];
+    }
+    return vec;
+}
+
+int get_next(const std::vector<long long>& hash_values, long long current_hash, int start_index, int total_n) {
+    for (int i = start_index; i <= total_n; i += 2) {
+        if (hash_values[i] == current_hash) {
+            return i;
+        }
+    }
+    return -1;
+}
+
+int CardPairing(std::vector<int> deck,int length){
+    if (deck.size()<length or deck.size()>1000 or length<2 or length>1000) {
+        throw std::invalid_argument("Invalid Deck length.");
+    }
+    if (deck.size()%2==1 or length%2==1) {
+        throw std::invalid_argument("Invalid Deck length. it should be even");
+    }
+    for(int i=0; i<deck.size(); i++) {
+        if(deck[i]<1 or deck[i]>length){
+            throw std::invalid_argument("Invalid Deck value.");
+        }
+    }
+    std::mt19937_64 rnd(12341234);
+    int total_n=deck.size();
+    for (int i = 0; i < total_n; i++) {
+        --deck[i];
+    }
+
+    std::vector<long long> values(length);
+    for (int i = 0; i < length; i++) {
+        while (values[i] == 0) {
+            values[i] = rnd();
+        }
+    }
+
+    int max_score = 0;
+    std::vector<int> dp(total_n + 1, 1e9);
+    std::vector<bool> full_odd(length, false);
+    std::vector<std::vector<bool>> odd(total_n + 1, std::vector<bool>(length));
+    std::vector<long long> hash_values(total_n + 1);
+    long long current_hash = 0;
+    for (int i = 0; i < total_n; i++) {
+        current_hash ^= values[deck[i]];
+        if (full_odd[deck[i]]) max_score++;
+        full_odd[deck[i]] = !full_odd[deck[i]];
+        odd[i + 1] = full_odd;
+        hash_values[i + 1] = current_hash;
+    }
+
+    long long start = 0ll;
+    for (int i = 0; i < length; i++) {
+        start ^= values[i];
+    }
+
+    int position = get_next(hash_values, start, length, total_n);
+    int result;
+    if (position == -1) {
+        return max_score;
+    } else {
+        dp[position] = 0;
+        int ans = 1e9;
+        for (int p = length; p <= total_n; p += 2) {
+            if (dp[p] > 1e8) continue;
+            std::vector<bool> suffix = get_suffix(deck, total_n, length, p);
+            std::vector<int> odd_list, even_list;
+            for (int j = 0; j < length; j++) {
+                if (suffix[j]) {
+                    even_list.push_back(j);
+                } else {
+                    odd_list.push_back(j);
+                }
+            }
+
+            int even_size = even_list.size();
+            int odd_size = odd_list.size();
+            bool flag = true;
+
+            for (int i = 0; i < odd_size && flag; i++) {
+                for (int j = 0; j < i && flag; j++) {
+                    int res_x = odd_list[i];
+                    int res_y = odd_list[j];
+                    int addition = 0;
+                    long long new_hash = hash_values[p] ^ values[res_x] ^ values[res_y];
+                    int next_position = get_next(hash_values, new_hash, p, total_n);
+                    if (next_position == -1) {
+                        flag = false;
+                        ans = std::min(ans, dp[p] + addition);
+                    } else {
+                        dp[next_position] = std::min(dp[next_position], dp[p] + addition);
+                    }
+                }
+            }
+
+            for (int i = 0; i < odd_size && flag; i++) {
+                for (int j = 0; j < even_size && flag; j++) {
+                    int res_x = odd_list[i];
+                    int res_y = even_list[j];
+                    int addition = 1;
+                    long long new_hash = hash_values[p] ^ values[res_x] ^ values[res_y];
+                    int next_position = get_next(hash_values, new_hash, p, total_n);
+                    if (next_position == -1) {
+                        flag = false;
+                        ans = std::min(ans, dp[p] + addition);
+                    } else {
+                        dp[next_position] = std::min(dp[next_position], dp[p] + addition);
+                    }
+                }
+            }
+
+            for (int i = 0; i < even_size && flag; i++) {
+                for (int j = 0; j < i && flag; j++) {
+                    int res_x = even_list[i];
+                    int res_y = even_list[j];
+                    int addition = 2;
+                    long long new_hash = hash_values[p] ^ values[res_x] ^ values[res_y];
+                    int next_position = get_next(hash_values, new_hash, p, total_n);
+                    if (next_position == -1) {
+                        flag = false;
+                        ans = std::min(ans, dp[p] + addition);
+                    } else {
+                        dp[next_position] = std::min(dp[next_position], dp[p] + addition);
+                    }
+                }
+            }
+        }
+        result=max_score - ans;
+    }
+    return result;
+}
+
+
+
+
+
+
+int main(){
+    // TEST
+    std::vector<int> deck_1 = {1, 2, 1, 2};
+    int length_1 = 2;
+    int expected_1 = 0;
+    int result_1 = CardPairing(deck_1, length_1);
+    assert(result_1 == expected_1);
+    // TEST_END
+
+    // TEST
+    std::vector<int> deck_2 = {2,1,2,2,1,2,1,2};
+    int length_2 = 2;
+    int expected_2 = 1;
+    int result_2 = CardPairing(deck_2, length_2);
+    assert(result_2 == expected_2);
+    // TEST_END
+
+    // TEST
+    std::vector<int> deck_3 = {1, 1, 2, 2, 3, 3};
+    int length_3 = 4;
+    int expected_3 = 3;
+    int result_3 = CardPairing(deck_3, length_3);
+    assert(result_3 == expected_3);
+    // TEST_END
+
+    // TEST
+    std::vector<int> deck_4 = {1, 1, 1, 1, 2, 2, 2, 2};
+    int length_4 = 2;
+    int expected_4 = 4;
+    int result_4 = CardPairing(deck_4, length_4);
+    assert(result_4 == expected_4);
+    // TEST_END
+
+    // TEST
+    std::vector<int> deck_5 = {1, 2, 3, 4, 5, 6, 7, 8};
+    int length_5 = 8;
+    int expected_5 = 0;
+    int result_5 = CardPairing(deck_5, length_5);
+    assert(result_5 == expected_5);
+    // TEST_END
+
+    // TEST
+    std::vector<int> deck_6 = {1, 1, 2, 2, 1, 1, 2, 2};
+    int length_6 = 2;
+    int expected_6 = 4;
+    int result_6 = CardPairing(deck_6, length_6);
+    assert(result_6 == expected_6);
+    // TEST_END
+
+    // TEST
+    std::vector<int> deck_7 = {2, 2, 3, 3, 1, 1, 4, 4};
+    int length_7 = 4;
+    int expected_7 = 4;
+    int result_7 = CardPairing(deck_7, length_7);
+    assert(result_7 == expected_7);
+    // TEST_END
+
+    // TEST
+    std::vector<int> deck_8 = {1, 2, 1, 2, 3, 4, 3, 4};
+    int length_8 = 4;
+    int expected_8 = 4;
+    int result_8 = CardPairing(deck_8, length_8);
+    assert(result_8 == expected_8);
+    // TEST_END
+
+    // TEST
+    std::vector<int> deck_9 = {1, 2, 3, 4, 5}; 
+    int length_9 = 2;                         
+    try
+    {
+        CardPairing(deck_9, length_9);
+        assert(false);
+    }
+    catch (const std::invalid_argument &e)
+    {
+        assert(true);
+    }
+    // TEST_END
+    // TEST
+    std::vector<int> deck_10 = {0, 2,1,2}; 
+    int length_10 = 2;                         
+    try
+    {
+        CardPairing(deck_10, length_10);
+        assert(false);
+    }
+    catch (const std::invalid_argument &e)
+    {
+        assert(true);
+    }
+    // TEST_END
+    // TEST
+    std::vector<int> deck_11 = {5, 2, 3, 4}; 
+    int length_11 = 4;                         
+    try
+    {
+        CardPairing(deck_11, length_11);
+        assert(false);
+    }
+    catch (const std::invalid_argument &e)
+    {
+        assert(true);
+    }
+    // TEST_END
+    // TEST
+    std::vector<int> deck_12 = {-1, 2, 3, 4}; 
+    int length_12 = 4;                         
+    try
+    {
+        CardPairing(deck_12, length_12);
+        assert(false);
+    }
+    catch (const std::invalid_argument &e)
+    {
+        assert(true);
+    }
+    // TEST_END
+    // TEST
+    std::vector<int> deck_13 = {}; 
+    int length_13 = 4;                         
+    try
+    {
+        CardPairing(deck_13, length_13);
+        assert(false);
+    }
+    catch (const std::invalid_argument &e)
+    {
+        assert(true);
+    }
+    // TEST_END
+
+    // TEST
+    std::vector<int> deck_14 = {1,2,3,4}; 
+    int length_14 = -4;                         
+    try
+    {
+        CardPairing(deck_14, length_14);
+        assert(false);
+    }
+    catch (const std::invalid_argument &e)
+    {
+        assert(true);
+    }
+
+    // TEST_END
+    // TEST
+    std::vector<int> deck_15 = {1,1,1,1}; 
+    int length_15 = 3000;                         
+    try
+    {
+        CardPairing(deck_15, length_15);
+        assert(false);
+    }
+    catch (const std::invalid_argument &e)
+    {
+        assert(true);
+    }
+    // TEST_END
+    // TEST
+    std::vector<int> deck_16 = {2,2,1,3}; 
+    int length_16 = 3;                         
+    try
+    {
+        CardPairing(deck_16, length_16);
+        assert(false);
+    }
+    catch (const std::invalid_argument &e)
+    {
+        assert(true);
+    }
+    // TEST_END
+
+    std::cout << "All test cases passed!\n";
+    return 0;
+}
