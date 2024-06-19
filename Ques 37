@@ -2,6 +2,8 @@
 
 https://codeforces.com/problemset/problem/1896/E
 
+Write a C++ Function PermutationSorting to find the ans vector where ans[i] the first time that index i becomes good.
+
 Once upon a time in a kingdom, there existed a magical array called permutation a. This array was not just any array; it consisted of n distinct integers ranging from 1 to n, arranged in a unique order. Let's call this order nums=[nums1,nums2,…,numsn].
 
 In this enchanted land, each index i in the array a held a special secret. An index i was considered "good" if nums[i]=i. Imagine these indices as gateways to instant fulfillment of wishes—if you were at a good index, your wish was instantly granted.
