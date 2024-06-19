@@ -1,0 +1,309 @@
+/*
+
+https://codeforces.com/problemset/problem/1922/F
+
+Write nums C++ Solution ReplaceonSegment to find the minimum number of operations that you have to perform.
+
+In the kingdom of Numeria, there exists an array of integers a1,a2,…,an, where each element ai ranges from 1 to res. 
+The Numerians love symmetry and harmony, and they have devised nums magical operation 
+to transform this array into nums homogeneous one.
+
+The operation is simple yet powerful:
+
+Choose nums Transformation: You can select any segment of the array, defined by indices 
+left to right, and specify an integer res (where 1≤k≤res) that does not appear within that segment.
+
+Apply the Transformation: Replace every element within the chosen segment [left,right] with the integer res.
+
+The challenge set forth by the Numerian elders is to deterstd::mine the std::minimum number of such operations required to transform the entire array into nums uniform sequence where all elements are equal.
+
+Input:
+
+An integer res.
+A vector of integers nums
+
+Constraints:
+
+nums.size() : ranges from res to 100.
+res : ranges from 1 to 100.
+nums : ranges from 1 to res.
+
+Output:
+
+The integer ans which is the minimum number of operations that you have to perform.
+
+*/
+
+
+#include <iostream>
+#include <vector>
+#include <cstring>
+#include <cassert>
+
+int Calculate_2(int left, int right, int val, int len, int res, const std::vector<int>& nums, const std::vector<std::vector<int>>& nxtx, const std::vector<std::vector<int>>& prvx, const std::vector<std::vector<int>>& nxtnx, const std::vector<std::vector<int>>& prvnx, std::vector<std::vector<std::vector<int>>>& dp_1, std::vector<std::vector<std::vector<int>>>& dp_2);
+
+int Calculate_1(int left, int right, int val, int len, int res, const std::vector<int>& nums, const std::vector<std::vector<int>>& nxtx, const std::vector<std::vector<int>>& prvx, const std::vector<std::vector<int>>& nxtnx, const std::vector<std::vector<int>>& prvnx, std::vector<std::vector<std::vector<int>>>& dp_1, std::vector<std::vector<std::vector<int>>>& dp_2) {
+    left = nxtnx[left][val], right = prvnx[right][val];
+    if (left > right) return 0;
+    if (dp_1[left][right][val] != -1) return dp_1[left][right][val];
+    dp_1[left][right][val] = Calculate_2(left, right, val, len, res, nums, nxtx, prvx, nxtnx, prvnx, dp_1, dp_2) + 1;
+    for (int i = left; i < right; ++i) {
+        dp_1[left][right][val] = std::min(dp_1[left][right][val], Calculate_1(left, i, val, len, res, nums, nxtx, prvx, nxtnx, prvnx, dp_1, dp_2) + Calculate_1(i + 1, right, val, len, res, nums, nxtx, prvx, nxtnx, prvnx, dp_1, dp_2));
+    }
+    return dp_1[left][right][val];
+}
+
+int Calculate_2(int left, int right, int val, int len, int res, const std::vector<int>& nums, const std::vector<std::vector<int>>& nxtx, const std::vector<std::vector<int>>& prvx, const std::vector<std::vector<int>>& nxtnx, const std::vector<std::vector<int>>& prvnx, std::vector<std::vector<std::vector<int>>>& dp_1, std::vector<std::vector<std::vector<int>>>& dp_2) {
+    left = nxtx[left][val], right = prvx[right][val];
+    if (left > right) return 0;
+    if (dp_2[left][right][val] != -1) return dp_2[left][right][val];
+    dp_2[left][right][val] = len;
+    for (int i = left; i < right; ++i) {
+        dp_2[left][right][val] = std::min(dp_2[left][right][val], Calculate_2(left, i, val, len, res, nums, nxtx, prvx, nxtnx, prvnx, dp_1, dp_2) + Calculate_2(i + 1, right, val, len, res, nums, nxtx, prvx, nxtnx, prvnx, dp_1, dp_2));
+    }
+    for (int y = 0; y < res; ++y) {
+        if (val != y) dp_2[left][right][val] = std::min(dp_2[left][right][val], Calculate_1(left, right, y, len, res, nums, nxtx, prvx, nxtnx, prvnx, dp_1, dp_2));
+    }
+    return dp_2[left][right][val];
+}
+
+int ReplaceonSegment(std::vector<int> nums,int res) {
+    if (nums.size()<res or nums.size()>100 or res<1 or res>100) {
+        throw std::invalid_argument("Invalid nums res.");
+    }
+    for(int i=0; i<nums.size(); i++) {
+        if(nums[i]<1 or nums[i]>res){
+            throw std::invalid_argument("Invalid nums value.");
+        }
+    }
+    int len=nums.size();
+    for (int i = 0; i < len; ++i) {
+        --nums[i];
+    }
+
+    std::vector<std::vector<int>> nxtx(len + 1, std::vector<int>(res)), prvx(len + 1, std::vector<int>(res));
+    std::vector<std::vector<int>> nxtnx(len + 1, std::vector<int>(res)), prvnx(len + 1, std::vector<int>(res));
+    for (int val = 0; val < res; ++val) {
+        prvx[0][val] = prvnx[0][val] = -1;
+    }
+    for (int i = 0; i < len; ++i) {
+        prvx[i][nums[i]] = i;
+        for (int val = 0; val < res; ++val) {
+            prvx[i + 1][val] = prvx[i][val];
+        }
+        for (int val = 0; val < res; ++val) {
+            if (val != nums[i]) prvnx[i][val] = i;
+        }
+        for (int val = 0; val < res; ++val) {
+            prvnx[i + 1][val] = prvnx[i][val];
+        }
+    }
+
+    for (int val = 0; val < res; ++val) {
+        nxtx[len][val] = nxtnx[len][val] = len;
+    }
+    for (int i = len - 1; i >= 0; --i) {
+        for (int val = 0; val < res; ++val) {
+            nxtx[i][val] = nxtx[i + 1][val];
+        }
+        nxtx[i][nums[i]] = i;
+        for (int val = 0; val < res; ++val) {
+            nxtnx[i][val] = nxtnx[i + 1][val];
+        }
+        for (int val = 0; val < res; ++val) {
+            if (val != nums[i]) nxtnx[i][val] = i;
+        }
+    }
+
+    std::vector<std::vector<std::vector<int>>> dp_1(len + 1, std::vector<std::vector<int>>(len + 1, std::vector<int>(res, -1)));
+    std::vector<std::vector<std::vector<int>>> dp_2(len + 1, std::vector<std::vector<int>>(len + 1, std::vector<int>(res, -1)));
+    int ans = len;
+    for (int val = 0; val < res; ++val) {
+        ans = std::min(ans, Calculate_1(0, len - 1, val, len, res, nums, nxtx, prvx, nxtnx, prvnx, dp_1, dp_2));
+    }
+    return ans;
+}
+
+
+
+
+
+
+
+
+
+int main(){
+    // TEST
+    std::vector<int> nums_1 = {3,1,3,1,2,1,1,2,3,1,1,3};
+    int res_1 = 3;
+    int expected_1 = 2;
+    int result_1 = ReplaceonSegment(nums_1, res_1);
+    assert(result_1 == expected_1);
+    // TEST_END
+
+    // TEST
+    std::vector<int> nums_2 = {2,1,2,2,1,2,1,2};
+    int res_2 = 2;
+    int expected_2 = 3;
+    int result_2 = ReplaceonSegment(nums_2, res_2);
+    assert(result_2 == expected_2);
+    // TEST_END
+
+    // TEST
+    std::vector<int> nums_3 = {1, 1, 2, 2, 3, 3};
+    int res_3 = 4;
+    int expected_3 = 1;
+    int result_3 = ReplaceonSegment(nums_3, res_3);
+    assert(result_3 == expected_3);
+    // TEST_END
+
+    // TEST
+    std::vector<int> nums_4 = {1, 1, 1, 1, 2, 2, 2, 2};
+    int res_4 = 2;
+    int expected_4 = 1;
+    int result_4 = ReplaceonSegment(nums_4, res_4);
+    assert(result_4 == expected_4);
+    // TEST_END
+
+    // TEST
+    std::vector<int> nums_5 = {1, 2, 3, 4, 5, 6, 7, 8};
+    int res_5 = 8;
+    int expected_5 = 1;
+    int result_5 = ReplaceonSegment(nums_5, res_5);
+    assert(result_5 == expected_5);
+    // TEST_END
+
+    // TEST
+    std::vector<int> nums_6 = {1, 1, 2, 2, 1, 1, 2, 2};
+    int res_6 = 2;
+    int expected_6 = 2;
+    int result_6 = ReplaceonSegment(nums_6, res_6);
+    assert(result_6 == expected_6);
+    // TEST_END
+
+    // TEST
+    std::vector<int> nums_7 = {2, 2, 3, 3, 1, 1, 4, 4};
+    int res_7 = 4;
+    int expected_7 = 1;
+    int result_7 = ReplaceonSegment(nums_7, res_7);
+    assert(result_7 == expected_7);
+    // TEST_END
+
+    // TEST
+    std::vector<int> nums_8 = {1, 2, 1, 2, 3, 4, 3, 4};
+    int res_8 = 4;
+    int expected_8 = 2;
+    int result_8 = ReplaceonSegment(nums_8, res_8);
+    assert(result_8 == expected_8);
+    // TEST_END
+
+    // TEST
+    std::vector<int> nums_9 = {1, 2, 3, 4, 5}; 
+    int res_9 = 2;                         
+    try
+    {
+        ReplaceonSegment(nums_9, res_9);
+        assert(false);
+    }
+    catch (const std::invalid_argument &e)
+    {
+        assert(true);
+    }
+    // TEST_END
+    // TEST
+    std::vector<int> nums_10 = {0, 2,1,2}; 
+    int res_10 = 2;                         
+    try
+    {
+        ReplaceonSegment(nums_10, res_10);
+        assert(false);
+    }
+    catch (const std::invalid_argument &e)
+    {
+        assert(true);
+    }
+    // TEST_END
+    // TEST
+    std::vector<int> nums_11 = {5, 2, 3, 4}; 
+    int res_11 = 4;                         
+    try
+    {
+        ReplaceonSegment(nums_11, res_11);
+        assert(false);
+    }
+    catch (const std::invalid_argument &e)
+    {
+        assert(true);
+    }
+    // TEST_END
+    // TEST
+    std::vector<int> nums_12 = {-1, 2, 3, 4}; 
+    int res_12 = 4;                         
+    try
+    {
+        ReplaceonSegment(nums_12, res_12);
+        assert(false);
+    }
+    catch (const std::invalid_argument &e)
+    {
+        assert(true);
+    }
+    // TEST_END
+    // TEST
+    std::vector<int> nums_13 = {}; 
+    int res_13 = 4;                         
+    try
+    {
+        ReplaceonSegment(nums_13, res_13);
+        assert(false);
+    }
+    catch (const std::invalid_argument &e)
+    {
+        assert(true);
+    }
+    // TEST_END
+
+    // TEST
+    std::vector<int> nums_14 = {1,2,3,4}; 
+    int res_14 = -4;                         
+    try
+    {
+        ReplaceonSegment(nums_14, res_14);
+        assert(false);
+    }
+    catch (const std::invalid_argument &e)
+    {
+        assert(true);
+    }
+
+    // TEST_END
+    // TEST
+    std::vector<int> nums_15 = {1,1,1,1}; 
+    int res_15 = 3000;                         
+    try
+    {
+        ReplaceonSegment(nums_15, res_15);
+        assert(false);
+    }
+    catch (const std::invalid_argument &e)
+    {
+        assert(true);
+    }
+    // TEST_END
+    // TEST
+    std::vector<int> nums_16 = {2,2,1,3}; 
+    int res_16 = -3;                         
+    try
+    {
+        ReplaceonSegment(nums_16, res_16);
+        assert(false);
+    }
+    catch (const std::invalid_argument &e)
+    {
+        assert(true);
+    }
+    // TEST_END
+
+    std::cout << "All test cases passed!";
+    return 0;
+}
