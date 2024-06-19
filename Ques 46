@@ -1,0 +1,326 @@
+/*
+
+https://codeforces.com/problemset/problem/1924/D
+
+Write a C++ Solution BalancedSubsequences to find the number of sequences.
+
+In the land of Bracketonia, there lived two types of magical creatures: 
+the Open Brackets '(' and the Close Brackets ')'. 
+These creatures loved to form sequences, and the most 
+cherished sequences in Bracketonia were the balanced ones. 
+A sequence is considered balanced if one can turn it into a 
+valid mathematical expression by adding characters like '+' and 
+'1'. For instance, sequences like '(())()', '()', and '(()(()))' are balanced, 
+while others like ')(', '(()', and '(()))(' are not.
+
+One day, the great Bracket Master posed a challenge to the inhabitants of 
+Bracketonia. Given three mystical numbers total_n, total_m, and limit_k, the challenge was to 
+find out how many sequences consisting of exactly total_n Open Brackets and total_m Close Brackets could be
+ formed such that the longest balanced subsequence has a length of exactly 2*limit_k.
+
+This was no easy task, as the sequences could be quite lengthy and the number of possible combinations immense. The answer had to be calculated modulo 1000000007 
+(10^9 +7) to keep the numbers manageable and to fit within the ancient scrolls of Bracketonia.
+
+The Bracket Master’s challenge was clear:
+
+Balanced Sequence: A sequence that can be turned into a valid mathematical expression.
+Subsequence: A sequence derived by deleting zero or more elements without changing the order of the remaining elements.
+Objective: Find the number of sequences with exactly total_n Open Brackets and total_m Close
+ Brackets where the longest balanced subsequence is of length 2*limit_k..
+
+The wise mathematicians and programmers of Bracketonia set out 
+to solve this problem, using their knowledge of combinatorics 
+and dynamic programming. They knew the task was difficult but were determined to prove their skills.
+
+Will you join the ranks of Bracketonia’s best and take on the 
+challenge to find the solution? The fate of the perfect balance lies in your hands.
+
+Input:
+
+An integer total_n.
+An integer total_m.
+An integer limit_k.
+
+Constraints:
+
+total_n : ranges from 1 to 2000.
+limit_k : ranges from 1 to 2000.
+total_m : ranges from 1 to 2000.
+
+Output:
+
+The integer ans which is the number of sequences consisting of total_n '(' and total_m ')',
+such that the longest balanced subsequence is of length 2*limit_k. 
+Since the answer can be large calculate it modulo 1000000007(10^9+7).
+
+
+
+*/
+
+
+#include <iostream>
+#include <vector>
+#include <algorithm>
+#include <cassert>
+
+
+long long int Power(long long int base, long long int exponent, long long int mod)
+{
+    if(base==0)
+    return 0;
+    long long int res=1;
+    base%=mod;
+    while(exponent>0)
+    {
+        if(exponent&1)
+        res=(1ll*res*base)%mod;
+        exponent>>=1;
+        base=(1ll*base*base)%mod;
+    }
+    return res;
+}
+
+long long int NCR(long long int num, long long int choose,long long int fact[],long long int inv[])
+{
+    long long mod=1e9+7;
+    if(std::min(num, choose)<0 || choose>num){
+        return 0;
+    }
+    if(num==choose){
+        return 1;
+    }
+    return (((fact[num]*inv[choose])%mod)*inv[num-choose])%mod;
+}
+
+long long int BalancedSubsequences(long long int total_n,long long int total_m,long long int limit_k){
+    if (total_n<1 or total_m<1 or limit_k<1 or total_n>2000 or total_m>2000 or limit_k>2000) {
+        throw std::invalid_argument("Invalid Constraints");
+    }
+    long long N=4005, mod=1000000007;
+    long long int fact[N], inv[N];
+    fact[0]=inv[0]=1;
+    for(long long int i=1;i<N;i++)
+    fact[i]=(fact[i-1]*i)%mod;
+    for(long long int i=1;i<N;i++)
+    inv[i]=Power(fact[i], mod-2, mod);
+    long long int res1=0,res2=0;
+    if(limit_k>=std::min(total_n,total_m)){
+        res1=NCR(total_n+total_m,total_m,fact,inv);
+    }
+    else{
+        res1=NCR(total_n+total_m,limit_k,fact,inv);
+    }
+    if(limit_k-1>=std::min(total_n,total_m)){
+        res2=NCR(total_n+total_m,total_m,fact,inv);
+    }
+    else{
+        res2=NCR(total_n+total_m,limit_k-1,fact,inv);
+    }
+    long long int ans=(res1 - res2 + mod)%mod;
+    return ans;
+}
+
+
+
+int main(){
+    // TEST
+    int total_n_1 = 1;
+    int total_m_1 = 1;
+    int limit_k_1 = 1;
+    int expected_1 = 1;
+    int result_1 = BalancedSubsequences(total_n_1, total_m_1, limit_k_1);
+    assert(result_1 == expected_1);
+    // TEST_END
+
+    // TEST
+    int total_n_2 = 2;
+    int total_m_2 = 2;
+    int limit_k_2 = 1;
+    int expected_2 = 3;
+    int result_2 = BalancedSubsequences(total_n_2, total_m_2, limit_k_2);
+    assert(result_2 == expected_2);
+    // TEST_END
+
+    // TEST
+    int total_n_3 = 2;
+    int total_m_3 = 2;
+    int limit_k_3 = 2;
+    int expected_3 = 2;
+    int result_3 = BalancedSubsequences(total_n_3, total_m_3, limit_k_3);
+    assert(result_3 == expected_3);
+    // TEST_END
+
+    // TEST
+    int total_n_4 = 3;
+    int total_m_4 = 2;
+    int limit_k_4 = 2;
+    int expected_4 = 5;
+    int result_4 = BalancedSubsequences(total_n_4, total_m_4, limit_k_4);
+    assert(result_4 == expected_4);
+    // TEST_END
+
+    // TEST
+    int total_n_5 = 5;
+    int total_m_5 = 3;
+    int limit_k_5 = 3;
+    int expected_5 = 28;
+    int result_5 = BalancedSubsequences(total_n_5, total_m_5, limit_k_5);
+    assert(result_5 == expected_5);
+    // TEST_END
+
+    // TEST
+    int total_n_6 = 4;
+    int total_m_6 = 4;
+    int limit_k_6 = 2;
+    int expected_6 = 20;
+    int result_6 = BalancedSubsequences(total_n_6, total_m_6, limit_k_6);
+    assert(result_6 == expected_6);
+    // TEST_END
+
+    // TEST
+    int total_n_7 = 10;
+    int total_m_7 = 10;
+    int limit_k_7 = 5;
+    int expected_7 = 10659;
+    int result_7 = BalancedSubsequences(total_n_7, total_m_7, limit_k_7);
+    assert(result_7 == expected_7);
+    // TEST_END
+
+    // TEST
+    int total_n_8 = 6;
+    int total_m_8 = 8;
+    int limit_k_8 = 4;
+    int expected_8 = 637;
+    int result_8 = BalancedSubsequences(total_n_8, total_m_8, limit_k_8);
+    assert(result_8 == expected_8);
+    // TEST_END
+
+    // TEST
+    int total_n_9 = 0;
+    int total_m_9 = 8;
+    int limit_k_9 = 4;
+    try
+    {
+        BalancedSubsequences(total_n_9, total_m_9, limit_k_9);
+        assert(false);
+    }
+    catch (const std::invalid_argument &e)
+    {
+        assert(true);
+    }
+    // TEST_END
+    // TEST
+    int total_n_10 = 3000;
+    int total_m_10 = 8;
+    int limit_k_10 = 4;
+    try
+    {
+        BalancedSubsequences(total_n_10, total_m_10, limit_k_10);
+        assert(false);
+    }
+    catch (const std::invalid_argument &e)
+    {
+        assert(true);
+    }
+    // TEST_END
+    // TEST
+    int total_n_11 = -3;
+    int total_m_11 = 8;
+    int limit_k_11 = 4;
+    try
+    {
+        BalancedSubsequences(total_n_11, total_m_11, limit_k_11);
+        assert(false);
+    }
+    catch (const std::invalid_argument &e)
+    {
+        assert(true);
+    }
+    // TEST_END
+    // TEST
+    int total_n_12 = 8;
+    int total_m_12 = 0;
+    int limit_k_12 = 4;
+    try
+    {
+        BalancedSubsequences(total_n_12, total_m_12, limit_k_12);
+        assert(false);
+    }
+    catch (const std::invalid_argument &e)
+    {
+        assert(true);
+    }
+    // TEST_END
+    // TEST
+    int total_n_13 = 8;
+    int total_m_13 = 3000;
+    int limit_k_13 = 4;
+    try
+    {
+        BalancedSubsequences(total_n_13, total_m_13, limit_k_13);
+        assert(false);
+    }
+    catch (const std::invalid_argument &e)
+    {
+        assert(true);
+    }
+    // TEST_END
+    // TEST
+    int total_n_14 = 8;
+    int total_m_14 = -3;
+    int limit_k_14 = 4;
+    try
+    {
+        BalancedSubsequences(total_n_14, total_m_14, limit_k_14);
+        assert(false);
+    }
+    catch (const std::invalid_argument &e)
+    {
+        assert(true);
+    }
+    // TEST_END
+        // TEST
+    int total_n_15 = 8;
+    int total_m_15 = 4;
+    int limit_k_15 = 0;
+    try
+    {
+        BalancedSubsequences(total_n_15, total_m_15, limit_k_15);
+        assert(false);
+    }
+    catch (const std::invalid_argument &e)
+    {
+        assert(true);
+    }
+    // TEST_END
+    // TEST
+    int total_n_16 = 8;
+    int total_m_16 = 3;
+    int limit_k_16 = 4000;
+    try
+    {
+        BalancedSubsequences(total_n_16, total_m_16, limit_k_16);
+        assert(false);
+    }
+    catch (const std::invalid_argument &e)
+    {
+        assert(true);
+    }
+    // TEST_END
+    // TEST
+    int total_n_17 = 8;
+    int total_m_17 = 3;
+    int limit_k_17 = -4;
+    try
+    {
+        BalancedSubsequences(total_n_17, total_m_17, limit_k_17);
+        assert(false);
+    }
+    catch (const std::invalid_argument &e)
+    {
+        assert(true);
+    }
+    // TEST_END
+    std::cout << "All test cases passed!\n";
+    return 0;
+}
