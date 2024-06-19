@@ -27,7 +27,7 @@ A vector of integer ans where ans[i] the first time that index i becomes good.
 Constraint :
 
 nums.size() : ranges from 1 to 10^6
-nums[i] : ranges from 1 to n
+nums[i] : ranges from 1 to nums.size()
 
 */
 
@@ -211,6 +211,18 @@ int main() {
     try
     {
         PermutationSorting(nums_14);
+        assert(false);
+    }
+    catch (const std::invalid_argument &e)
+    {
+        assert(true);
+    }
+    // TEST_END
+    // TEST
+    std::vector<int> nums_15 = {-5}; 
+    try
+    {
+        PermutationSorting(nums_15);
         assert(false);
     }
     catch (const std::invalid_argument &e)
