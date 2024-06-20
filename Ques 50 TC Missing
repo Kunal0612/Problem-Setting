@@ -1,0 +1,124 @@
+/*
+
+https://codeforces.com/problemset/problem/1863/F
+
+Create a C++ function XORRESULT which helps to find string answer.
+
+In the mystical land of Arrayland, there existed a powerful vector consisting of n unique integers, each imbued with magical properties. These integers were positioned in a sequence, numbered from 1 to n. The most notable feature of these integers was their ability to perform an operation known as the "Bitwise Split."
+
+The ancient scrolls of Arrayland described this operation in great detail. When performing a Bitwise Split, the array would be divided into two non-empty parts: a prefix and a suffix. The value of each part was determined by the bitwise XOR of all elements within it. The weaker part, the one with the smaller XOR value, would vanish, leaving the stronger part to carry on. If both parts were equally strong, the one to vanish could be chosen freely.
+
+This operation would be repeated, reducing the array in size, until only a single element remained. The wise sages of Arrayland pondered whether it was possible for any given element to be the last one standing after a series of these operations.
+
+Thus, a challenge was set forth for the inhabitants of Arrayland: For each element i in the vector (where 1≤i≤n), determine whether it was possible for that element to be the sole survivor of the Bitwise Split operations.
+
+The quest to solve this challenge was as follows:
+
+Initial Position: Start with two markers, l and r, where l=1 and r=n. The array in its current state is [nums[l],nums[l+1],...,nums[r]].
+Performing the Split: As long as l<r, choose an arbitrary index k from the set {l,l+1,...,r−1}.
+Compute x, the bitwise XOR of the elements from nums[l] to nums[k].
+Compute y, the bitwise XOR of the elements from nums[k+1] to nums[r].
+Decision Making:
+If x<y, update l to k+1.
+If x>y, update r to k.
+If x=y, either update l to k+1 or update r to k.
+The goal was to determine for each i (where 1≤i≤n) if it was possible to perform these operations such that l=r=i.
+
+In the grand halls of Arrayland, the challenge was laid down as a story, and the bravest and wisest of Arrayland's inhabitants took on the task to solve this enigma. They knew that understanding the nuances of bitwise XOR and the strategic decisions during the Bitwise Split would be key to uncovering which elements could stand alone, resilient and triumphant, at the end of all operations.
+
+Input:
+
+A vector of long long integers nums containing the elements of the vector.
+
+Constraints:
+
+nums.size() : Should be at least 1 and at most 10,000.
+nums: Each element should be between 0  and 2^60 - 1 inclusive.
+
+Output:
+
+The string answer For each i(1≤i≤n), determine whether it is possible to achieve l=r=i if answer[i]=='1' then it is possible else not.
+
+*/
+
+
+
+#include <iostream>
+#include <vector>
+
+int HighBit(int node) {
+    return (node != (1ll << 62)) ? 1ull << (63 - __builtin_clzll(node)) : (1ll << 62);
+}
+
+int Presum(const std::vector<int>& res, int left, int right) {
+    return res[left - 1] != res[right] ? res[right] ^ res[left - 1] : (1ll << 62);
+}
+
+std::string XORRESULT(std::vector<long long int>& num) {
+    if (num.size() <= 0 or num.size()>100000) {
+        throw std::invalid_argument("vec length must be positive.");
+    }
+    for (int i = 0; i < num.size(); ++i)
+    {
+        if (num[i] < 0 || num[i] >= (1LL<<60))
+        {
+            throw std::invalid_argument("Invalid element value");
+        }
+    }
+    int n=num.size();
+    std::vector<int> nums(n+1);
+    for(int i=1;i<=n;i++){
+        nums[i]=num[i-1];
+    }
+    std::vector<int> res(n + 1), left(n + 1), right(n + 1), ans(n + 1);
+
+    for (int i = 1; i <= n; i++) {
+        res[i] = res[i - 1] ^ nums[i];
+        left[i] = right[i] = 0;
+    }
+
+    left[1] = right[n] = HighBit(Presum(res, 1, n));
+    ans[1] = 1;
+
+    for (int len = n - 1; len >= 1; len--) {
+        for (int l = 1; l <= n - len + 1; l++) {
+            int r = l + len - 1;
+            int flag = (((Presum(res, l, r) | (1ll << 62)) & left[l]) | ((Presum(res, l, r) | (1ll << 62)) & right[r]));
+            if (flag) {
+                left[l] |= HighBit(Presum(res, l, r));
+                right[r] |= HighBit(Presum(res, l, r));
+            }
+            if (len == 1) {
+                ans[l] = (flag > 0);
+            }
+        }
+    }
+
+    std::string result = "";
+    for (int i = 1; i <= n; i++) {
+        result += (ans[i] == 1 ? '1' : '0');
+    }
+
+    return result;
+}
+
+int main() {
+
+    int T;
+    std::cin >> T;
+
+    while (T--) {
+        int n;
+        std::cin >> n;
+        std::vector<long long int> a(n);
+
+        for (int i = 0; i <n; i++) {
+            std::cin >> a[i];
+        }
+
+        std::string result = XORRESULT(a);
+        std::cout << result << std::endl;
+    }
+
+    return 0;
+}
