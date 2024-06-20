@@ -140,55 +140,63 @@ int main()
     std::vector<std::vector<long long int>> queries_1 = {{1, 1}};
     std::vector<int> expected_1 = {1};
     std::vector<int> result_1 = GoodSubarrays(nums_1, queries_1);
+    assert(result_1 == expected_1);
     // TEST_END
 
     // TEST
     std::vector<long long int> nums_2 = {2, 3, 4, 1};
     std::vector<std::vector<long long int>> queries_2 = {{1, 4}, {2, 2}, {3, 3}};
-    std::vector<int> expected_2 = {10, 6, 6};
+    std::vector<int> expected_2 = {7,7,7};
     std::vector<int> result_2 = GoodSubarrays(nums_2, queries_2);
+    assert(result_2 == expected_2);
     // TEST_END
 
     // TEST
     std::vector<long long int> nums_3 = {5, 5, 5, 5, 5};
     std::vector<std::vector<long long int>> queries_3 = {{1, 5}, {2, 2}, {3, 4}};
-    std::vector<int> expected_3 = {15, 1, 3};
+    std::vector<int> expected_3 = {15,15,15};
     std::vector<int> result_3 = GoodSubarrays(nums_3, queries_3);
+    assert(result_3 == expected_3);
     // TEST_END
 
     // TEST
     std::vector<long long int> nums_4 = {1, 2, 3, 4, 5};
     std::vector<std::vector<long long int>> queries_4 = {{1, 5}, {3, 4}, {2, 2}};
-    std::vector<int> expected_4 = {15, 7, 2};
+    std::vector<int> expected_4 = {15, 15, 15};
     std::vector<int> result_4 = GoodSubarrays(nums_4, queries_4);
+    assert(result_4 == expected_4);
     // TEST_END
 
     // TEST
     std::vector<long long int> nums_5 = {1,2,3,4,5};
     std::vector<std::vector<long long int>> queries_5 = {{1, 1}, {2, 5}, {4, 4}};
-    std::vector<int> expected_5 = {10, 40, 7};
+    std::vector<int> expected_5 = {15,15,15};
     std::vector<int> result_5 = GoodSubarrays(nums_5, queries_5);
+    assert(result_5 == expected_5);
     // TEST_END
 
     // TEST
     std::vector<long long int> nums_6 = {3, 3, 3, 3};
     std::vector<std::vector<long long int>> queries_6 = {{1, 4}, {3, 3}, {2, 2}};
-    std::vector<int> expected_6 = {12, 3, 3};
+    std::vector<int> expected_6 = {9,9,9};
     std::vector<int> result_6 = GoodSubarrays(nums_6, queries_6);
+    assert(result_6 == expected_6);
     // TEST_END
 
     // TEST
     std::vector<long long int> nums_7 = {5, 5, 5, 5, 5, 5};
     std::vector<std::vector<long long int>> queries_7 = {{1, 6}, {3, 4}, {2, 5}};
-    std::vector<int> expected_7 = {30, 10, 25};
+    std::vector<int> expected_7 = {20,20,20};
     std::vector<int> result_7 = GoodSubarrays(nums_7, queries_7);
+    assert(result_7 == expected_7);
     // TEST_END
 
     // TEST
     std::vector<long long int> nums_8 = {1, 2, 3, 4};
     std::vector<std::vector<long long int>> queries_8 = {{1, 3}, {2, 2}, {4, 4}};
-    std::vector<int> expected_8 = {6, 2, 4};
+    std::vector<int> expected_8 = {10,10,10};
     std::vector<int> result_8 = GoodSubarrays(nums_8, queries_8);
+    assert(result_8 == expected_8);
     // TEST_END
     // TEST
     std::vector<long long int> nums_9(300000, 1);
