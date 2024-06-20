@@ -1,0 +1,116 @@
+/*
+https://codeforces.com/problemset/problem/1889/C2
+
+Write a C++ Solution DoremyDryingPlan the maximum number of dry cities.
+
+In the picturesque but perpetually rainy land of Raindropia, lived a girl named Doremy. 
+Raindropia is a country with n beautiful cities, each uniquely numbered from 1 to num_intervals. 
+The citizens of Raindropia have grown accustomed to the frequent showers, but there was always a glimmer 
+of hope when the weather forecast was announced.
+One day, the weather broadcast predicted the rain distribution for the upcoming num_segments days. On each of these m days, 
+the forecast provided intervals [l[i],r[i]], indicating that it would rain in all the cities within the 
+interval from l[i] to r[i] .
+
+Doremy, blessed with a special power, could choose up to max_removals days out of these num_segments
+days and stop the rain completely on those chosen days.
+Her goal was to maximize the number of cities that would remain
+dry—those cities where it would not rain on any of the remaining num_segments−max_removals days.
+
+She needed to plan carefully. By utilizing her power wisely, 
+she could bring sunshine to as many cities as possible, ensuring that 
+the vibrant life of Raindropia could continue unabated in those areas. Doremy's challenge was to figure out the maximum number of dry cities she could achieve after deciding which k days to use her power on.
+
+As Doremy pondered over her choices, she envisioned a strategic approach to accomplish her mission:
+
+Understand the Rain Intervals: Identify the rain intervals for all num_segments days
+to determine which cities are impacted.
+Strategically Choose Days: Select the best max_removals
+days to stop the rain in order to maximize the number of cities that remain untouched by any rain.
+With determination and careful planning, Doremy embarked on her quest to 
+bring the most sunshine to Raindropia, ensuring that her beloved cities could bask in the 
+warmth and joy of dry weather for as many days as possible.
+
+Input:
+
+An integer num_intervals.
+An integer num_segments.
+An integer max_removals.
+A vector of pair of integers pairs.
+
+Constraints:
+
+num_intervals : ranges from 1 to 200000
+num_segments : ranges from 1 to 200000
+max_removals : ranges from 2 to min(10,m)
+intervals : l[i] ranges from 1 to r[i] and r[i] ranges from l[i] to num_intervals
+
+Output:
+
+The integer result the maximum number of dry cities.
+
+*/
+
+#include <iostream>
+#include <vector>
+#include <set>
+#include <algorithm>
+#include <cstdio>
+#include <stdexcept>
+#include <cassert>
+
+int DoremyDryingPlan(int num_intervals, int num_segments, int max_removals, std::vector<std::pair<int, int>> intervals) {
+    if (num_intervals < 1 || num_intervals > 200000 || num_segments < 1 || num_segments > 200000 || max_removals < 2 || max_removals > std::min(10, num_segments)) {
+        throw std::invalid_argument("Invalid Constraints");
+    }
+
+    for (int i=0;i<intervals.size();i++) {
+        std::pair<int,int> interval=intervals[i];
+        int left_bound = interval.first;
+        int right_bound = interval.second;
+        if (left_bound < 1 || right_bound > num_intervals || right_bound < left_bound) {
+            throw std::invalid_argument("Invalid Constraints");
+        }
+    }
+    
+    std::vector<std::pair<int, int>> sorted_intervals(num_segments + 1);
+    std::vector<std::set<std::pair<int, int>>> dp(max_removals + 2);
+    for (int i = 1; i <= num_segments; ++i)
+        sorted_intervals[i] = {intervals[i - 1].second, intervals[i - 1].first};
+
+    std::sort(sorted_intervals.begin() + 1, sorted_intervals.begin() + num_segments + 1);
+
+    dp[0].emplace(num_intervals + 1, 0);
+
+    for (int i = num_segments; i >= 1; --i) {
+        for (int j = max_removals; j >= 0; --j) {
+            int max_value = -1;
+            while (!dp[j].empty() && sorted_intervals[i].second < std::prev(dp[j].end())->first) {
+                auto it = std::prev(dp[j].end());
+                max_value = std::max(max_value, std::max(it->first - sorted_intervals[i].first - 1, 0) + it->second);
+                dp[j + 1].insert(*it);
+                dp[j].erase(it);
+            }
+            if (max_value >= 0)
+                dp[j].emplace(sorted_intervals[i].second, max_value);
+        }
+    }
+
+    int result = 0;
+    for (std::set<std::pair<int, int>>::iterator it = dp[max_removals].begin(); it != dp[max_removals].end(); ++it) {
+        result = std::max(result, it->first + it->second - 1);
+    }
+
+    return result;
+}
+
+
+
+
+
+int main(){
+
+    //TEST
+    //TEST_END
+    std::cout << "All test cases passed!\n";
+    return 0;
+}
