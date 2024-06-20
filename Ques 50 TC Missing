@@ -45,6 +45,7 @@ The string answer For each i(1≤i≤n), determine whether it is possible to ach
 
 #include <iostream>
 #include <vector>
+#include <cassert>
 
 int HighBit(int node) {
     return (node != (1ll << 62)) ? 1ull << (63 - __builtin_clzll(node)) : (1ll << 62);
@@ -93,32 +94,118 @@ std::string XORRESULT(std::vector<long long int>& num) {
             }
         }
     }
-
     std::string result = "";
     for (int i = 1; i <= n; i++) {
         result += (ans[i] == 1 ? '1' : '0');
     }
-
     return result;
 }
 
 int main() {
+    // TEST
+    std::vector<long long int> nums_1 = {3, 2, 1, 3, 7, 4};
+    std::string expected_1 = "111110";
+    std::string result_1 = XORRESULT(nums_1);
+    assert(result_1 == expected_1);
+    // TEST_END
 
-    int T;
-    std::cin >> T;
+    // TEST
+    std::vector<long long int> nums_2 = {0, 0, 0};
+    std::string expected_2 = "000";
+    std::string result_2 = XORRESULT(nums_2);
+    assert(result_2 == expected_2);
+    // TEST_END
 
-    while (T--) {
-        int n;
-        std::cin >> n;
-        std::vector<long long int> a(n);
+    // TEST
+    std::vector<long long int> nums_3 = {1, 2, 3, 4, 5};
+    std::string expected_3 = "11001";
+    std::string result_3 = XORRESULT(nums_3);
+    assert(result_3 == expected_3);
+    // TEST_END
 
-        for (int i = 0; i <n; i++) {
-            std::cin >> a[i];
-        }
+    // TEST
+    std::vector<long long int> nums_4 = {9, 9, 9, 9};
+    std::string expected_4 = "1111";
+    std::string result_4 = XORRESULT(nums_4);
+    assert(result_4 == expected_4);
+    // TEST_END
 
-        std::string result = XORRESULT(a);
-        std::cout << result << std::endl;
+    // TEST
+    std::vector<long long int> nums_5 = {8, 8, 8, 8};
+    std::string expected_5 = "0000";
+    std::string result_5 = XORRESULT(nums_5);
+    assert(result_5 == expected_5);
+    // TEST_END
+
+    // TEST
+    std::vector<long long int> nums_6 = {1};
+    std::string expected_6 = "1";
+    std::string result_6 = XORRESULT(nums_6);
+    assert(result_6 == expected_6);
+    // TEST_END
+
+    // TEST
+    std::vector<long long int> nums_7 = {1,2,3,4};
+    std::string expected_7 = "0001";
+    std::string result_7 = XORRESULT(nums_7);
+    assert(result_7 == expected_7);
+    // TEST_END
+
+    // TEST
+    std::vector<long long int> nums_8 = {1, 3, 5, 7, 9};
+    std::string expected_8 = "00001";
+    std::string result_8 = XORRESULT(nums_8);
+    assert(result_8 == expected_8);
+    // TEST_END
+
+    // TEST
+    std::vector<long long int> nums_9 = {-1, 3, 5, 7, 9};
+    try
+    {
+        XORRESULT(nums_9);
+        assert(false);
     }
-
+    catch (const std::invalid_argument &e)
+    {
+        assert(true);
+    }
+    // TEST_END
+    // TEST
+    std::vector<long long int> nums_10 = {};
+    try
+    {
+        XORRESULT(nums_10);
+        assert(false);
+    }
+    catch (const std::invalid_argument &e)
+    {
+        assert(true);
+    }
+    // TEST_END
+    // TEST
+    std::vector<long long int> nums_11 = {1152921504606846977};
+    try
+    {
+        XORRESULT(nums_11);
+        assert(false);
+    }
+    catch (const std::invalid_argument &e)
+    {
+        assert(true);
+    }
+    // TEST_END
+    // TEST
+    std::vector<long long int> nums_12(100005,1);
+    try
+    {
+        XORRESULT(nums_12);
+        assert(false);
+    }
+    catch (const std::invalid_argument &e)
+    {
+        assert(true);
+    }
+    // TEST_END
+    std::cout << "All test cases passed!\n";
     return 0;
 }
