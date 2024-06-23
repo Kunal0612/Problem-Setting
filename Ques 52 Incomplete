@@ -1,0 +1,33 @@
+/*
+
+https://codeforces.com/problemset/problem/1973/E
+
+Create a C++ function named CountPairs that will find the number of permutations. 
+
+In the enchanting land of Numeria, there lived two clever friends: Fox and Cat. One day, Fox discovered an array nums=[nums[1],nums[2]....nums[n]] 
+which is a magical permutation of numbers ranging from 1 to len.. However, the numbers in the array were jumbled, and Fox desired to arrange them in increasing order.
+
+Cat, being a helpful companion, offered his magical ability to swap any two numbers x and y within the array. But there was a magical constraint on his powers: he could only swap numbers if their sum 
+x+y fell within a specific range, denoted by l and r. Formally, Cat could swap two numbers if and only if  l≤x+y≤r.
+
+Fox and Cat knew a few things about these magical limits:
+
+The range of permissible sums l and r must satisfy 1≤l≤r≤2*n.
+They could make any number of such swaps, including none at all, to achieve the desired sorted order.
+The challenge was clear: determine how many pairs (l,r) exist such that Fox could sort the permutation p into the array [1,2,…,n] using Cat’s magical swapping abilities.
+
+Input:
+
+A vector of integers nums.
+
+
+Constraints:
+
+nums.size() : ranges from 1 to 100000.
+nums : ranges from 1 to nums.size().
+
+Output:
+
+A integer answer which denotes the number of pairs of integers (l,r).
+
+*/
