@@ -1,0 +1,35 @@
+/*
+
+https://codeforces.com/problemset/problem/1919/E
+
+Create a C++ function named CountingPrefixes that will find count the number of initial arrays nums.
+
+In the land of Arithmoria, there is a mystical array nums of size n that holds great power. This array is special because each of its elements is either 1 or -1. The wise scholars of Arithmoria have discovered that the array nums has a magical property: it generates a sequence of prefix sums, denoted as pre, which reveals the accumulated power at each step.
+
+The prefix sum array pre is defined as follows: pre[i]=a[1] + a[2] + a[3] + .... a[i]. 
+
+ 
+for each i from 1 to n.
+
+The scholars know that once the prefix sum array pre is generated, it is then sorted in non-decreasing order, creating a sorted array pre′ . However, the original 
+array nums is a mystery, lost in the annals of time.
+
+Your quest is to determine how many possible initial arrays nums could have resulted in the given sorted prefix sum array pre′. 
+The task is daunting, as the number of possible arrays could be immense. Therefore, you are required to find this number modulo 998244353.
+
+Input:
+
+A vector of integers pre.
+
+
+Constraints:
+
+pre.size() : ranging from 1 to 5000.
+pre : abs(pre[i]) is less than equal to pre.size()
+
+Output:
+
+A integer ans that will count the number of initial arrays nums with modulo 998244353.
+
+
+*/
