@@ -1,0 +1,48 @@
+/*
+https://codeforces.com/problemset/problem/1981/F
+
+Create a C++ function named CountPairs that will find the number of permutations. 
+
+Once upon a time in the land of Turtleville, Piggy gifted his friend Turtle a magical binary tree for his birthday. This tree, rooted at vertex 1, had n vertices, and along with the tree, Piggy presented Turtle with a sequence nums[1],nums[2],…,nums[n].
+
+The Magical Binary Tree
+The binary tree is a special structure:
+It has n vertices.
+Each non-leaf vertex has at most 2 children.
+The Good Set of Paths
+Turtle found a magical property associated with paths in the binary tree:
+
+A set of paths P={(xi,yi)} is considered good if it covers each edge in the tree exactly once. Note that a good set of paths can cover a vertex multiple times.
+The Value of Paths
+Turtle defines the value of a set of paths using a special function f(x,y):
+
+For each path (x,y) in f(x,y) is the MEX (Minimum Excluded Value) of all a[u] where vertex u lies on the simple path from x to y in the tree, including x and y themselves.
+
+MEX Explained
+
+The MEX of a collection of integers is the smallest positive integer not present in that collection. For example:
+
+MEX of [3, 3, 1, 4] is 2.
+MEX of [2, 3] is 1.
+Turtle's Challenge
+Turtle's challenge is to determine the minimum value over all possible good sets of paths. Formally, he needs to calculate the minimum sum of  ∑(x,y)∈P f(x,y) for any good set of paths P.
+
+Input:
+
+A vector of integers nums.
+A vector of integer parents.
+
+
+Constraints:
+
+nums.size() : ranges from 1 to 25000.
+nums : ranges from 1 to nums.size().
+parents.size() : nums.size() - 1.
+parents : ranges from 1 to nums.size() - 1
+
+Output:
+
+A integer answer which denotes the minimum value over all good sets of paths.
+
+
+*/
