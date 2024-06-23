@@ -1,0 +1,38 @@
+/*
+
+https://codeforces.com/problemset/problem/1903/D2
+
+Create a C++ function named MaximumAndQueries that will find the maximum possible bitwise AND for each query.
+
+In the enchanted land of Bitlandia, a young mathematician named Theofanis loves to play with numbers, especially manipulating their bits. He has an vector a of size 
+len and an enchanted integer val. With the power of val, Theofanis can perform at most val magical operations on the array. Each operation allows him to pick a single element from the array and increase it by 1.
+
+Theofanis is fascinated by the bitwise AND operation and has discovered that by carefully using his val operations, he can maximize the bitwise AND value of the entire array. He has put a lot of effort into finding the maximum bitwise AND that the array nums can achieve after at most val operations, and he is thrilled with his results.
+
+However, trouble lurks in Bitlandia. Adaś, a mischievous troublemaker, is jealous of Theofanis's discoveries. Adaś repeatedly changes the value of val, causing Theofanis to recalculate the maximum bitwise AND for each new value of val.
+
+Your Quest
+
+You must help Theofanis by calculating the maximum possible bitwise AND for query different values of val.
+
+Each query is independent, and you need to provide Theofanis with the correct answers quickly, so he can outsmart Adaś.
+
+Input:
+
+A vector of integers nums.
+A vector of integer queires.
+
+
+Constraints:
+
+nums.size() : ranges from 1 to 1000000.
+queries.size() : ranges from 1 to 1000000.
+nums : ranges from 0 to 1000000.
+queries : ranges from 0 to 10^18.
+
+Output:
+
+A integer ans that will answer the maximum possible bitwise AND for each query.
+
+
+*/
