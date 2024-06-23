@@ -1,0 +1,31 @@
+/*
+
+https://codeforces.com/problemset/problem/1845/E
+
+Create a C++ function named BoxesandBalls that will find the number of different arrangements of balls that can exist after exactly num_moves moves are performed, modulo 10^9 + 7.
+
+In the kingdom of Boxlandia, there are n boxes arranged in a straight line, numbered from 1 to n. These boxes are special, for some of them contain a magical ball, while others are empty. The magical property of these boxes is such that at least one box contains a ball and at least one box is empty.
+
+The wizard of Boxlandia has devised a game where you can make moves to shift the balls between the boxes. In each move, you must choose a box containing a ball and an adjacent empty box, then move the ball from the current box to the adjacent empty box. Adjacent boxes are defined as i and i+1 for all i from 1 to n−1. Note that boxes 1 and n are not considered adjacent.
+
+
+You are tasked with determining how many different arrangements of the balls can exist after exactly num_moves moves. Two arrangements are considered different if there is at least one box that contains a ball in one arrangement and does not contain a ball in the other arrangement.
+
+Input:
+
+An integer num_moves.
+A vector of integers nums contain either 0 or 1 where 0 denote the empty box , 1 denote the ball inside the box.
+
+
+Constraints:
+
+nums.size() : ranges from 2 to 1500.
+num_moves : ranges from 1 to 1500.
+nums : either contain 0 or 1.
+
+Output:
+
+A integer ans that will find the number of different arrangements of balls that can exist after exactly num_moves moves are performed, modulo 10^9 + 7.
+
+
+*/
