@@ -1,0 +1,35 @@
+/*
+https://codeforces.com/problemset/problem/1976/F
+
+Create a C++ function named RemoveBridges that will find the smallest number of critical connections (bridges) left in the tree after the additions.
+
+In a mystical forest, there stands an ancient tree with size vertices, numbered from 1 to n. This tree, unlike any other, is rooted at vertex 1. The roots of this tree delve deep into the earth, spreading far and wide, but with one peculiarity: the root only has a single child.
+
+The Guardian of the Forest, a wise old sage, faces a dilemma. He needs to add exactly cnt magical bridges to the tree. These bridges are special and can connect any two vertices, even if there’s already a path between them. Each bridge can be thought of as an enchanted pathway that strengthens the bonds within the tree.
+
+However, there's a catch. The Guardian wants to ensure two things:
+
+For every magical bridge that acts as a crucial connection (a "bridge" in graph terms), all the tree edges within the subtree of the lower vertex connected by that bridge should also be critical connections.
+The total number of such critical connections (bridges) in the tree should be minimized after adding the cnt magical bridges.
+The task is not simple, as the Guardian must find the optimal way to add the bridges for every possible cnt from 1 to size−1 and determine the smallest number of 
+critical connections (bridges) left in the tree after the additions.
+
+Input:
+
+A integer size the number of vertices in a tree.
+A vector of vector of integers edges representing the edges of tree.
+the root (vertex 1) has exactly one child.
+
+
+Constraints:
+
+size : ranges from 2 to 300000.
+edges : ranges from 1 to size.
+
+Output:
+
+A vector of integer answer where answer[i] is the smallest number of bridges that can be left after you add i edges to the tree.
+
+
+
+*/
