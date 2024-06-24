@@ -1,0 +1,56 @@
+/*
+
+https://codeforces.com/problemset/problem/1893/D
+
+Create a C++ function named ColorfulConstructive to find a vector of integers answer where ans[i] should contain s[i] numbers representing the colors of the cubes on the i-th shelf, in the appropriate order. If it is impossible then return a vector with only -1 in it.
+
+Once upon a time, in the vibrant Kingdom of Colorland, there lived a master artist named Arvin who was famous for his magical colored cubes. These cubes were no ordinary toys; each was imbued with a unique hue and possessed the power to transform ordinary shelves into dazzling displays of color.
+
+One day, the Queen of Colorland invited Arvin to her palace and presented him with a challenge. She showed him n colored cubes, each painted with one of the kingdom's many beautiful colors. The Queen wanted these cubes to be displayed on m enchanted shelves in her grand gallery. However, there were special conditions for this display:
+
+Each of the m shelves had a specific capacity, meaning the i-th shelf could hold exactly s[i] cubes. Together, all the shelves had to hold exactly n cubes.
+
+Each shelf had a "colorfulness" requirement. The colorfulness of a shelf was determined by the arrangement of the cubes on it.
+
+To define colorfulness, the Queen explained:
+
+If all the cubes on a shelf had different colors, the colorfulness of that shelf was simply the number of cubes it could hold.
+If any two cubes on the shelf had the same color, the colorfulness was the minimum distance between any two cubes of the same color on that shelf.
+For example, if a shelf held the sequence of cubes with colors c[1] , c[2] , c[3]... c[k].
+
+If all the colors c[1] , c[2] , c[3]... c[k] were different, the colorfulness was k.
+Otherwise, the colorfulness was the smallest integer x≥1 such that there existed an index (1≤i≤k−x) where c[i]=c[i+x].
+
+The Queen had specified the minimum required colorfulness for each shelf  :  d[1] ,d[2]  ,…,d[m]
+​
+ . Arvin's task was to distribute all the cubes among the shelves in such a way that each shelf met or exceeded its required colorfulness.
+
+Arvin was perplexed. The task seemed daunting, but with his keen eye for detail and unmatched artistic skills, he was determined to find a solution. He needed to arrange the cubes carefully, considering their colors and the colorfulness constraints of each shelf. If it was impossible to meet the requirements, he had to admit defeat and inform the Queen.
+
+Now, dear problem solver, can you help Arvin arrange the cubes on the shelves to meet the Queen's demands? If it's possible, how should he distribute the cubes? If it's not, can you explain why it can't be done?
+
+Help Arvin bring the Queen's gallery to life with a harmonious and colorful display!
+
+Input:
+
+A vector of integers a.
+A vector of integers s.
+A vector of integers c.
+
+
+Constraints:
+
+a.size() :  ranges from 1 to 100000.
+s.size() :  ranges from 1 to a.size().
+c.size() :  ranges from 1 to a.size().
+a : a[i] ranges from 1 to a.size().
+s : s[i] ranges from 1 to a.size().
+c : s[i] ranges from 1 to s[i].
+
+Output:
+
+A vector of integers answer where ans[i] should contain s[i] numbers representing the colors of the cubes on the i-th shelf, in the appropriate order.
+If it is impossible then return a vector with only -1 in it.
+
+
+*/
