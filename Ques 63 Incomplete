@@ -1,0 +1,40 @@
+/*
+
+https://codeforces.com/problemset/problem/1951/F
+
+Create a C++ function named InversionComposition to return Boolean answer.
+
+In the distant land of Permutonia, the wise King Permutesh ruled over a kingdom of perfect order. His land was known for its arrays of numbers, always arranged in the most fascinating ways. One day, a challenge was brought before the king by a visiting wizard, who presented a mystical permutation puzzle.
+
+The wizard handed King Permutesh a special scroll containing two key elements: a permutation nums of size n and a non-negative integer val. The challenge was to construct another permutation q of the same size n such that the sum of the inversions of q and the inversions of a composite permutation q⋅p would exactly equal val.
+
+In this kingdom, a permutation is a unique arrangement of numbers from 1 to n. For example, if n=3, then [2, 3, 1] is a permutation of size 3.
+
+To understand the challenge more deeply, King Permutesh revisited the concept of inversions. For any permutation nums, the number of inversions, denoted as inv(a), is the count of pairs of indices (i,j) such that 
+i<j and a[i]>a[j]. For instance, in the permutation [2, 3, 1], there are 3 inversions: (2, 1), (3, 1), and (3, 2).
+
+The composite permutation w=q⋅p is defined such that w[i]=q[p[i]] for all 1≤i≤n. The challenge required finding a permutation q such that the sum of inversions inv(q)+inv(q⋅p) equals the given integer val.
+
+King Permutesh realized that solving this problem required a blend of mathematical prowess and logical reasoning. He pondered whether it was always possible to find such a permutation q for any given permutation 
+p and integer val, or if there were instances where the task was simply impossible.
+
+Your task is to assist King Permutesh in solving this conundrum. Given the permutation p and the integer val, determine if it is possible to construct a permutation q such that 
+inv(q)+inv(q⋅p)=k. If it is possible, return true else return false.
+
+Input:
+
+A vector of integers nums.
+An integer val.
+
+Constraints:
+
+nums.size() : ranges from 1 to 300000.
+val : ranges from 0 to nums.size()*(nums.size() - 1).
+nums : ranges from 1 to nums.size().
+
+
+Output:
+
+A Boolean value ans is true if the permutation is possible else false.
+
+*/
