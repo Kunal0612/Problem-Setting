@@ -1,0 +1,49 @@
+/*
+
+https://codeforces.com/problemset/problem/1942/F
+
+Create a C++ function named FavoriteFunction to answer each query.
+
+In the quaint village of Numland, Farmer John had a peculiar array of numbers, a, of length n. This array wasn't just any array; it held a special significance in his daily farming calculations, governed by a mystical function f. The function f followed a unique pattern:
+
+For the first element, f(1)=nums[1] 
+
+For all subsequent elements i>1,  f(i)=f(i−1)+nums[i] 
+
+​Farmer John relied on the value of f(n), the result after applying the function to the entire array, for various farming decisions. However, f(i) wasn't always an integer, and for practical purposes, he often needed the floor value of f(n), denoted as ⌊f(n)⌋, which means the greatest integer less than or equal to f(n).
+
+One day, Farmer John realized he needed to update his array multiple times. Each update involved setting a specific element in the array to a new value. After each update, he wanted to know the updated ⌊f(n)⌋.
+
+Farmer John sought the help of the clever villagers to handle these updates efficiently. Here was the challenge they faced:
+
+Initial Array: An array nums of length n.
+Function Definition:f(1)=nums[1] 
+​
+For all i>1, f(i)=f(i−1)+nums[i] 
+
+Updates: He planned to make q updates. Each update consisted of:
+Two integers, k and x, indicating that the k-th element of the array should be updated to x.
+After each update, the villagers needed to compute the new value of ⌊f(n)⌋.
+
+Farmer John was counting on the villagers' wisdom to perform these updates quickly and accurately, ensuring his farm operations ran smoothly. Could you help the villagers determine the floor value of f(n) after each update?
+
+Join in this numerical adventure and assist Farmer John in maintaining the prosperity of his farm!
+
+Input:
+
+A vector of long long integers nums.
+A vector of vector of long long integers queries.
+
+Constraints:
+
+nums.size() : ranges from 1 to 200000.
+queries.size() : ranges from 1 to 200000.
+nums : ranges from 1 to 10^18
+queries : queries[i][0] : ranges from 1 to nums.size().
+          queries[i][1] : ranges from 1 to 10^18.
+
+Output:
+
+A vector of integers answer to answer each query.
+
+*/
