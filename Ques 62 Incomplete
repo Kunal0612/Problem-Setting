@@ -1,0 +1,55 @@
+/*
+
+https://codeforces.com/problemset/problem/1945/H
+
+Create a C++ function named GCDIsGreater to find the answer vector.
+
+In the evenings during their hike, Kirill and Anton found themselves a unique way to unwind and engage in friendly competition. Nestled in the serenity of nature, they would take out an array of integers nums from their backpack and play a challenging game with it. Here's how their game unfolded:
+
+The Game Rules
+
+Selection Phase:
+
+Kirill's Move: Kirill begins by selecting and encircling a subset of the integers in red. He can choose any number of integers from 2 to n−2 (where n is the length of the array).
+Anton's Move: Anton then encircles all the remaining integers in blue.
+
+Calculation Phase:
+
+Kirill's Calculation: Kirill calculates the Greatest Common Divisor (GCD) of all the integers he encircled in red.
+Anton's Calculation: Anton performs a bitwise AND operation on all the integers he encircled in blue and then adds a given number x to the result.
+
+Winning Condition:
+
+Kirill wins if the GCD of his red numbers is strictly greater than the sum of the bitwise AND of Anton's blue numbers and the number val.
+Otherwise, Anton wins.
+
+The Challenge
+
+Kirill and Anton pondered over various strategies to outwit each other. Kirill wondered if there was a surefire way to ensure his victory, while Anton, with his knack for bitwise operations, was confident in his approach. The game became an intriguing puzzle:
+
+Kirill's Goal: To choose such red numbers that their GCD is as large as possible.
+Anton's Goal: To minimize the GCD of Kirill's red numbers by making the sum of his bitwise AND result and val as large as possible.
+
+Objective
+
+Help Kirill determine if there is a way to always win against Anton. If there is, explain the strategy he should use. If not, provide a reasoning as to why it's impossible.
+
+The game not only tested their mathematical prowess but also their strategic thinking, turning a simple array of integers into a battlefield of wits and tactics.
+
+Input:
+
+A vector of long long integers nums.
+An integer val.
+
+Constraints:
+
+nums.size() : ranges from 4 to 400000.
+val : ranges from 0 to 400000.
+nums : ranges from 1 to 400000
+
+
+Output:
+
+A vector of integers answer if there is a possible answer else return an empty vector.
+
+*/
