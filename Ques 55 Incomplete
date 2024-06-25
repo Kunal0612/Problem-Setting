@@ -2,19 +2,19 @@
 
 https://codeforces.com/problemset/problem/1919/E
 
-Create a C++ function named CountingPrefixes that will find count the number of initial arrays nums.
+Create a C++ function named CountingPrefixes that wilong long int find count the number of initial arrays nums.
 
 In the land of Arithmoria, there is a mystical array nums of size n that holds great power. This array is special because each of its elements is either 1 or -1. The wise scholars of Arithmoria have discovered that the array nums has a magical property: it generates a sequence of prefix sums, denoted as pre, which reveals the accumulated power at each step.
 
-The prefix sum array pre is defined as follows: pre[i]=a[1] + a[2] + a[3] + .... a[i]. 
+The prefix sum array pre is defined as folong long intows: pre[i]=a[1] + a[2] + a[3] + .... a[i].
 
- 
+
 for each i from 1 to n.
 
-The scholars know that once the prefix sum array pre is generated, it is then sorted in non-decreasing order, creating a sorted array pre′ . However, the original 
+The scholars know that once the prefix sum array pre is generated, it is then sorted in non-decreasing order, creating a sorted array pre′ . However, the original
 array nums is a mystery, lost in the annals of time.
 
-Your quest is to determine how many possible initial arrays nums could have resulted in the given sorted prefix sum array pre′. 
+Your quest is to determine how many possible initial arrays nums could have resulted in the given sorted prefix sum array pre′.
 The task is daunting, as the number of possible arrays could be immense. Therefore, you are required to find this number modulo 998244353.
 
 Input:
@@ -33,3 +33,239 @@ A integer ans that will count the number of initial arrays nums with modulo 9982
 
 
 */
+#include <iostream>
+#include <vector>
+#include <algorithm>
+#include <cassert>
+
+std::vector<long long int> Factorials(int max_size)
+{
+    const int MOD = 998244353;
+    std::vector<long long int> factorial(max_size, 1);
+    for (int index = 1; index < max_size; ++index)
+    {
+        factorial[index] = factorial[index - 1] * index % MOD;
+    }
+    return factorial;
+}
+
+std::vector<long long int> InverseFactorials(const std::vector<long long int> &factorial)
+{
+    const int MOD = 998244353;
+    int max_size = factorial.size();
+    std::vector<long long int> inverse_factorial(max_size, 1);
+    inverse_factorial[max_size - 1] = 1;
+    for (int index = 2; index < max_size; ++index)
+    {
+        inverse_factorial[index] = MOD - MOD / index * inverse_factorial[MOD % index] % MOD;
+    }
+    for (int index = 2; index < max_size; ++index)
+    {
+        inverse_factorial[index] = inverse_factorial[index - 1] * inverse_factorial[index] % MOD;
+    }
+    return inverse_factorial;
+}
+
+long long int NCR(int n, int r, const std::vector<long long int> &factorial, const std::vector<long long int> &inverse_factorial)
+{
+    if (r < 0 || n < r)
+    {
+        return 0;
+    }
+    const int MOD = 998244353;
+    return factorial[n] * inverse_factorial[r] % MOD * inverse_factorial[n - r] % MOD;
+}
+
+long long int Comp(int n, int x, const std::vector<long long int> &factorial, const std::vector<long long int> &inverse_factorial)
+{
+    if (n == 0 && x == 0)
+    {
+        return 1;
+    }
+    return NCR(x + n - 1, x, factorial, inverse_factorial);
+}
+
+int CountingPrefixes(std::vector<int> &pre)
+{
+    const int MAXN = 200005;
+
+    int max_factorial_size = MAXN * 2;
+    std::vector<long long int> factorial = Factorials(max_factorial_size);
+    std::vector<long long int> inverse_factorial = InverseFactorials(factorial);
+    int sequence_size = pre.size();
+
+    std::vector<int> frequency(sequence_size * 2 + 5, 0);
+    if (pre.empty() or pre.size() > 5000)
+        throw std::invalid_argument("Vector is empty");
+    for(int i=0;i<pre.size();i++){
+        if (abs(pre[i])>sequence_size){
+            throw std::invalid_argument("Number out of range");
+        }
+    }
+    ++sequence_size;
+    for (int index = 1; index < sequence_size; ++index)
+    {
+        int sequence_value = pre[index - 1];
+        frequency[sequence_value + sequence_size]++;
+    }
+    frequency[sequence_size]++;
+    const int INF = 1000000005;
+
+    int min_value = INF, max_value = -INF;
+    for (int index = 0; index <= 2 * sequence_size; ++index)
+    {
+        if (frequency[index])
+        {
+            min_value = std::min(min_value, index);
+            max_value = std::max(max_value, index);
+        }
+    }
+
+    bool is_invalid = false;
+    for (int index = min_value; index <= max_value; ++index)
+    {
+        if (!frequency[index])
+        {
+            is_invalid = true;
+            break;
+        }
+    }
+
+    if (is_invalid || min_value == max_value)
+    {
+        return 0;
+    }
+    const int MOD = 998244353;
+    long long int result = 0;
+    std::vector<int> difference(max_value + 1, 0);
+    for (int x_value = max_value; x_value >= min_value; --x_value)
+    {
+        difference[max_value - 1] = frequency[max_value] + (max_value > sequence_size) - (max_value == x_value);
+        for (int index = max_value - 2; index >= min_value - 1; --index)
+        {
+            difference[index] = frequency[index + 1] - difference[index + 1] + (index >= x_value) + (index >= sequence_size);
+        }
+        if (difference[min_value - 1] != 0)
+        {
+            continue;
+        }
+        long long int temp_result = 1;
+        for (int index = max_value - 1; index >= min_value; --index)
+        {
+            temp_result = temp_result * Comp(difference[index], frequency[index] - difference[index], factorial, inverse_factorial) % MOD;
+        }
+        result += temp_result;
+        if (result >= MOD)
+        {
+            result -= MOD;
+        }
+    }
+    return result;
+}
+
+int main()
+{
+
+    // TEST
+    std::vector<int> nums_1 = {-1, 1, -1, 2};
+    int expected_1 = 0;
+    int result_1 = CountingPrefixes(nums_1);
+    assert(result_1 == expected_1);
+    // TEST_END
+
+    // TEST
+    std::vector<int> nums_2 = {1, -1, 2, -1, 1};
+    int expected_2 = 0;
+    int result_2 = CountingPrefixes(nums_2);
+    assert(result_2 == expected_2);
+    // TEST_END
+
+    // TEST
+    std::vector<int> nums_3 = {2, -1, 3, -2, 4};
+    int expected_3 = 0;
+    int result_3 = CountingPrefixes(nums_3);
+    assert(result_3 == expected_3);
+    // TEST_END
+
+    // TEST
+    std::vector<int> nums_4 = {0, -1, 1, -1, 2};
+    int expected_4 = 0;
+    int result_4 = CountingPrefixes(nums_4);
+    assert(result_4 == expected_4);
+    // TEST_END
+
+    // TEST
+    std::vector<int> nums_5 = {5, -5, 10, -10, 5,5,5,1,2,5};
+    int expected_5 = 0;
+    int result_5 = CountingPrefixes(nums_5);
+    assert(result_5 == expected_5);
+    // TEST_END
+
+    // TEST
+    std::vector<int> nums_6 = {-3, 3, -3, 3, -3, 3};
+    int expected_6 = 0;
+    int result_6 = CountingPrefixes(nums_6);
+    assert(result_6 == expected_6);
+    // TEST_END
+
+    // TEST
+    std::vector<int> nums_7 = {4, -4, 2, -6, 4, -4};
+    int expected_7 = 0;
+    int result_7 = CountingPrefixes(nums_7);
+    assert(result_7 == expected_7);
+    // TEST_END
+
+    // TEST
+    std::vector<int> nums_8 = {-4,-3,-3,-2,-1};
+    int expected_8 = 1;
+    int result_8 = CountingPrefixes(nums_8);
+    assert(result_8 == expected_8);
+    // TEST_END
+
+    // TEST
+    std::vector<int> nums_9 = {1, 2, 3, 4, 5};
+    int expected_9 = 1;
+    int result_9 = CountingPrefixes(nums_9);
+    assert(result_9 == expected_9);
+    // TEST_END
+
+    // TEST
+    std::vector<int> nums_10 = {};
+    try
+    {
+        CountingPrefixes(nums_10);
+        assert(false);
+    }
+    catch (const std::invalid_argument &e)
+    {
+        assert(true);
+    }
+    // TEST_END
+
+    // TEST
+    std::vector<int> nums_11(200005, 1);
+    try
+    {
+        CountingPrefixes(nums_11);
+        assert(false);
+    }
+    catch (const std::invalid_argument &e)
+    {
+        assert(true);
+    }
+    // TEST_END
+    // TEST
+    std::vector<int> nums_12 = {-5};
+    try
+    {
+        CountingPrefixes(nums_12);
+        assert(false);
+    }
+    catch (const std::invalid_argument &e)
+    {
+        assert(true);
+    }
+    // TEST_END
+    std::cout << "All test cases passed!\n";
+    return 0;
+}
