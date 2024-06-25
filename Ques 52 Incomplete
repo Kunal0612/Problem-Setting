@@ -4,17 +4,22 @@ https://codeforces.com/problemset/problem/1973/E
 
 Create a C++ function named CountPairs that will find the number of permutations. 
 
-In the enchanting land of Numeria, there lived two clever friends: Fox and Cat. One day, Fox discovered an array nums=[nums[1],nums[2]....nums[n]] 
-which is a magical permutation of numbers ranging from 1 to len.. However, the numbers in the array were jumbled, and Fox desired to arrange them in increasing order.
+In the enchanting land of Numeria, there lived two clever friends: Fox and Cat. One day, Fox discovered an array nums=[nums[1],nums[2]....nums[size]] 
+which is a magical permutation of numbers ranging from 1 to size. However, the numbers 
+in the array were jumbled, and Fox desired to arrange them in increasing order.
 
-Cat, being a helpful companion, offered his magical ability to swap any two numbers x and y within the array. But there was a magical constraint on his powers: he could only swap numbers if their sum 
-x+y fell within a specific range, denoted by l and r. Formally, Cat could swap two numbers if and only if  l≤x+y≤r.
+Cat, being a helpful companion, offered his magical ability to swap any two numbers x 
+and y within the array. But there was a magical constraint on his powers: he could only
+swap numbers if their sum 
+x+y fell within a specific range, denoted by left and right. Formally,
+Cat could swap two numbers if and only if  l≤x+y≤r.
 
 Fox and Cat knew a few things about these magical limits:
 
-The range of permissible sums l and r must satisfy 1≤l≤r≤2*n.
+The range of permissible sums left and right must satisfy 1≤l≤r≤2*size.
 They could make any number of such swaps, including none at all, to achieve the desired sorted order.
-The challenge was clear: determine how many pairs (l,r) exist such that Fox could sort the permutation p into the array [1,2,…,n] using Cat’s magical swapping abilities.
+The challenge was clear: determine how many pairs (left,right) exist such that Fox 
+could sort the permutation p into the array [1,2,…,size] using Cat’s magical swapping abilities.
 
 Input:
 
@@ -28,6 +33,182 @@ nums : ranges from 1 to nums.size().
 
 Output:
 
-A integer answer which denotes the number of pairs of integers (l,r).
+A long long integer answer which denotes the number of pairs of integers (left,right).
 
 */
+#include <algorithm>
+#include <iostream>
+#include <cassert>
+#include <set>
+#include <vector>
+
+long long int count(long long int size) {
+    if (size <= 0) return 0;
+    return (size * (size - 1)) / 2ll;
+}
+
+long long int CountPairs(const std::vector<int>& nums) {
+
+    int size = nums.size();
+    if (size < 1 || size > 100000) {
+        throw std::invalid_argument("Invalid value of size. Expected 1 <= size <= 100000.");
+    }
+    
+    for (int i = 0; i < size; ++i) {
+        if (nums[i] < 1 || nums[i] > size) {
+            throw std::invalid_argument("Invalid value inarray nums.");
+        }
+    }
+    std::set<int> stt;
+    for (int i = 0; i < size; i++) {
+        if (i != nums[i] - 1) {
+            stt.insert(nums[i] + i);
+        }
+    }
+    if (stt.empty()) {
+        return count(2 * size + 1);
+    }
+    long long int answer = (stt.size() == 1);
+    long long int left = 0, right = 2 * size;
+    for (int i = 0; i < size; i++) {
+        if (i != nums[i] - 1) {
+            left = std::max(left, static_cast<long long int>(nums[i] + 1));
+            right = std::min(right, static_cast<long long int>(nums[i] + size));
+        }
+    }
+    answer += count(2ll * size) - count(left - 1) - count(2ll * size - right);
+    return answer;
+}
+
+int main() {
+
+    // TEST
+    std::vector<int> nums_1 = {3,1,2};
+    int expected_1 = 11;
+    int result_1 = CountPairs(nums_1);
+    assert(result_1 == expected_1);
+    // TEST_END
+
+    // TEST
+    std::vector<int> nums_2 = {4,1,5,4,1,1};
+    int expected_2 = 46;
+    int result_2 = CountPairs(nums_2);
+    assert(result_2 == expected_2);
+    // TEST_END
+
+    // TEST
+    std::vector<int> nums_3 = {1, 2, 3};
+    int expected_3 = 21;
+    int result_3 = CountPairs(nums_3);
+    assert(result_3 == expected_3);
+    // TEST_END
+
+    // TEST
+    std::vector<int> nums_4 = {4, 3, 2, 1};
+    int expected_4 = 20;
+    int result_4 = CountPairs(nums_4);
+    assert(result_4 == expected_4);
+    // TEST_END
+
+    // TEST
+    std::vector<int> nums_5 = {2, 3, 1, 5, 4, 6};
+    int expected_5 = 46;
+    int result_5 = CountPairs(nums_5);
+    assert(result_5 == expected_5);
+    // TEST_END
+
+    // TEST
+    std::vector<int> nums_6 = {5, 1, 2, 4, 3, 6, 7};
+    int expected_6 = 66;
+    int result_6 = CountPairs(nums_6);
+    assert(result_6 == expected_6);
+    // TEST_END
+
+    // TEST
+    std::vector<int> nums_7 = {1, 3, 2, 5, 4, 6, 7};
+    int expected_7 = 71;
+    int result_7 = CountPairs(nums_7);
+    assert(result_7 == expected_7);
+    // TEST_END
+
+    // TEST
+    std::vector<int> nums_8 = {4, 2, 3, 1, 5, 6, 7, 8};
+    int expected_8 = 94;
+    int result_8 = CountPairs(nums_8);
+    assert(result_8 == expected_8);
+    // TEST_END
+
+    // TEST
+    std::vector<int> nums_9 = {3,2,4,1,5};
+    int expected_9 = 33;
+    int result_9 = CountPairs(nums_9);
+    assert(result_9 == expected_9);
+    // TEST_END
+
+    // TEST
+    std::vector<int> nums_10 = {2, 3, -1}; 
+    try
+    {
+        CountPairs(nums_10);
+        assert(false);
+    }
+    catch (const std::invalid_argument &e)
+    {
+        assert(true);
+    }
+    // TEST_END
+
+    // TEST
+    std::vector<int> nums_11 = {2, 3, 0}; 
+    try
+    {
+        CountPairs(nums_11);
+        assert(false);
+    }
+    catch (const std::invalid_argument &e)
+    {
+        assert(true);
+    }
+    // TEST_END
+
+    // TEST
+    std::vector<int> nums_12 = {2, 3, 4}; 
+    try
+    {
+        CountPairs(nums_12);
+        assert(false);
+    }
+    catch (const std::invalid_argument &e)
+    {
+        assert(true);
+    }
+    // TEST_END
+
+    // TEST
+    std::vector<int> nums_13 = {}; 
+    try
+    {
+        CountPairs(nums_13);
+        assert(false);
+    }
+    catch (const std::invalid_argument &e)
+    {
+        assert(true);
+    }
+    // TEST_END
+
+    // TEST
+    std::vector<int> nums_14(200005,1); 
+    try
+    {
+        CountPairs(nums_14);
+        assert(false);
+    }
+    catch (const std::invalid_argument &e)
+    {
+        assert(true);
+    }
+    // TEST_END
+    std::cout << "All test cases passed!\n";
+    return 0;
+}
