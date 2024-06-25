@@ -1,0 +1,294 @@
+/*
+
+
+https://leetcode.com/problems/count-the-number-of-inversions/
+
+Create a C++ function named CountPermutation that will find the number of permutations.
+
+In the kingdom of Permutonia, there exists a powerful wizard named Sage Inversius, who is known for his ability to manipulate the order of things.
+The kingdom is home to an array of numbers, ranging from 0 to len−1, which the wizard loves to shuffle into various permutations.
+
+One day, the royal court presented Sage Inversius with a series of challenges, known as the Inversion Requirements. These requirements came in the form of a scroll, where each line dictated a specific condition for the wizard's permutations. Each condition is described as follows:
+
+Requirement[i] states that the subarray formed by the first end[i] elements of the permutation must contain exactly cnt[i] inversions.
+An inversion in a permutation is defined as a pair of indices (i,j) such that i<j and perm[i]>perm[j].
+
+The king has tasked Sage Inversius to count the number of valid permutations of the array [0,1,2,...,n−1] that satisfy all these inversion requirements. Knowing that the number of such permutations could be astronomically large, the king requests the answer to be given modulo 10^9 + 7.
+
+Input:
+
+A integer len.
+A vector of vector of integer requirements.
+
+
+Constraints:
+
+len : The length of the vector to be permuted is between 2 and 300, inclusive.
+requirements :
+There is at least one inversion requirement and at most n inversion requirements.
+Each requirement is represented as a pair where end[i] is an index and cnt[i] is the number of required inversions in the subarray.
+The end index of the subarray for each requirement ranges from 0 to len−1, inclusive.
+The number of inversions required in the subarray ranges from 0 to 400, inclusive.
+There is at least one requirement that involves the entire array.
+Each requirement has a distinct end index.
+
+Output:
+
+A integer answer which denotes the count of permutation with given requirements.
+
+
+*/
+#include <iostream>
+#include <vector>
+#include <algorithm>
+#include <cassert>
+#include <set>
+
+int Helper(int curr_index, int curr_sum, int total_elements, std::vector<std::vector<int>> &dp_matrix, std::vector<int> &constraints_arr)
+{
+    if (curr_index == total_elements)
+        return 1;
+
+    if (dp_matrix[curr_index][curr_sum] != -1)
+        return dp_matrix[curr_index][curr_sum];
+
+    int result = 0;
+    int modulo = 1e9 + 7;
+    if (constraints_arr[curr_index] == -1)
+    {
+        for (int idx = 0; idx <= curr_index; idx++)
+        {
+            if (curr_sum + curr_index - idx <= 400)
+                result = (result + Helper(curr_index + 1, curr_sum + curr_index - idx, total_elements, dp_matrix, constraints_arr)) % modulo;
+        }
+    }
+    else
+    {
+        for (int idx = 0; idx <= curr_index; idx++)
+        {
+            if (curr_sum + curr_index - idx == constraints_arr[curr_index])
+                result = (result + Helper(curr_index + 1, curr_sum + curr_index - idx, total_elements, dp_matrix, constraints_arr)) % modulo;
+        }
+    }
+
+    return dp_matrix[curr_index][curr_sum] = result % modulo;
+}
+
+int CountPermutation(int len, std::vector<std::vector<int>> &requirements)
+{
+    if (len < 2 || len > 300)
+    {
+        throw std::invalid_argument("len must be between 2 and 300.");
+    }
+
+    if (requirements.size() < 1 || requirements.size() > static_cast<size_t>(len))
+    {
+        throw std::invalid_argument("requirements length must be between 1 and len.");
+    }
+
+    std::set<int> end_indices;
+    bool entire_array_requirement = false;
+
+    for (const auto &requirement : requirements)
+    {
+        int endi = requirement[0];
+        int cnti = requirement[1];
+
+        if (endi < 0 || endi >= len)
+        {
+            throw std::invalid_argument("endi must be between 0 and len - 1.");
+        }
+
+        if (cnti < 0 || cnti > 400)
+        {
+            throw std::invalid_argument("cnti must be between 0 and 400.");
+        }
+
+        if (end_indices.count(endi))
+        {
+            throw std::invalid_argument("Each endi must be unique.");
+        }
+
+        end_indices.insert(endi);
+
+        if (endi == len - 1)
+        {
+            entire_array_requirement = true;
+        }
+    }
+
+    if (!entire_array_requirement)
+    {
+        throw std::invalid_argument("There must be at least one requirement involving the entire array.");
+    }
+    std::vector<std::vector<int>> dp_matrix(len + 1, std::vector<int>(401, -1));
+    std::vector<int> constraints_arr(len, -1);
+
+    for (int idx = 0; idx < requirements.size(); idx++)
+    {
+        constraints_arr[requirements[idx][0]] = requirements[idx][1];
+    }
+
+    return Helper(0, 0, len, dp_matrix, constraints_arr);
+}
+
+int main()
+{
+    // TEST
+    int len_1 = 3;
+    std::vector<std::vector<int>> requirements_1 = {{2, 2}, {0, 0}};
+    int expected_1 = 2;
+    int result_1 = CountPermutation(len_1, requirements_1);
+    assert(result_1 == expected_1);
+    // TEST_END
+
+    // TEST
+    int len_2 = 4;
+    std::vector<std::vector<int>> requirements_2 = {{3, 3}, {1, 1}};
+    int expected_2 = 3;
+    int result_2 = CountPermutation(len_2, requirements_2);
+    assert(result_2 == expected_2);
+    // TEST_END
+
+    // TEST
+    int len_3 = 5;
+    std::vector<std::vector<int>> requirements_3 = {{4, 4}, {2, 2}};
+    int expected_3 = 6;
+    int result_3 = CountPermutation(len_3, requirements_3);
+    assert(result_3 == expected_3);
+    // TEST_END
+
+    // TEST
+    int len_4 = 2;
+    std::vector<std::vector<int>> requirements_4 = {{1, 0}};
+    int expected_4 = 1;
+    int result_4 = CountPermutation(len_4, requirements_4);
+    assert(result_4 == expected_4);
+    // TEST_END
+
+    // TEST
+    int len_5 = 6;
+    std::vector<std::vector<int>> requirements_5 = {{5, 5}, {3, 3}, {1, 1}};
+    int expected_5 = 9;
+    int result_5 = CountPermutation(len_5, requirements_5);
+    assert(result_5 == expected_5);
+    // TEST_END
+
+    // TEST
+    int len_6 = 4;
+    std::vector<std::vector<int>> requirements_6 = {{3, 0}, {2, 2}, {1, 1}};
+    int expected_6 = 0;
+    int result_6 = CountPermutation(len_6, requirements_6);
+    assert(result_6 == expected_6);
+    // TEST_END
+
+    // TEST
+    int len_7 = 5;
+    std::vector<std::vector<int>> requirements_7 = {{4, 0}, {3, 3}, {2, 1}};
+    int expected_7 = 0;
+    int result_7 = CountPermutation(len_7, requirements_7);
+    assert(result_7 == expected_7);
+    // TEST_END
+
+    // TEST
+    int len_8 = 3;
+    std::vector<std::vector<int>> requirements_8 = {{2, 0}, {1, 0}};
+    int expected_8 = 1;
+    int result_8 = CountPermutation(len_8, requirements_8);
+    assert(result_8 == expected_8);
+    // TEST_END
+    // TEST
+    int len_9 = -3;
+    std::vector<std::vector<int>> requirements_9 = {{2, 0}, {1, 0}};
+    try
+    {
+        CountPermutation(len_9, requirements_9);
+        assert(false);
+    }
+    catch (const std::invalid_argument &e)
+    {
+        assert(true);
+    }
+    // TEST_END
+    // TEST
+    int len_10 = 3;
+    std::vector<std::vector<int>> requirements_10 = {{2, -1}, {1, 0}};
+    try
+    {
+        CountPermutation(len_10, requirements_10);
+        assert(false);
+    }
+    catch (const std::invalid_argument &e)
+    {
+        assert(true);
+    }
+    // TEST_END
+    // TEST
+    int len_11 = 3;
+    std::vector<std::vector<int>> requirements_11 = {};
+    try
+    {
+        CountPermutation(len_11, requirements_11);
+        assert(false);
+    }
+    catch (const std::invalid_argument &e)
+    {
+        assert(true);
+    }
+    // TEST_END
+    // TEST
+    int len_12 = 500000;
+    std::vector<std::vector<int>> requirements_12 = {{0,1}};
+    try
+    {
+        CountPermutation(len_12, requirements_12);
+        assert(false);
+    }
+    catch (const std::invalid_argument &e)
+    {
+        assert(true);
+    }
+    // TEST_END
+    // TEST
+    int len_13 = 0;
+    std::vector<std::vector<int>> requirements_13 = {{0,1}};
+    try
+    {
+        CountPermutation(len_13, requirements_13);
+        assert(false);
+    }
+    catch (const std::invalid_argument &e)
+    {
+        assert(true);
+    }
+    // TEST_END
+    // TEST
+    int len_14 = 1;
+    std::vector<std::vector<int>> requirements_14 = {{0,1,5}};
+    try
+    {
+        CountPermutation(len_14, requirements_14);
+        assert(false);
+    }
+    catch (const std::invalid_argument &e)
+    {
+        assert(true);
+    }
+    // TEST_END
+    // TEST
+    int len_15 = 4;
+    std::vector<std::vector<int>> requirements_15 = {{2,2}};
+    try
+    {
+        CountPermutation(len_15, requirements_15);
+        assert(false);
+    }
+    catch (const std::invalid_argument &e)
+    {
+        assert(true);
+    }
+    // TEST_END
+
+    std::cout << "All test cases passed!\n";
+    return 0;
+}
