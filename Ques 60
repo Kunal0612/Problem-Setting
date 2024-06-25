@@ -1,0 +1,409 @@
+/*
+
+https://codeforces.com/problemset/problem/1905/F
+
+Create a C++ function named MaximumValue an answer ie the maximum value of f(p) after performing the operation exactly once
+
+In the enchanted land of Permutania, there lived a brilliant strategist named Sir Regulus. The wise King of Permutania, impressed by Sir Regulus's talents, entrusted him with a unique and challenging task involving a special array of numbers.
+
+This array, called P, was a permutation of length n. This means it was an array consisting of n distinct integers from 1 to n arranged in a unique order. For example, [2, 3, 1, 5, 4] was a permutation, but [1, 2, 2] was not, since the number 2 appeared twice.
+
+Sir Regulus was to identify the "good" indices in this permutation. An index x was considered good if:
+
+For all indices y less than x, nums[y]>nums[x]
+​
+For all indices y greater than x, nums[y]>nums[x]
+
+In simpler terms, nums_x was the largest value up to that point in the array, and it was the smallest value from that point onward.
+
+The King defined f(P) as the number of good indices in the permutation P. But there was a twist: Sir Regulus could perform exactly one swap operation, where he could choose any two distinct indices i and j and swap the elements at these positions, nums_i and nums_j.
+
+The challenge was to find the maximum value of f(P) after performing exactly one swap operation.
+
+Sir Regulus pondered over the permutation, considering all possible swaps to determine how they would affect the number of good indices. The task required not only a keen eye for detail but also a deep understanding of how each swap would alter the array's structure.
+
+Would you be able to assist Sir Regulus in this intricate quest? By analyzing the permutation and strategically choosing the best swap, you could help maximize the number of good indices and ensure Sir Regulus's success in his mission.
+
+Embark on this mathematical journey and uncover the optimal strategy for finding the maximum number of good indices!
+
+Input:
+
+A vector of integers nums.
+
+Constraints:
+
+nums.size() : ranges from 1 to 100000.
+nums : ranges from 1 to nums.size().
+
+Output:
+
+An integer answer ie the maximum value of f(p) after performing the operation exactly once.
+
+
+*/
+
+#include <iostream>
+#include <vector>
+#include <stack>
+#include <algorithm>
+#include <functional>
+#include <cassert>
+
+struct Aint
+{
+    std::vector<std::pair<int, int>> nodes;
+    std::vector<int> lazy;
+
+    void Resize(int n)
+    {
+        nodes = std::vector<std::pair<int, int>>(4 * n);
+        lazy = std::vector<int>(4 * n);
+    }
+
+    void Init(int node, int left, int right)
+    {
+        nodes[node].second = (right - left + 1);
+        if (left != right)
+        {
+            int mid = (left + right) / 2;
+            Init(2 * node, left, mid);
+            Init(2 * node + 1, mid + 1, right);
+        }
+    }
+
+    void Propagate(int node, int left, int right)
+    {
+        nodes[node].first += lazy[node];
+        if (left != right)
+        {
+            lazy[2 * node] += lazy[node];
+            lazy[2 * node + 1] += lazy[node];
+        }
+        lazy[node] = 0;
+    }
+
+    std::pair<int, int> Merge(std::pair<int, int> a, std::pair<int, int> b)
+    {
+        if (a.first == b.first)
+        {
+            return std::pair<int, int>{a.first, a.second + b.second};
+        }
+        return std::min(a, b);
+    }
+
+    void Update(int node, int left, int right, int start, int end, int value)
+    {
+        Propagate(node, left, right);
+        if (right < start || left > end)
+        {
+            return;
+        }
+        if (start <= left && end >= right)
+        {
+            lazy[node] += value;
+            Propagate(node, left, right);
+            return;
+        }
+        int mid = (left + right) / 2;
+        Update(2 * node, left, mid, start, end, value);
+        Update(2 * node + 1, mid + 1, right, start, end, value);
+        nodes[node] = Merge(nodes[2 * node], nodes[2 * node + 1]);
+    }
+};
+
+struct BIT
+{
+    std::vector<int> array;
+
+    void Resize(int n)
+    {
+        array = std::vector<int>(n + 1);
+    }
+
+    void Update(int position, int value)
+    {
+        int n = static_cast<int>(array.size()) - 1;
+        for (int i = position; i <= n; i += i & (-i))
+        {
+            array[i] += value;
+        }
+    }
+
+    int Query(int position)
+    {
+        int result = 0;
+        for (int i = position; i; i -= i & (-i))
+        {
+            result += array[i];
+        }
+        return result;
+    }
+
+    int Query(int start, int end)
+    {
+        return Query(end) - Query(start - 1);
+    }
+};
+
+int MaximumValue(std::vector<int> &nums)
+{
+    
+    int size = nums.size();
+    if (size < 1 || size > 100000) {
+        throw std::invalid_argument("Invalid value of size. Expected 1 <= size <= 100000.");
+    }
+    
+    for (int i = 0; i < size; ++i) {
+        if (nums[i] < 1 || nums[i] > size) {
+            throw std::invalid_argument("Invalid value inarray nums.");
+        }
+    }
+    std::vector<int> array(size + 1);
+    bool is_sorted = true;
+    for (int i = 1; i <= size; ++i)
+    {
+        array[i]=nums[i-1];
+        if (array[i] != i)
+        {
+            is_sorted = false;
+        }
+    }
+    if (is_sorted)
+    {
+        return size-2;
+    }
+    std::vector<std::pair<int, int>> queries(size + 1);
+    std::stack<int> stack;
+    BIT bit_tree;
+    bit_tree.Resize(size);
+    for (int i = 1; i <= size; ++i)
+    {
+        while (!stack.empty() && array[stack.top()] < array[i])
+        {
+            stack.pop();
+        }
+        if (!stack.empty())
+        {
+            queries[i].first = stack.top();
+        }
+        if (bit_tree.Query(array[i], size) > 1)
+        {
+            queries[i].first = 0;
+        }
+        bit_tree.Update(array[i], 1);
+        stack.push(i);
+    }
+    while (!stack.empty())
+        stack.pop();
+    bit_tree.Resize(size);
+    for (int i = size; i >= 1; --i)
+    {
+        while (!stack.empty() && array[stack.top()] > array[i])
+        {
+            stack.pop();
+        }
+        if (!stack.empty())
+        {
+            queries[i].second = stack.top();
+        }
+        if (bit_tree.Query(1, array[i]) > 1)
+        {
+            queries[i].second = 0;
+        }
+        bit_tree.Update(array[i], 1);
+        stack.push(i);
+    }
+    Aint segment_tree;
+    segment_tree.Resize(size);
+    segment_tree.Init(1, 1, size);
+
+    std::function<void(int, int)> Update_function = [&](int index, int sign)
+    {
+        segment_tree.Update(1, 1, size, std::min(index, array[index]), std::max(index, array[index]), sign);
+    };
+
+    std::function<int()> count_function = [&]()
+    {
+        if (segment_tree.nodes[1].first == 1)
+        {
+            return segment_tree.nodes[1].second;
+        }
+        return 0;
+    };
+
+    std::function<void(int, int)> swap_function = [&](int i, int j)
+    {
+        Update_function(i, -1);
+        Update_function(j, -1);
+        std::swap(array[i], array[j]);
+        Update_function(i, 1);
+        Update_function(j, 1);
+    };
+
+    for (int i = 1; i <= size; ++i)
+    {
+        Update_function(i, 1);
+    }
+
+    int answer = 0;
+    for (int i = 1; i <= size; ++i)
+    {
+        if (queries[i].first && queries[i].second)
+        {
+            swap_function(queries[i].first, queries[i].second);
+            answer = std::max(answer, count_function());
+            swap_function(queries[i].first, queries[i].second);
+        }
+    }
+
+    std::vector<int> positions(size + 1);
+    for (int i = 1; i <= size; ++i)
+    {
+        positions[array[i]] = i;
+    }
+
+    for (int i = 1; i <= size; ++i)
+    {
+        int first_Query = i;
+        int second_Query = positions[i];
+        swap_function(first_Query, second_Query);
+        answer = std::max(answer, count_function());
+        swap_function(first_Query, second_Query);
+    }
+
+    return answer;
+}
+
+int main()
+{
+
+    // TEST
+    std::vector<int> nums_1 = {3, 1, 2};
+    int expected_1 = 1;
+    int result_1 = MaximumValue(nums_1);
+    assert(result_1 == expected_1);
+    // TEST_END
+
+    // TEST
+    std::vector<int> nums_2 = {4, 1, 5, 4, 1, 1};
+    int expected_2 = 1;
+    int result_2 = MaximumValue(nums_2);
+    assert(result_2 == expected_2);
+    // TEST_END
+
+    // TEST
+    std::vector<int> nums_3 = {1, 2, 3};
+    int expected_3 = 1;
+    int result_3 = MaximumValue(nums_3);
+    assert(result_3 == expected_3);
+    // TEST_END
+
+    // TEST
+    std::vector<int> nums_4 = {4, 3, 2, 1};
+    int expected_4 = 2;
+    int result_4 = MaximumValue(nums_4);
+    assert(result_4 == expected_4);
+    // TEST_END
+
+    // TEST
+    std::vector<int> nums_5 = {2, 3, 1, 5, 4, 6};
+    int expected_5 = 3;
+    int result_5 = MaximumValue(nums_5);
+    assert(result_5 == expected_5);
+    // TEST_END
+
+    // TEST
+    std::vector<int> nums_6 = {5, 1, 2, 4, 3, 6, 7};
+    int expected_6 = 4;
+    int result_6 = MaximumValue(nums_6);
+    assert(result_6 == expected_6);
+    // TEST_END
+
+    // TEST
+    std::vector<int> nums_7 = {1, 3, 2, 5, 4, 6, 7};
+    int expected_7 = 5;
+    int result_7 = MaximumValue(nums_7);
+    assert(result_7 == expected_7);
+    // TEST_END
+
+    // TEST
+    std::vector<int> nums_8 = {4, 2, 3, 1, 5, 6, 7, 8};
+    int expected_8 = 8;
+    int result_8 = MaximumValue(nums_8);
+    assert(result_8 == expected_8);
+    // TEST_END
+
+    // TEST
+    std::vector<int> nums_9 = {3, 2, 4, 1, 5};
+    int expected_9 = 3;
+    int result_9 = MaximumValue(nums_9);
+    assert(result_9 == expected_9);
+    // TEST_END
+
+    // TEST
+    std::vector<int> nums_10 = {2, 3, -1};
+    try
+    {
+        MaximumValue(nums_10);
+        assert(false);
+    }
+    catch (const std::invalid_argument &e)
+    {
+        assert(true);
+    }
+    // TEST_END
+
+    // TEST
+    std::vector<int> nums_11 = {2, 3, 0};
+    try
+    {
+        MaximumValue(nums_11);
+        assert(false);
+    }
+    catch (const std::invalid_argument &e)
+    {
+        assert(true);
+    }
+    // TEST_END
+
+    // TEST
+    std::vector<int> nums_12 = {2, 3, 4};
+    try
+    {
+        MaximumValue(nums_12);
+        assert(false);
+    }
+    catch (const std::invalid_argument &e)
+    {
+        assert(true);
+    }
+    // TEST_END
+
+    // TEST
+    std::vector<int> nums_13 = {};
+    try
+    {
+        MaximumValue(nums_13);
+        assert(false);
+    }
+    catch (const std::invalid_argument &e)
+    {
+        assert(true);
+    }
+    // TEST_END
+
+    // TEST
+    std::vector<int> nums_14(200005, 1);
+    try
+    {
+        MaximumValue(nums_14);
+        assert(false);
+    }
+    catch (const std::invalid_argument &e)
+    {
+        assert(true);
+    }
+    // TEST_END
+    std::cout << "All test cases passed!\n";
+    return 0;
+}
