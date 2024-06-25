@@ -3,7 +3,7 @@ https://codeforces.com/problemset/problem/1976/F
 
 Create a C++ function named RemoveBridges that will find the smallest number of critical connections (bridges) left in the tree after the additions.
 
-In a mystical forest, there stands an ancient tree with size vertices, numbered from 1 to n. This tree, unlike any other, is rooted at vertex 1. The roots of this tree delve deep into the earth, spreading far and wide, but with one peculiarity: the root only has a single child.
+In a mystical forest, there stands an ancient tree with size vertices, numbered from 1 to size. This tree, unlike any other, is rooted at vertex 1. The roots of this tree delve deep into the earth, spreading far and wide, but with one peculiarity: the root only has a single child.
 
 The Guardian of the Forest, a wise old sage, faces a dilemma. He needs to add exactly cnt magical bridges to the tree. These bridges are special and can connect any two vertices, even if there’s already a path between them. Each bridge can be thought of as an enchanted pathway that strengthens the bonds within the tree.
 
@@ -24,12 +24,237 @@ the root (vertex 1) has exactly one child.
 Constraints:
 
 size : ranges from 2 to 300000.
-edges : ranges from 1 to size.
+edges : ranges from 0 to size-1.
 
 Output:
 
 A vector of integer answer where answer[i] is the smallest number of bridges that can be left after you add i edges to the tree.
 
 
-
 */
+
+#include <iostream>
+#include <vector>
+#include <algorithm>
+#include <cassert>
+#include <set>
+
+
+
+void dfs(int node_v, const std::vector<std::vector<int>>& adj, std::vector<int>& hash, int par = -1) {
+    for (int node_u : adj[node_v]) {
+        if (node_u != par) {
+            dfs(node_u, adj, hash, node_v);
+            hash[node_v] = std::max(hash[node_v], hash[node_u] + 1);
+        }
+    }
+}
+
+std::vector<int> RemoveBridges(int size,std::vector<std::vector<int>> edges) {
+    if(size<2 or size>300000 or size!=edges.size()+1){
+        throw std::invalid_argument("Invalid length");
+    }
+    std::vector<std::vector<int>>adj(size);
+    for(int i=0;i<size - 1;i++) {
+        int node_v=edges[i][0], node_u=edges[i][1];
+        if(node_v<0 or node_u<0 or node_u>size-1 or node_v>size-1){
+            throw std::invalid_argument("Invalid Constraints");
+        }
+        adj[node_v].push_back(node_u);
+        adj[node_u].push_back(node_v);
+    }
+
+    std::vector<int> hash(size, 0);
+    dfs(0, adj, hash);
+    std::set<std::pair<int, int>> cur;
+    for(int i=0;i<size;i++) cur.insert({hash[i], i});
+    std::vector<int> ans;
+    int tmp = size;
+    while (!cur.empty()) {
+        int node_v = cur.rbegin()->second;
+        while (node_v != -1) {
+            --tmp;
+            cur.erase({hash[node_v], node_v});
+            int pv_node = -1;
+            for (int node_u : adj[node_v]) {
+                if (hash[node_u] == hash[node_v] - 1) {
+                    pv_node = node_u;
+                    break;
+                }
+            }
+            node_v = pv_node;
+        }
+        ans.push_back(tmp);
+    }
+    while(ans.size()<size-1) ans.push_back(0);
+    return ans;
+}
+
+int main() {
+
+    // TEST
+    int len_1=6;
+    std::vector<std::vector<int>> edges_1 = {{0, 1}, {0, 2}, {0, 3}, {0, 4}, {0, 5}};
+    std::vector<int> expected_1 = {4,3,2,1,0};
+    std::vector<int> result_1 = RemoveBridges(len_1,edges_1);
+    assert(result_1 == expected_1);
+    // TEST_END
+
+    // TEST
+    int len_2=5;
+    std::vector<std::vector<int>> edges_2 = {{0, 1}, {1, 2}, {2, 3}, {3, 4}};
+    std::vector<int> expected_2 = {0,0,0,0};
+    std::vector<int> result_2 = RemoveBridges(len_2,edges_2);
+    assert(result_2 == expected_2);
+    // TEST_END
+
+    // TEST
+    int len_3=5;
+    std::vector<std::vector<int>> edges_3 = {{0, 1}, {0, 2}, {1, 3}, {1, 4}};
+    std::vector<int> expected_3 = {2,1,0,0};
+    std::vector<int> result_3 = RemoveBridges(len_3,edges_3);
+    assert(result_3 == expected_3);
+    // TEST_END
+
+    // TEST
+    int len_4=5;
+    std::vector<std::vector<int>> edges_4 = {{0, 1}, {1, 2}, {1, 3}, {2, 4}};
+    std::vector<int> expected_4 = {1,0,0,0};
+    std::vector<int> result_4 = RemoveBridges(len_4,edges_4);
+    assert(result_4 == expected_4);
+    // TEST_END
+
+    // TEST
+    int len_5=6;
+    std::vector<std::vector<int>> edges_5 = {{0, 1}, {1, 2}, {2, 3}, {3, 4}, {4, 5}};
+    std::vector<int> expected_5 = {0,0,0,0,0};
+    std::vector<int> result_5 = RemoveBridges(len_5,edges_5);
+    assert(result_5 == expected_5);
+    // TEST_END
+
+    // TEST
+    int len_6=4;
+    std::vector<std::vector<int>> edges_6 = {{0, 1}, {0, 2}, {0, 3}};
+    std::vector<int> expected_6 = {2,1,0};
+    std::vector<int> result_6 = RemoveBridges(len_6,edges_6);
+    assert(result_6 == expected_6);
+    // TEST_END
+
+    // TEST
+    int len_7=7;
+    std::vector<std::vector<int>> edges_7 = {{0, 1}, {1, 2}, {2, 3}, {3, 4}, {0, 5}, {5, 6}};
+    std::vector<int> expected_7 = {2,0,0,0,0,0};
+    std::vector<int> result_7 = RemoveBridges(len_7,edges_7);
+    assert(result_7 == expected_7);
+    // TEST_END
+
+    // TEST
+    int len_8=6;
+    std::vector<std::vector<int>> edges_8 = {{0, 1}, {1, 2}, {1, 3}, {3, 4}, {4, 5}};
+    std::vector<int> expected_8 = {1,0,0,0,0};
+    std::vector<int> result_8 = RemoveBridges(len_8,edges_8);
+    assert(result_8 == expected_8);
+    // TEST_END
+
+    // TEST
+    int len_9=-6;
+    std::vector<std::vector<int>> edges_9 = {{0, 1}, {0, 2}, {0, 3}};
+    try
+    {
+        RemoveBridges(len_9,edges_9);
+        assert(false);
+    }
+    catch (const std::invalid_argument &e)
+    {
+        assert(true);
+    }
+    // TEST_END
+
+    // TEST
+    int len_10=0;
+    std::vector<std::vector<int>> edges_10 = {{0, 1}, {0, 2}, {0, 3}};
+    try
+    {
+        RemoveBridges(len_10,edges_10);
+        assert(false);
+    }
+    catch (const std::invalid_argument &e)
+    {
+        assert(true);
+    }
+    // TEST_END
+
+    // TEST
+    int len_11=300005;
+    std::vector<std::vector<int>> edges_11 = {{0, 1}, {0, 2}, {0, 3}};
+    try
+    {
+        RemoveBridges(len_11,edges_11);
+        assert(false);
+    }
+    catch (const std::invalid_argument &e)
+    {
+        assert(true);
+    }
+    // TEST_END
+
+    // TEST
+    int len_12=30005;
+    std::vector<std::vector<int>> edges_12 = {{0, 1}, {0, 2}, {0, 3}};
+    try
+    {
+        RemoveBridges(len_12,edges_12);
+        assert(false);
+    }
+    catch (const std::invalid_argument &e)
+    {
+        assert(true);
+    }
+    // TEST_END
+
+    // TEST
+    int len_13=3;
+    std::vector<std::vector<int>> edges_13 = {{0, 6}, {0, 2}, {0, 3}};
+    try
+    {
+        RemoveBridges(len_13,edges_13);
+        assert(false);
+    }
+    catch (const std::invalid_argument &e)
+    {
+        assert(true);
+    }
+    // TEST_END
+
+
+    // TEST
+    int len_14=3;
+    std::vector<std::vector<int>> edges_14 = {{0, -1}, {0, 2}, {0, 3}};
+    try
+    {
+        RemoveBridges(len_14,edges_14);
+        assert(false);
+    }
+    catch (const std::invalid_argument &e)
+    {
+        assert(true);
+    }
+    // TEST_END
+
+    // TEST
+    int len_15=3;
+    std::vector<std::vector<int>> edges_15 = {};
+    try
+    {
+        RemoveBridges(len_15,edges_15);
+        assert(false);
+    }
+    catch (const std::invalid_argument &e)
+    {
+        assert(true);
+    }
+    // TEST_END
+    std::cout << "All test cases passed!\n";
+    return 0;
+}
+
