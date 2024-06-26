@@ -1,0 +1,214 @@
+// Question 2700+ rated hai but problem yeh hai ki yeh same code cf meh accept ho ja rhi but vscode meh run nhi ho rhi hai
+
+/*
+https://codeforces.com/problemset/problem/1849/F
+
+Create a C++ function named XORPartition that will find the answer string. 
+
+For a set of integers S, let's define its cost as the minimum value of x⊕y
+among all pairs of different integers from the set 
+(here, ⊕ denotes bitwise XOR). If there are less than two elements in the set, its cost is equal to 230
+.
+
+You are given a set of integers {a1,a2,…,an}. You have to partition it into two sets S1 and S2
+in such a way that every element of the given set belongs to exactly one of these two sets. The value of the partition is the minimum among the costs of S1
+and S2.
+
+Find the partition with the maximum possible value.
+
+Input:
+
+A vector of integers nums.
+
+
+Constraints:
+
+nums.size() : ranges from 1 to 200000 and all are distinct.
+nums : ranges from 0 to 2^30.
+
+Output:
+
+A string answer 0 and/or 1 describing the partition as follows: the i-th character should be 0 if the element ai
+belongs to S1, otherwise, that character should be 1.
+
+
+*/
+
+#include <cstdio>
+#include <iostream>
+#include <vector>
+#include <utility>
+#include <algorithm>
+#include <climits>
+#include <cassert>
+#include <set>
+#include <string>
+
+class Trie {
+public:
+    static const int len = 32 * 200000;
+    int next[len][2] = {};
+    int count[len] = {};
+    int final_node[len] = {};
+    int total_nodes = 1;
+
+    void AddInt(int value, int position) {
+        int index = 0;
+        for (int i = 29; i >= 0; --i) {
+            int bit = (value >> i) & 1;
+            if (next[index][bit] == 0) {
+                next[index][bit] = total_nodes++;
+            }
+            index = next[index][bit];
+            ++count[index];
+        }
+        final_node[index] = position;
+    }
+
+    void AddInt(int value) {
+        int index = 0;
+        for (int i = 29; i >= 0; --i) {
+            int bit = (value >> i) & 1;
+            index = next[index][bit];
+            ++count[index];
+        }
+    }
+
+    void RemoveInt(int value) {
+        int index = 0;
+        for (int i = 29; i >= 0; --i) {
+            int bit = (value >> i) & 1;
+            index = next[index][bit];
+            --count[index];
+        }
+    }
+
+    std::pair<int, int> FindXor(int value) {
+        int index = 0, result = 0;
+        for (int i = 29; i >= 0; --i) {
+            int bit = (value >> i) & 1;
+            if (count[next[index][bit]]) {
+                index = next[index][bit];
+            } else {
+                index = next[index][bit ^ 1];
+                result |= 1 << i;
+            }
+        }
+        return std::make_pair(result, final_node[index]);
+    }
+};
+
+class DSU {
+public:
+    std::vector<int> parent, rank;
+
+    DSU(int n) : parent(n), rank(n, 1) {
+        for (int i = 0; i < n; ++i) {
+            parent[i] = i;
+        }
+    }
+
+    int Find(int vertex) {
+        if (vertex == parent[vertex]) return vertex;
+        return parent[vertex] = Find(parent[vertex]);
+    }
+
+    bool Merge(int u, int v) {
+        u = Find(u);
+        v = Find(v);
+        if (u == v) return false;
+        if (rank[u] < rank[v]) std::swap(u, v);
+        parent[v] = u;
+        rank[u] += rank[v];
+        return true;
+    }
+};
+
+void Coloring(int vertex, int color_value, std::vector<int>& colors, const std::vector<std::vector<int>>& graph) {
+    if (colors[vertex] != -1) return;
+    colors[vertex] = color_value;
+    for (int neighbor : graph[vertex]) {
+        Coloring(neighbor, color_value ^ 1, colors, graph);
+    }
+}
+
+std::string XORPartition(std::vector<int> &nums){
+    int len = nums.size();
+    if (nums.size() <= 0 or nums.size()>200000) {
+        throw std::invalid_argument("vec length must be positive.");
+    }
+    std::set<int> st;
+    for (int i = 0; i < len; i++) {
+        st.insert(nums[i]);
+        if (nums[i] < 0 || nums[i] > (1LL<<30)) {
+            throw std::invalid_argument("Invalid Constraints");
+        }
+    }
+    if(st.size()!=len){
+        throw std::invalid_argument("vec length");
+    }
+    
+
+    Trie trie;
+    for (int i = 0; i < len; ++i) {
+        trie.AddInt(nums[i], i);
+    }
+
+    DSU dsu(len);
+    std::vector<std::vector<int>> graph(len);
+    std::vector<std::vector<int>> groups(len);
+    std::vector<std::pair<int, std::pair<int, int>>> to_Merge;
+
+    for (int Merges = 0; Merges < len - 1; ) {
+        for (int i = 0; i < len; ++i) {
+            groups[i].clear();
+        }
+        for (int i = 0; i < len; ++i) {
+            groups[dsu.Find(i)].push_back(i);
+        }
+        to_Merge.clear();
+        for (int i = 0; i < len; ++i) {
+            if (!groups[i].empty()) {
+                for (int value : groups[i]) {
+                    trie.RemoveInt(nums[value]);
+                }
+                std::pair<std::pair<int, int>, int> result = std::make_pair(std::make_pair(INT_MAX, INT_MAX), INT_MAX);
+                for (int value : groups[i]) {
+                    result = std::min(result, std::make_pair(trie.FindXor(nums[value]), value));
+                }
+                to_Merge.push_back(std::make_pair(result.first.first, std::make_pair(result.second, result.first.second)));
+                for (int value : groups[i]) {
+                    trie.AddInt(nums[value]);
+                }
+            }
+        }
+        for (const auto& pair : to_Merge) {
+            if (dsu.Merge(pair.second.first, pair.second.second)) {
+                ++Merges;
+                graph[pair.second.first].push_back(pair.second.second);
+                graph[pair.second.second].push_back(pair.second.first);
+            }
+        }
+    }
+
+    std::vector<int> colors(len, -1);
+    std::string answer="";
+    Coloring(0, 1, colors, graph);
+    for (int i = 0; i < len; ++i) {
+        if(colors[i] ==1) answer+="1";
+        else answer+="0";
+    }
+    return answer;
+}
+
+int main() {
+    // TEST
+    std::vector<int> nums_1 = {42,13,1337,37,152};
+    std::string expected_1 = "";
+    std::string result_1 = XORPartition(nums_1);
+    std::cout << result_1 << std::endl;
+    assert(result_1 == expected_1);
+    // TEST_END
+    std::cout << "All test cases passed!\n";
+    return 0;
+}
