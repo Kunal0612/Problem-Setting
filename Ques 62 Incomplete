@@ -11,13 +11,13 @@ The Game Rules
 
 Selection Phase:
 
-Kirill's Move: Kirill begins by selecting and encircling a subset of the integers in red. He can choose any number of integers from 2 to n−2 (where n is the length of the array).
+Kirill's Move: Kirill begins by selecting and encircling a subset of the integers in red. He can choose any number of integers from 2 to n−2 (where len is the length of the array).
 Anton's Move: Anton then encircles all the remaining integers in blue.
 
 Calculation Phase:
 
 Kirill's Calculation: Kirill calculates the Greatest Common Divisor (GCD) of all the integers he encircled in red.
-Anton's Calculation: Anton performs a bitwise AND operation on all the integers he encircled in blue and then adds a given number x to the result.
+Anton's Calculation: Anton performs a bitwise AND operation on all the integers he encircled in blue and then adds a given number val to the result.
 
 Winning Condition:
 
@@ -26,7 +26,7 @@ Otherwise, Anton wins.
 
 The Challenge
 
-Kirill and Anton pondered over various strategies to outwit each other. Kirill wondered if there was a surefire way to ensure his victory, while Anton, with his knack for bitwise operations, was confident in his approach. The game became an intriguing puzzle:
+Kirill and Anton pondered over various strategies to outwit each other. Kirill wondered if there was a surefire way to ensure his victory, while Anton, with his knack for bitwise operations, was conf_ident in his approach. The game became an intriguing puzzle:
 
 Kirill's Goal: To choose such red numbers that their GCD is as large as possible.
 Anton's Goal: To minimize the GCD of Kirill's red numbers by making the sum of his bitwise AND result and val as large as possible.
@@ -51,163 +51,329 @@ nums : ranges from 1 to 400000
 
 Output:
 
-A vector of integers answer if there is a possible answer else return an empty vector.
+A vector of integers answer if there is a possible answer when krill wins she chooses else return an empty vector.
 
 */
 
 #include <iostream>
 #include <vector>
+#include <cassert>
 #include <algorithm>
 
-void coutYES(const std::vector<int>& src, int n, int fId, int sId) {
-    std::cout << "YES\n";
-    std::cout << "2 " << src[fId] << ' ' << src[sId] << '\n';
-    std::cout << n - 2 << ' ';
-    for (int i = 0; i < n; i++) {
-        if (i == fId || i == sId) {
+std::vector<int> PrintAns(const std::vector<int>& nums, int len, int f_id, int s_id) {
+    std::vector<int> ans;
+    for (int i = 0; i < len; i++) {
+        if (i == f_id || i == s_id) {
             continue;
         }
-        std::cout << src[i] << ' ';
+        ans.push_back(nums[i]);
     }
-    std::cout << '\n';
+    return ans;
 }
 
-void solve() {
-    const int BITS = 20;
-    int n, x;
-    std::cin >> n >> x;
+std::vector<int> GCDIsGreater(std::vector<int> &nums,int val) {
+    const int bits = 20;
+    int len=nums.size();
+    if (nums.size() <4 or nums.size()>400000) {
+        throw std::invalid_argument("vec length must be positive.");
+    }
+    if (val <0 or val>400000) {
+        throw std::invalid_argument("vec length must be positive.");
+    }
+    for (int i = 0; i < nums.size(); ++i)
+    {
+        if (nums[i] < 1 || nums[i] > 400000)
+        {
+            throw std::invalid_argument("Invalid element value");
+        }
+    }
+    std::vector<std::vector<int>> bit_cnt(bits);
 
-    std::vector<int> src(n);
-    std::vector<std::vector<int>> bitCnt(BITS);
-
-    int maxA = 1;
-    for (int i = 0; i < n; i++) {
-        std::cin >> src[i];
-        maxA = std::max(maxA, src[i] + 1);
-        for (int bit = 0; bit < BITS; bit++) {
-            if ((1 << bit) & src[i]) {
+    int mxi = 1;
+    for (int i = 0; i < len; i++) {
+        mxi = std::max(mxi, nums[i] + 1);
+        for (int bit = 0; bit < bits; bit++) {
+            if ((1 << bit) & nums[i]) {
                 continue;
             }
-            bitCnt[bit].push_back(i);
+            bit_cnt[bit].push_back(i);
         }
     }
 
-    std::vector<bool> incr(n, false);
-    std::vector<int> cnt(maxA, 0);
-    std::vector<int> divBy(maxA, 0);
+    std::vector<bool> incr(len, false);
+    std::vector<int> cnt(mxi, 0);
+    std::vector<int> div(mxi, 0);
 
-    std::vector<int> pref(n);
-    std::vector<int> suf(n);
+    std::vector<int> pref(len);
+    std::vector<int> suf(len);
 
-    pref[0] = src[0];
-    for (int i = 1; i < n; i++) {
-        pref[i] = pref[i - 1] & src[i];
+    pref[0] = nums[0];
+    for (int i = 1; i < len; i++) {
+        pref[i] = pref[i - 1] & nums[i];
     }
 
-    suf[n - 1] = src[n - 1];
-    for (int i = n - 2; i >= 0; i--) {
-        suf[i] = suf[i + 1] & src[i];
+    suf[len - 1] = nums[len - 1];
+    for (int i = len - 2; i >= 0; i--) {
+        suf[i] = suf[i + 1] & nums[i];
     }
 
-    for (const auto& item : bitCnt) {
+    for (std::vector<int>& item : bit_cnt) {
         if (item.size() <= 2) {
             for (const int& id : item) {
                 incr[id] = true;
-                int myAnd = -1;
-                for (int j = id + 1; j < n; j++) {
-                    int curAND = (1 << BITS) - 1;
-                    if (j + 1 < n) curAND &= suf[j + 1];
-                    if (id - 1 >= 0) curAND &= pref[id - 1];
-                    if (myAnd != -1) curAND &= myAnd;
+                int my_and = -1;
+                for (int j = id + 1; j < len; j++) {
+                    int cur_and = (1 << bits) - 1;
+                    if (j + 1 < len) cur_and &= suf[j + 1];
+                    if (id - 1 >= 0) cur_and &= pref[id - 1];
+                    if (my_and != -1) cur_and &= my_and;
 
-                    if (curAND + x < std::__gcd(src[id], src[j])) {
-                        coutYES(src, n, id, j);
-                        return;
+                    if (cur_and + val < std::__gcd(nums[id], nums[j])) {
+                        return PrintAns(nums, len, id, j);;
                     }
 
-                    if (myAnd == -1) {
-                        myAnd = src[j];
+                    if (my_and == -1) {
+                        my_and = nums[j];
                     } else {
-                        myAnd &= src[j];
+                        my_and &= nums[j];
                     }
                 }
 
-                myAnd = -1;
+                my_and = -1;
                 for (int j = id - 1; j >= 0; j--) {
-                    int curAND = (1 << BITS) - 1;
+                    int cur_and = (1 << bits) - 1;
 
-                    if (j - 1 >= 0) curAND &= pref[j - 1];
-                    if (id + 1 < n) curAND &= suf[id + 1];
-                    if (myAnd != -1) curAND &= myAnd;
+                    if (j - 1 >= 0) cur_and &= pref[j - 1];
+                    if (id + 1 < len) cur_and &= suf[id + 1];
+                    if (my_and != -1) cur_and &= my_and;
 
-                    if (curAND + x < std::__gcd(src[id], src[j])) {
-                        coutYES(src, n, id, j);
-                        return;
+                    if (cur_and + val < std::__gcd(nums[id], nums[j])) {
+                        return PrintAns(nums, len, id, j);;
                     }
 
-                    if (myAnd == -1) {
-                        myAnd = src[j];
+                    if (my_and == -1) {
+                        my_and = nums[j];
                     } else {
-                        myAnd &= src[j];
+                        my_and &= nums[j];
                     }
                 }
             }
         }
     }
 
-    int AND = (1 << BITS) - 1;
-    for (int i = 0; i < BITS; i++) {
-        if (!bitCnt[i].empty()) {
-            AND ^= (1 << i);
+    int andd = (1 << bits) - 1;
+    for (int i = 0; i < bits; i++) {
+        if (!bit_cnt[i].empty()) {
+            andd ^= (1 << i);
         }
     }
 
-    for (int i = 0; i < n; i++) {
+    for (int i = 0; i < len; i++) {
         if (!incr[i]) {
-            ++cnt[src[i]];
+            ++cnt[nums[i]];
         }
     }
 
-    for (int i = 1; i < maxA; i++) {
-        for (int j = i; j < maxA; j += i) {
-            divBy[i] += cnt[j];
+    for (int i = 1; i < mxi; i++) {
+        for (int j = i; j < mxi; j += i) {
+            div[i] += cnt[j];
         }
     }
 
-    for (int g = maxA - 1; g > AND + x; g--) {
-        if (divBy[g] < 2) {
+    for (int g = mxi - 1; g > andd + val; g--) {
+        if (div[g] < 2) {
             continue;
         }
 
-        int fId = -1;
-        int sId = -1;
-        for (int i = 0; i < n; i++) {
+        int f_id = -1;
+        int s_id = -1;
+        for (int i = 0; i < len; i++) {
             if (!incr[i]) {
-                if (src[i] % g == 0) {
-                    if (fId == -1) {
-                        fId = i;
+                if (nums[i] % g == 0) {
+                    if (f_id == -1) {
+                        f_id = i;
                     } else {
-                        sId = i;
+                        s_id = i;
                     }
                 }
             }
         }
-        coutYES(src, n, fId, sId);
-        return;
+        
+        return PrintAns(nums, len, f_id, s_id);;
     }
 
-    std::cout << "NO\n";
+    return {};
 }
 
 int main() {
-    std::ios_base::sync_with_stdio(false);
-    std::cin.tie(nullptr);
-    std::cout.tie(nullptr);
 
-    int testN;
-    std::cin >> testN;
-    while (testN--) {
-        solve();
+    // TEST
+    std::vector<int> nums_1 = {3,1,2,5};
+    int val_1=1;
+    std::vector<int> expected_1 = {};
+    std::vector<int> result_1 = GCDIsGreater(nums_1,val_1);
+    assert(result_1 == expected_1);
+    // TEST_END
+
+    // TEST
+    std::vector<int> nums_2 = {4,3,1,8};
+    int val_2=1;
+    std::vector<int> expected_2 = {3,1};
+    std::vector<int> result_2 = GCDIsGreater(nums_2,val_2);
+    assert(result_2 == expected_2);
+    // TEST_END
+
+    // TEST
+    std::vector<int> nums_3 = {4,5,8,4};
+    int val_3=1;
+    std::vector<int> expected_3 = {5,8};
+    std::vector<int> result_3 = GCDIsGreater(nums_3,val_3);
+    assert(result_3 == expected_3);
+    // TEST_END
+
+    // TEST
+    std::vector<int> nums_4 = {1,1,1,1,1};
+    int val_4 = 0;
+    std::vector<int> expected_4 = {};
+    std::vector<int> result_4 = GCDIsGreater(nums_4, val_4);
+    assert(result_4 == expected_4);
+    // TEST_END
+
+    // TEST
+    std::vector<int> nums_5 = {31,63,127,63,31};
+    int val_5 = 2;
+    std::vector<int> expected_5 = {31,127,31};
+    std::vector<int> result_5 = GCDIsGreater(nums_5, val_5);
+    assert(result_5 == expected_5);
+    // TEST_END
+
+    // TEST
+    std::vector<int> nums_6 = {31,58,127,63,31};
+    int val_6 = 2;
+    std::vector<int> expected_6 = {};
+    std::vector<int> result_6 = GCDIsGreater(nums_6, val_6);
+    assert(result_6 == expected_6);
+    // TEST_END
+
+    // TEST
+    std::vector<int> nums_7 = {1,3,3,3};
+    int val_7 = 1;
+    std::vector<int> expected_7 = {1,3};
+    std::vector<int> result_7 = GCDIsGreater(nums_7, val_7);
+    assert(result_7 == expected_7);
+    // TEST_END
+
+    // TEST
+    std::vector<int> nums_8 = {1,4,3,6};
+    int val_8 = 1;
+    std::vector<int> expected_8 = {1,4};
+    std::vector<int> result_8 = GCDIsGreater(nums_8, val_8);
+    assert(result_8 == expected_8);
+    // TEST_END
+
+    // TEST
+    std::vector<int> nums_9 = {1,4,8,6};
+    int val_9 = 1;
+    std::vector<int> expected_9 = {1,4};
+    std::vector<int> result_9 = GCDIsGreater(nums_9, val_9);
+    assert(result_9 == expected_9);
+    // TEST_END
+
+    // TEST
+    std::vector<int> nums_10 = {2, 3, -1}; 
+    int val_10 = 1;
+    try
+    {
+        GCDIsGreater(nums_10, val_10);
+        assert(false);
     }
+    catch (const std::invalid_argument &e)
+    {
+        assert(true);
+    }
+    // TEST_END
+
+    // TEST
+    std::vector<int> nums_11 = {2, 3, 0}; 
+    int val_11 =5;
+    try
+    {
+        GCDIsGreater(nums_11,val_11);
+        assert(false);
+    }
+    catch (const std::invalid_argument &e)
+    {
+        assert(true);
+    }
+    // TEST_END
+
+    // TEST
+    std::vector<int> nums_12 = {2, 30000000, 4}; 
+    int val_12=0;
+    try
+    {
+        GCDIsGreater(nums_12,val_12);
+        assert(false);
+    }
+    catch (const std::invalid_argument &e)
+    {
+        assert(true);
+    }
+    // TEST_END
+
+    // TEST
+    std::vector<int> nums_13 = {};
+    int val_13=0; 
+    try
+    {
+        GCDIsGreater(nums_13,val_13);
+        assert(false);
+    }
+    catch (const std::invalid_argument &e)
+    {
+        assert(true);
+    }
+    // TEST_END
+
+    // TEST
+    std::vector<int> nums_14(400005,1); 
+    int val_14=0;
+    try
+    {
+        GCDIsGreater(nums_14,val_14);
+        assert(false);
+    }
+    catch (const std::invalid_argument &e)
+    {
+        assert(true);
+    }
+    // TEST_END
+    // TEST
+    std::vector<int> nums_15(40005,1); 
+    int val_15=-2;
+    try
+    {
+        GCDIsGreater(nums_15,val_15);
+        assert(false);
+    }
+    catch (const std::invalid_argument &e)
+    {
+        assert(true);
+    }
+    // TEST_END
+    // TEST
+    std::vector<int> nums_16(40005,1); 
+    int val_16=500000;
+    try
+    {
+        GCDIsGreater(nums_16,val_16);
+        assert(false);
+    }
+    catch (const std::invalid_argument &e)
+    {
+        assert(true);
+    }
+    // TEST_END
+    std::cout << "All test cases passed!\n";
     return 0;
 }
