@@ -1,3 +1,4 @@
+
 /*
 
 https://codeforces.com/problemset/problem/1945/H
@@ -53,3 +54,160 @@ Output:
 A vector of integers answer if there is a possible answer else return an empty vector.
 
 */
+
+#include <iostream>
+#include <vector>
+#include <algorithm>
+
+void coutYES(const std::vector<int>& src, int n, int fId, int sId) {
+    std::cout << "YES\n";
+    std::cout << "2 " << src[fId] << ' ' << src[sId] << '\n';
+    std::cout << n - 2 << ' ';
+    for (int i = 0; i < n; i++) {
+        if (i == fId || i == sId) {
+            continue;
+        }
+        std::cout << src[i] << ' ';
+    }
+    std::cout << '\n';
+}
+
+void solve() {
+    const int BITS = 20;
+    int n, x;
+    std::cin >> n >> x;
+
+    std::vector<int> src(n);
+    std::vector<std::vector<int>> bitCnt(BITS);
+
+    int maxA = 1;
+    for (int i = 0; i < n; i++) {
+        std::cin >> src[i];
+        maxA = std::max(maxA, src[i] + 1);
+        for (int bit = 0; bit < BITS; bit++) {
+            if ((1 << bit) & src[i]) {
+                continue;
+            }
+            bitCnt[bit].push_back(i);
+        }
+    }
+
+    std::vector<bool> incr(n, false);
+    std::vector<int> cnt(maxA, 0);
+    std::vector<int> divBy(maxA, 0);
+
+    std::vector<int> pref(n);
+    std::vector<int> suf(n);
+
+    pref[0] = src[0];
+    for (int i = 1; i < n; i++) {
+        pref[i] = pref[i - 1] & src[i];
+    }
+
+    suf[n - 1] = src[n - 1];
+    for (int i = n - 2; i >= 0; i--) {
+        suf[i] = suf[i + 1] & src[i];
+    }
+
+    for (const auto& item : bitCnt) {
+        if (item.size() <= 2) {
+            for (const int& id : item) {
+                incr[id] = true;
+                int myAnd = -1;
+                for (int j = id + 1; j < n; j++) {
+                    int curAND = (1 << BITS) - 1;
+                    if (j + 1 < n) curAND &= suf[j + 1];
+                    if (id - 1 >= 0) curAND &= pref[id - 1];
+                    if (myAnd != -1) curAND &= myAnd;
+
+                    if (curAND + x < std::__gcd(src[id], src[j])) {
+                        coutYES(src, n, id, j);
+                        return;
+                    }
+
+                    if (myAnd == -1) {
+                        myAnd = src[j];
+                    } else {
+                        myAnd &= src[j];
+                    }
+                }
+
+                myAnd = -1;
+                for (int j = id - 1; j >= 0; j--) {
+                    int curAND = (1 << BITS) - 1;
+
+                    if (j - 1 >= 0) curAND &= pref[j - 1];
+                    if (id + 1 < n) curAND &= suf[id + 1];
+                    if (myAnd != -1) curAND &= myAnd;
+
+                    if (curAND + x < std::__gcd(src[id], src[j])) {
+                        coutYES(src, n, id, j);
+                        return;
+                    }
+
+                    if (myAnd == -1) {
+                        myAnd = src[j];
+                    } else {
+                        myAnd &= src[j];
+                    }
+                }
+            }
+        }
+    }
+
+    int AND = (1 << BITS) - 1;
+    for (int i = 0; i < BITS; i++) {
+        if (!bitCnt[i].empty()) {
+            AND ^= (1 << i);
+        }
+    }
+
+    for (int i = 0; i < n; i++) {
+        if (!incr[i]) {
+            ++cnt[src[i]];
+        }
+    }
+
+    for (int i = 1; i < maxA; i++) {
+        for (int j = i; j < maxA; j += i) {
+            divBy[i] += cnt[j];
+        }
+    }
+
+    for (int g = maxA - 1; g > AND + x; g--) {
+        if (divBy[g] < 2) {
+            continue;
+        }
+
+        int fId = -1;
+        int sId = -1;
+        for (int i = 0; i < n; i++) {
+            if (!incr[i]) {
+                if (src[i] % g == 0) {
+                    if (fId == -1) {
+                        fId = i;
+                    } else {
+                        sId = i;
+                    }
+                }
+            }
+        }
+        coutYES(src, n, fId, sId);
+        return;
+    }
+
+    std::cout << "NO\n";
+}
+
+int main() {
+    std::ios_base::sync_with_stdio(false);
+    std::cin.tie(nullptr);
+    std::cout.tie(nullptr);
+
+    int testN;
+    std::cin >> testN;
+    while (testN--) {
+        solve();
+    }
+    return 0;
+}
