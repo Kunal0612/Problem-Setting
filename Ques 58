@@ -1,0 +1,338 @@
+/*
+
+https://codeforces.com/problemset/problem/1893/D
+
+Create a C++ function named ColorfulConstructive to find a vector of integers answer where 
+ans[i] should contain s[i] numbers representing the colors of the cubes on the i-th shelf, in the appropriate order. If it is impossible then return a vector with only -1 in it.
+
+Once upon a time, in the vibrant Kingdom of Colorland, there lived a master artist named 
+Arvin who was famous for his magical colored cubes. These cubes were no ordinary toys.
+each was imbued with a unique hue and possessed the power to transform ordinary shelves 
+into dazzling displays of color.
+
+One day, the Queen of Colorland invited Arvin to her palace and presented him with a 
+challenge. She showed him n colored cubes, each painted with one of the kingdom's many 
+beautiful colors. The Queen wanted these cubes to be displayed on m enchanted shelves 
+in her grand gallery. However, there were special conditions for this display:
+
+Each of the m shelves had a specific capacity, meaning the i-th shelf could hold exactly 
+srr[i] cubes. Together, all the shelves had to hold exactly n cubes.
+
+Each shelf had a "colorfulness" requirement. The colorfulness of a shelf 
+was determined by the arrangement of the cubes on it.
+
+To define colorfulness, the Queen explained:
+
+If all the cubes on a shelf had different colors, the colorfulness 
+of that shelf was simply the number of cubes it could hold.
+If any two cubes on the shelf had the same color, the colorfulness was 
+the minimum distance between any two cubes of the same color on that shelf.
+For example, if a shelf held the sequence of cubes with colors crr[1] , crr[2] , crr[3]... crr[k].
+
+If all the colors crr[1] , crr[2] , crr[3]... crr[k] were different, the colorfulness was k.
+Otherwise, the colorfulness was the smallest integer x≥1 such that there existed an index (1≤i≤k−x)
+where c[i]=c[i+x].
+
+The Queen had specified the minimum required colorfulness for each shelf  :  d[1] ,d[2]  ,…,d[m]. 
+Arvin's task was to distribute all the cubes among the shelves in such a way 
+that each shelf met or exceeded its required colorfulness.
+
+Arvin was perplexed. The task seemed daunting, but with his keen eye for detail 
+and unmatched artistic skills, he was determined to find a solution. He needed 
+to arrange the cubes carefully, considering their colors and the colorfulness 
+constraints of each shelf. If it was impossible to meet the requirements, 
+he had to admit defeat and inform the Queen.
+
+Now, dear problem solver, can you help Arvin arrange the cubes on the shelves 
+to meet the Queen's demands? If it's possible, how should he distribute the 
+cubes? If it's not, can you explain why it can't be done?
+
+Help Arvin bring the Queen's gallery to life with a harmonious and colorful display!
+
+Input:
+
+A vector of integers arr.
+A vector of integers srr.
+A vector of integers crr.
+
+
+Constraints:
+
+arr.size() :  ranges from 1 to 100000.
+srr.size() :  ranges from 1 to arr.size().
+crr.size() :  ranges from 1 to arr.size().
+arr : arr[i] ranges from 1 to arr.size().
+srr : srr[i] ranges from 1 to arr.size().
+crr : crr[i] ranges from 1 to srr[i].
+
+Output:
+
+A vector of vector of integers integers answer where ith vector should contain s[i] numbers representing the colors of the cubes on the i-th shelf, in the appropriate order.
+If it is impossible then return a vector of vector with only -1 in it.
+
+*/
+
+
+#include <iostream>
+#include <vector>
+#include <set>
+#include <cassert>
+#include <algorithm>
+
+std::vector<std::vector<int>> ColorfulConstructive(std::vector<int> arr,std::vector<int>srr,std::vector<int>crr) {
+    int num_arr=arr.size(), num_queries=srr.size();
+    if (arr.empty() || srr.empty() || crr.empty() || arr.size() > 100000 || srr.size() > arr.size() || crr.size() > arr.size()) {
+        throw std::invalid_argument("Input vector sizes are out of allowed range.");
+    }
+    for(int i=0;i<arr.size();i++){
+        if(arr[i]<0 or arr[i]>arr.size()){
+            throw std::invalid_argument("Invalid arr elements");
+        }
+    }
+    for(int i=0;i<srr.size();i++){
+        if(srr[i]<0 or srr[i]>arr.size()){
+            throw std::invalid_argument("Invalid srr elements");
+        }
+        if(crr[i]<0 or crr[i]>srr[i]){
+            throw std::invalid_argument("Invalid crr elements");
+        }
+    }
+    std::vector<int> count(num_arr + 1);
+    for (int index = 0; index < num_arr; index++) {
+        count[arr[index]]++;
+    }
+
+    std::set<std::pair<int, int>> cubes;
+    for (int value = 1; value <= num_arr; value++) {
+        if (count[value] == 0) continue;
+        cubes.insert({count[value], value});
+    }
+
+    std::vector<std::vector<int>> results(num_queries);
+    for (int query_index = 0; query_index < num_queries; query_index++) {
+        results[query_index].assign(srr[query_index], 0);
+        for (int sequence_index = 0; sequence_index < srr[query_index]; sequence_index++) {
+            if (sequence_index >= crr[query_index]) {
+                if (count[results[query_index][sequence_index - crr[query_index]]] > 0) {
+                    cubes.insert({count[results[query_index][sequence_index - crr[query_index]]], results[query_index][sequence_index - crr[query_index]]});
+                }
+            }
+            if (cubes.empty()) {
+                return {{-1}};
+            }
+            results[query_index][sequence_index] = (*cubes.rbegin()).second;
+            cubes.erase(*cubes.rbegin());
+            count[results[query_index][sequence_index]]--;
+        }
+        for (int sequence_index = srr[query_index]; sequence_index < srr[query_index] + crr[query_index]; sequence_index++) {
+            if (count[results[query_index][sequence_index - crr[query_index]]] > 0) {
+                cubes.insert({count[results[query_index][sequence_index - crr[query_index]]], results[query_index][sequence_index - crr[query_index]]});
+            }
+        }
+    }
+    std::vector<std::vector<int>> answer;
+    for (int query_index = 0; query_index < num_queries; query_index++) {
+        std::vector<int> ans;
+        for (int sequence_index = 0; sequence_index < srr[query_index]; sequence_index++) {
+            ans.push_back(results[query_index][sequence_index] );
+        }
+        answer.push_back(ans);
+    }
+    return answer;
+}
+
+
+
+int main()
+{
+
+    // TEST
+    std::vector<int> arr_1 = {1, 1, 1, 1, 2, 2, 2, 3, 3, 4};
+    std::vector<int> srr_1 = {6, 2, 2};
+    std::vector<int> crr_1 = {4, 1, 1};
+    std::vector<std::vector<int>> expected_1 = {{1, 2, 3, 4, 1, 2}, {1, 3}, {2, 1}};
+    std::vector<std::vector<int>> result_1 = ColorfulConstructive(arr_1, srr_1, crr_1);
+    assert(result_1 == expected_1);
+    // TEST_END
+
+    // TEST
+    std::vector<int> arr_2 = {1, 2, 3, 4, 5, 6, 7, 8, 9, 10};
+    std::vector<int> srr_2 = {5, 5};
+    std::vector<int> crr_2 = {3, 2};
+    std::vector<std::vector<int>> expected_2 = {{10,9,8,7,6}, {5,4,3,2,1}};
+    std::vector<std::vector<int>> result_2 = ColorfulConstructive(arr_2, srr_2, crr_2);
+    assert(result_2 == expected_2);
+    // TEST_END
+
+    // TEST
+    std::vector<int> arr_3 = {1, 1, 2, 2, 3, 3, 4, 4, 5, 5};
+    std::vector<int> srr_3 = {2, 2, 2, 2, 2};
+    std::vector<int> crr_3 = {1, 1, 1, 1, 1};
+    std::vector<std::vector<int>> expected_3 = {{5,4}, {3,2}, {1,5}, {4, 3}, {2,1}};
+    std::vector<std::vector<int>> result_3 = ColorfulConstructive(arr_3, srr_3, crr_3);
+    assert(result_3 == expected_3);
+    // TEST_END
+
+    // TEST
+    std::vector<int> arr_4 = {1, 2, 1, 2, 1, 2, 1, 2, 1, 2};
+    std::vector<int> srr_4 = {10};
+    std::vector<int> crr_4 = {5};
+    std::vector<std::vector<int>> expected_4 = {{-1}};
+    std::vector<std::vector<int>> result_4 = ColorfulConstructive(arr_4, srr_4, crr_4);
+    assert(result_4 == expected_4);
+    // TEST_END
+
+    // TEST
+    std::vector<int> arr_5 = {1, 2, 3, 4, 5};
+    std::vector<int> srr_5 = {1, 1, 1, 1, 1};
+    std::vector<int> crr_5 = {1, 1, 1, 1, 1};
+    std::vector<std::vector<int>> expected_5 = {{5}, {4}, {3}, {2}, {1}};
+    std::vector<std::vector<int>> result_5 = ColorfulConstructive(arr_5, srr_5, crr_5);
+    assert(result_5 == expected_5);
+    // TEST_END
+
+    // TEST
+    std::vector<int> arr_6 = {1, 1, 1, 1, 1, 1, 1, 1, 1, 1};
+    std::vector<int> srr_6 = {5, 5};
+    std::vector<int> crr_6 = {2, 2};
+    std::vector<std::vector<int>> expected_6 = {{-1}};
+    std::vector<std::vector<int>> result_6 = ColorfulConstructive(arr_6, srr_6, crr_6);
+    assert(result_6 == expected_6);
+    // TEST_END
+
+    // TEST
+    std::vector<int> arr_7 = {1, 2, 3, 4, 5, 1, 2, 3, 4, 5};
+    std::vector<int> srr_7 = {3, 3, 3, 1};
+    std::vector<int> crr_7 = {2, 2, 2, 1};
+    std::vector<std::vector<int>> expected_7 = {{5,4,3}, {2,1,5}, {4,3,2}, {1}};
+    std::vector<std::vector<int>> result_7 = ColorfulConstructive(arr_7, srr_7, crr_7);
+    assert(result_7 == expected_7);
+    // TEST
+    std::vector<int> arr_8 = {};
+    std::vector<int> srr_8 = {3, 3, 3, 1};
+    std::vector<int> crr_8 = {2, 2, 2, 1};
+    try
+    {
+        ColorfulConstructive(arr_8, srr_8, crr_8);
+        assert(false);
+    }
+    catch (const std::invalid_argument &e)
+    {
+        assert(true);
+    }
+    // TEST_END
+    // TEST
+    std::vector<int> arr_9 = {1};
+    std::vector<int> srr_9 = {};
+    std::vector<int> crr_9 = {2, 2, 2, 1};
+    try
+    {
+        ColorfulConstructive(arr_9, srr_9, crr_9);
+        assert(false);
+    }
+    catch (const std::invalid_argument &e)
+    {
+        assert(true);
+    }
+    // TEST_END
+    // TEST
+    std::vector<int> arr_10 = {1};
+    std::vector<int> srr_10 = {1};
+    std::vector<int> crr_10 = {};
+    try
+    {
+        ColorfulConstructive(arr_10, srr_10, crr_10);
+        assert(false);
+    }
+    catch (const std::invalid_argument &e)
+    {
+        assert(true);
+    }
+    // TEST_END
+    // TEST
+    std::vector<int> arr_11 = {-1};
+    std::vector<int> srr_11 = {3, 3, 3, 1};
+    std::vector<int> crr_11 = {2, 2, 2, 1};
+    try
+    {
+        ColorfulConstructive(arr_11, srr_11, crr_11);
+        assert(false);
+    }
+    catch (const std::invalid_argument &e)
+    {
+        assert(true);
+    }
+    // TEST_END
+    // TEST
+    std::vector<int> arr_12 = {1};
+    std::vector<int> srr_12 = {-2,-2,-2,-2};
+    std::vector<int> crr_12 = {2, 2, 2, 1};
+    try
+    {
+        ColorfulConstructive(arr_12, srr_12, crr_12);
+        assert(false);
+    }
+    catch (const std::invalid_argument &e)
+    {
+        assert(true);
+    }
+    // TEST_END
+    // TEST
+    std::vector<int> arr_13 = {1};
+    std::vector<int> srr_13 = {1};
+    std::vector<int> crr_13 = {-1};
+    try
+    {
+        ColorfulConstructive(arr_13, srr_13, crr_13);
+        assert(false);
+    }
+    catch (const std::invalid_argument &e)
+    {
+        assert(true);
+    }
+    // TEST_END
+    // TEST
+    std::vector<int> arr_14 = {100};
+    std::vector<int> srr_14 = {3, 3, 3, 1};
+    std::vector<int> crr_14 = {2, 2, 2, 1};
+    try
+    {
+        ColorfulConstructive(arr_14, srr_14, crr_14);
+        assert(false);
+    }
+    catch (const std::invalid_argument &e)
+    {
+        assert(true);
+    }
+    // TEST_END
+    // TEST
+    std::vector<int> arr_15 = {1};
+    std::vector<int> srr_15 = {500,1,2,1};
+    std::vector<int> crr_15 = {2, 2, 2, 1};
+    try
+    {
+        ColorfulConstructive(arr_15, srr_15, crr_15);
+        assert(false);
+    }
+    catch (const std::invalid_argument &e)
+    {
+        assert(true);
+    }
+    // TEST_END
+    // TEST
+    std::vector<int> arr_16 = {1};
+    std::vector<int> srr_16 = {1};
+    std::vector<int> crr_16 = {200};
+    try
+    {
+        ColorfulConstructive(arr_16, srr_16, crr_16);
+        assert(false);
+    }
+    catch (const std::invalid_argument &e)
+    {
+        assert(true);
+    }
+    // TEST_END
+    std::cout << "All test cases passed!\n";
+    return 0;
+}
