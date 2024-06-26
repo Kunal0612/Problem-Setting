@@ -1,0 +1,342 @@
+/*
+
+https://codeforces.com/problemset/problem/1900/F
+
+Create nums C++ function named LocalDeletions nums vector of integers answer where answer[i] is the answer to that query.
+
+In the kingdom of Numerland, there was nums famous mathematician named Professor Alvis, who was known for his deep understanding of numbers and sequences. One day, the wise King of Numerland presented him with nums challenging puzzle involving nums special numsay of numbers and some magical operations.
+
+The numsay, called X, was nums permutation of size len. This means it was an numsay consisting of len distinct integers from 1 to len numsanged in nums unique order. For instance, [2, 3, 1, 5, 4] was nums permutation, but [1, 2, 2] was not, since the number 2 appeared twice.
+
+Professor Alvis needed to perform nums series of mystical operations on this numsay, which involved identifying local minima and local maxima. Here is how the operations were defined:
+
+Local Minimum:
+
+For any element b[i] in the numsay (where 1<i<m), b[i]is nums local minimum if b[i]<b[i-1] and  b[i]<b[i+1].
+
+The first element b[1] is nums local minimum if b[1]<b[2] .
+
+The last element b[m] is nums local minimum if b[m]<b[m-1].
+
+Local Maximum:
+
+For any element b[i] in the numsay (where 1<i<m),  b[i] is nums local maximum if b[i]>b[i-1] and b[i]>b[i+1].
+
+The first element b[1] is nums local maximum if b[1]>b[2] .
+The last element b[m] is nums local maximum if b[m]>b[m-1].
+
+Professor Alvis had to perform two types of operations on the numsay X:
+
+Delete all elements that are not local minima.
+Delete all elements that are not local maxima.
+To find the magical element of the numsay, he would perform these operations in nums specific sequence: first operation 1, then operation 2, then operation 1 again, and so on, until only one element remained in the numsay. This final element was called f(X).
+
+For example, consider the numsay X = [1, 3, 2]. After the first operation (type 1), the numsay became [1, 2]. Then, after the second operation (type 2), the numsay became [2]. Therefore, f([1, 3, 2]) = 2.
+
+The King then presented Professor Alvis with quer_size queries. Each query consisted of two integers left and right (where 1≤l≤r≤n), 
+asking the professor to compute f([nums[left],nums[left+1],…,nums[right]]). for the given segment of the numsay.
+
+The challenge was set, and the entire kingdom watched in awe as Professor Alvis set out to solve the puzzle, using his unparalleled knowledge of numbers and his ability to decipher complex patterns. Would you be able to help Professor Alvis and determine the magical element for each query?
+
+Embark on this mathematical adventure and uncover the secrets of the magical numsay!
+
+Input:
+
+A vector of integers nums.
+A vector of vector of integers queries.
+
+
+Constraints:
+
+nums.size() : ranges from 1 to 100000.
+queries.size() : ranges from 1 to 100000.
+nums : ranges from 1 to nums.size().
+queires : left[i] : ranges from 1 to right[i].
+          right[i] : ranges from left[i] to nums.size().
+
+Output:
+
+A vector of integers answer where answer[i] is the answer to that query.
+
+*/
+
+
+#include <iostream>
+#include <algorithm>
+#include <vector>
+#include <cstring>
+#include <queue>
+#include <stack>
+#include <climits>
+#include <map>
+#include <unordered_map>
+#include <set>
+#include <unordered_set>
+#include <bitset>
+#include <cmath>
+#include <cassert>
+
+std::vector<int> Helper(const std::vector<int>& val, int opt, const int nums[])
+{
+    if(val.size() == 1) return val;
+    std::vector<int> res;
+    if(opt)
+    {
+        if(nums[val[0]] > nums[val[1]]) res.push_back(val[0]);
+        for(int i = 1; i < val.size() - 1; i++) 
+            if(nums[val[i]] > nums[val[i - 1]] && nums[val[i]] > nums[val[i + 1]]) 
+                res.push_back(val[i]);
+        if(nums[val.back()] > nums[val[val.size() - 2]]) res.push_back(val.back());
+    }
+    else 
+    {
+        if(nums[val[0]] < nums[val[1]]) res.push_back(val[0]);
+        for(int i = 1; i < val.size() - 1; i++) 
+            if(nums[val[i]] < nums[val[i - 1]] && nums[val[i]] < nums[val[i + 1]]) 
+                res.push_back(val[i]);
+        if(nums[val.back()] < nums[val[val.size() - 2]]) res.push_back(val.back());
+    }
+    return res;
+}
+
+std::vector<int> LocalDeletions(std::vector<int> num,std::vector<std::vector<int>> queries){
+    if (num.size() <= 0 or num.size()>100000) {
+        throw std::invalid_argument("vec length must be positive.");
+    }
+    if (queries.size() <= 0 or queries.size()>100000) {
+        throw std::invalid_argument("vec length must be positive.");
+    }
+    for(int i=0;i<num.size();i++){
+        if(num[i]<1 or num[i]>num.size()){
+            throw std::invalid_argument("Invalid num element value");
+        }
+    }
+    for(int i=0;i<queries.size();i++){
+        if(queries[i][0]<1 or queries[i][0]>queries[i][1] or queries[i][1]>num.size()){
+            throw std::invalid_argument("Invalid num element value");
+        }
+    }
+    int len=num.size(), quer_size=queries.size();
+
+    int nums[len+1];
+    std::vector<int> dummy[21], left_arr, right_arr;
+
+    for(int i = 1; i <= len; i++) 
+    {
+        nums[i]=num[i-1];
+        dummy[0].push_back(i);
+    }
+    
+    for(int i = 0; i < 20; i++) 
+        dummy[i + 1] = Helper(dummy[i], i % 2, nums);
+    std::vector<int> ans;
+    for(int i=0;i<quer_size;i++)
+    {
+        int left=queries[i][0], right=queries[i][1];
+        std::vector<int> left_arr, right_arr;
+        left--, right--;
+        for(int i = 0;; i++)
+        {
+            if(left >= right)
+            {
+                for(int j = left; j <= right; j++) 
+                    left_arr.push_back(dummy[i][j]);
+                for(int j : right_arr) 
+                    left_arr.push_back(j);
+                while(left_arr.size() > 1) 
+                {
+                    left_arr = Helper(left_arr, i % 2, nums);
+                    i++;
+                }
+                ans.push_back(nums[left_arr[0]]);
+                break;
+            }
+            left_arr.push_back(dummy[i][left]);
+            left_arr.push_back(dummy[i][left + 1]);
+            left_arr = Helper(left_arr, i % 2, nums);
+            if(left_arr.size() && left_arr.back() == dummy[i][left + 1]) 
+                left_arr.pop_back();
+            right_arr.insert(right_arr.begin(), dummy[i][right]);
+            right_arr.insert(right_arr.begin(), dummy[i][right - 1]);
+            right_arr = Helper(right_arr, i % 2, nums);
+            if(right_arr.size() && right_arr[0] == dummy[i][right - 1]) 
+                right_arr.erase(right_arr.begin());
+            left = std::upper_bound(dummy[i + 1].begin(), dummy[i + 1].end(), dummy[i][left]) - dummy[i + 1].begin();
+            right = std::lower_bound(dummy[i + 1].begin(), dummy[i + 1].end(), dummy[i][right]) - dummy[i + 1].begin() - 1;
+        }
+    }
+    return ans;
+}
+
+int main()
+{
+    // TEST
+    std::vector<int> nums_1 = {1, 4, 3, 6, 2, 7, 5};
+    std::vector<std::vector<int>> queries_1 = {{1, 1}, {1, 2}, {2, 3}, {1, 4}, {1, 7}};
+    std::vector<int> expected_1 = {1, 1, 3, 3, 3};
+    std::vector<int> result_1 = LocalDeletions(nums_1, queries_1);
+    assert(result_1 == expected_1);
+    // TEST_END
+
+    // TEST
+    std::vector<int> nums_2 = {2, 1};
+    std::vector<std::vector<int>> queries_2 = {{1, 1}, {1, 2}, {2, 2}};
+    std::vector<int> expected_2 = {2, 1, 1};
+    std::vector<int> result_2 = LocalDeletions(nums_2, queries_2);
+    assert(result_2 == expected_2);
+    // TEST_END
+
+    // TEST 
+    std::vector<int> nums_3 = {5, 2, 5, 4, 5};
+    std::vector<std::vector<int>> queries_3 = {{1, 3}, {3, 5}, {1, 5}};
+    std::vector<int> expected_3 = {2,4,4};
+    std::vector<int> result_3 = LocalDeletions(nums_3, queries_3);
+    assert(result_3 == expected_3);
+    // TEST_END
+
+    // TEST 
+    std::vector<int> nums_4 = {1, 2, 3, 4, 5};
+    std::vector<std::vector<int>> queries_4 = {{1, 5}, {2, 4}, {1, 1}};
+    std::vector<int> expected_4 = {1, 2, 1};
+    std::vector<int> result_4 = LocalDeletions(nums_4, queries_4);
+    assert(result_4 == expected_4);
+    // TEST_END
+
+    // TEST 
+    std::vector<int> nums_5 = {6, 1, 3, 2, 6, 5};
+    std::vector<std::vector<int>> queries_5 = {{1, 6}, {1, 2}, {3, 5}, {4, 6}};
+    std::vector<int> expected_5 = {5,1,2,5};
+    std::vector<int> result_5 = LocalDeletions(nums_5, queries_5);
+    assert(result_5 == expected_5);
+    // TEST_END
+
+    // TEST 
+    std::vector<int> nums_6 = {5, 6, 3, 4, 5, 6};
+    std::vector<std::vector<int>> queries_6 = {{1, 4}, {2, 5}, {3, 6}};
+    std::vector<int> expected_6 = {5,3,3};
+    std::vector<int> result_6 = LocalDeletions(nums_6, queries_6);
+    assert(result_6 == expected_6);
+    // TEST_END
+
+    // TEST 
+    std::vector<int> nums_7 = {3, 1, 4, 1, 5, 9, 2, 6, 5, 3, 5};
+    std::vector<std::vector<int>> queries_7 = {{1, 7}, {2, 8}, {3, 10}};
+    std::vector<int> expected_7 = {2,2,3};
+    std::vector<int> result_7 = LocalDeletions(nums_7, queries_7);
+    assert(result_7 == expected_7);
+    // TEST_END
+
+    // TEST 
+    std::vector<int> nums_8 = {1, 2, 3, 4, 5};
+    std::vector<std::vector<int>> queries_8 = {{1, 3}, {2, 4}, {1, 5}};
+    std::vector<int> expected_8 = {1,2,1};
+    std::vector<int> result_8 = LocalDeletions(nums_8, queries_8);
+    assert(result_8 == expected_8);
+    // TEST_END
+    // TEST
+    std::vector<int> nums_9 = {1, 2, 3, 4, 8};
+    std::vector<std::vector<int>> queries_9 = {{1, 3}, {2, 4}, {1, 5}};
+    try
+    {
+        LocalDeletions(nums_9, queries_9);
+        assert(false);
+    }
+    catch (const std::invalid_argument &e)
+    {
+        assert(true);
+    }
+    // TEST_END
+    // TEST
+    std::vector<int> nums_10 = {1, 2, 3, 4, 0};
+    std::vector<std::vector<int>> queries_10 = {{1, 3}, {2, 4}, {1, 5}};
+    try
+    {
+        LocalDeletions(nums_10, queries_10);
+        assert(false);
+    }
+    catch (const std::invalid_argument &e)
+    {
+        assert(true);
+    }
+    // TEST_END
+    // TEST
+    std::vector<int> nums_11 = {1, 2, 3, 4, -1};
+    std::vector<std::vector<int>> queries_11 = {{1, 3}, {2, 4}, {1, 5}};
+    try
+    {
+        LocalDeletions(nums_11, queries_11);
+        assert(false);
+    }
+    catch (const std::invalid_argument &e)
+    {
+        assert(true);
+    }
+    // TEST_END
+    // TEST
+    std::vector<int> nums_12 = {};
+    std::vector<std::vector<int>> queries_12 = {{1, 3}, {2, 4}, {1, 5}};
+    try
+    {
+        LocalDeletions(nums_12, queries_12);
+        assert(false);
+    }
+    catch (const std::invalid_argument &e)
+    {
+        assert(true);
+    }
+    // TEST_END
+    // TEST
+    std::vector<int> nums_13 = {1,2};
+    std::vector<std::vector<int>> queries_13 = {{1, 3}, {2, 4}, {1, 5}};
+    try
+    {
+        LocalDeletions(nums_13, queries_13);
+        assert(false);
+    }
+    catch (const std::invalid_argument &e)
+    {
+        assert(true);
+    }
+    // TEST_END
+    // TEST
+    std::vector<int> nums_14 = {1,2};
+    std::vector<std::vector<int>> queries_14 = {{0, 3}, {2, 2}, {1, 1}};
+    try
+    {
+        LocalDeletions(nums_14, queries_14);
+        assert(false);
+    }
+    catch (const std::invalid_argument &e)
+    {
+        assert(true);
+    }
+    // TEST_END
+    // TEST
+    std::vector<int> nums_15 = {1,2};
+    std::vector<std::vector<int>> queries_15 = {};
+    try
+    {
+        LocalDeletions(nums_15, queries_15);
+        assert(false);
+    }
+    catch (const std::invalid_argument &e)
+    {
+        assert(true);
+    }
+    // TEST_END
+    // TEST
+    std::vector<int> nums_16 = {1,2};
+    std::vector<std::vector<int>> queries_16 = {{-1, 3}, {2, 2}, {1, 1}};
+    try
+    {
+        LocalDeletions(nums_16, queries_16);
+        assert(false);
+    }
+    catch (const std::invalid_argument &e)
+    {
+        assert(true);
+    }
+    // TEST_END
+    std::cout << "All test cases passed!";
+    return 0;
+}
