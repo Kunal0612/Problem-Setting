@@ -27,7 +27,7 @@ Constraints:
 
 nums.size() : ranges from 1 to 1000000.
 queries.size() : ranges from 1 to 1000000.
-nums : ranges from 0 to 1000000.
+nums : ranges from 0 to 1000.
 queries : ranges from 0 to 10^18.
 
 Output:
@@ -44,10 +44,10 @@ A long long vector of integer ans that will answer the maximum possible bitwise 
 #include <cstdint>
 #include <cassert>
 
-int64_t dp_sum[1 << 20][20];
-int64_t dp_cnt[1 << 20];
 
 std::vector<int64_t> MaximumAndQueries(std::vector<int> &nums,std::vector<int64_t> &queries){
+    int64_t dp_sum[1 << 10][10]={0};
+    int64_t dp_cnt[1 << 10]={0};
     if(nums.empty() or nums.size()>1000000){
         throw std::invalid_argument("Invalid nums Length");
     }
@@ -55,7 +55,7 @@ std::vector<int64_t> MaximumAndQueries(std::vector<int> &nums,std::vector<int64_
         throw std::invalid_argument("Invalid queries Length");
     }
     for(int i=0;i<nums.size();i++){
-        if(nums[i]<0 or nums[i]>1000000){
+        if(nums[i]<0 or nums[i]>1000){
             throw std::invalid_argument("Invalid Constraints");
         }
     }
@@ -67,28 +67,28 @@ std::vector<int64_t> MaximumAndQueries(std::vector<int> &nums,std::vector<int64_
     int64_t n=nums.size(), q=queries.size();
     int64_t s_to = 0, s_from = 0;
     for (int64_t i = 0; i < n; ++i) {
-        s_to += (1ll << 20ll) - nums[i];
+        s_to += (1ll << 10ll) - nums[i];
         s_from += nums[i];
         ++dp_cnt[nums[i]];
         int64_t sum = 0;
-        for (int64_t j = 0; j < 20; ++j) {
+        for (int64_t j = 0; j < 10; ++j) {
             sum += nums[i] & (1ll << j);
             dp_sum[nums[i]][j] += sum;
         }
     }
 
-    for (int64_t i = 0; i < 20; ++i) {
-        for (int64_t j = 0; j < (1 << 20); ++j) {
+    for (int64_t i = 0; i < 10; ++i) {
+        for (int64_t j = 0; j < (1 << 10); ++j) {
             if (!(j & (1 << i))) {
                 dp_cnt[j] += dp_cnt[j + (1 << i)];
             }
         }
     }
 
-    for (int64_t i = 0; i < 20; ++i) {
-        for (int64_t j = 0; j < (1 << 20); ++j) {
+    for (int64_t i = 0; i < 10; ++i) {
+        for (int64_t j = 0; j < (1 << 10); ++j) {
             if (!(j & (1 << i))) {
-                for (int64_t l = 0; l < 20; ++l) {
+                for (int64_t l = 0; l < 10; ++l) {
                     dp_sum[j][l] += dp_sum[j + (1 << i)][l];
                 }
             }
@@ -103,7 +103,7 @@ std::vector<int64_t> MaximumAndQueries(std::vector<int> &nums,std::vector<int64_
             continue;
         }
         int64_t ans = 0;
-        for (int64_t i = 19; i >= 0; --i) {
+        for (int64_t i = 9; i >= 0; --i) {
             int64_t x = (n - dp_cnt[ans | (1 << i)]) * (1ll << i);
             x -= dp_sum[ans][i] - dp_sum[ans | (1 << i)][i];
             if (x <= cnt) {
@@ -129,7 +129,7 @@ int main() {
     // TEST
     std::vector<int> nums_2 = {0, 1, 2, 3, 4, 5};
     std::vector<int64_t> queries_2 = {1, 10, 100};
-    std::vector<int64_t> expected_2 = {1,4,19};
+    std::vector<int64_t> expected_2 = {0,4,19};
     std::vector<int64_t> result_2 = MaximumAndQueries(nums_2, queries_2);
     assert(result_2 == expected_2);
     // TEST_END
@@ -145,7 +145,7 @@ int main() {
     // TEST 4
     std::vector<int> nums_4 = {0, 1, 2, 3, 4, 5};
     std::vector<int64_t> queries_4 = {1000000, 1000000000};
-    std::vector<int64_t> expected_4 = {15, 150};
+    std::vector<int64_t> expected_4 = {166669,166666669};
     std::vector<int64_t> result_4 = MaximumAndQueries(nums_4, queries_4);
     assert(result_4 == expected_4);
     // TEST_END
@@ -153,15 +153,15 @@ int main() {
     // TEST 5
     std::vector<int> nums_5 = {1, 2, 4, 8, 16};
     std::vector<int64_t> queries_5 = {1, 2, 4, 8, 16, 32};
-    std::vector<int64_t> expected_5 = {16, 32, 64, 128, 256, 512};
+    std::vector<int64_t> expected_5 = {0 ,0 ,1 ,2 ,4 ,9};
     std::vector<int64_t> result_5 = MaximumAndQueries(nums_5, queries_5);
     assert(result_5 == expected_5);
     // TEST_END
 
     // TEST 6
-    std::vector<int> nums_6 = {1000000};
-    std::vector<int64_t> queries_6 = {1000000000000000000};
-    std::vector<int64_t> expected_6 = {1000000};
+    std::vector<int> nums_6 = {100};
+    std::vector<int64_t> queries_6 = {100000000000000000};
+    std::vector<int64_t> expected_6 = {100000000000000100};
     std::vector<int64_t> result_6 = MaximumAndQueries(nums_6, queries_6);
     assert(result_6 == expected_6);
     // TEST_END
@@ -169,17 +169,95 @@ int main() {
     // TEST 7
     std::vector<int> nums_7 = {0, 1, 2, 3, 4, 5, 6, 7, 8, 9};
     std::vector<int64_t> queries_7 = {1, 10, 100, 1000, 10000};
-    std::vector<int64_t> expected_7 = {9, 45, 285, 1785, 10785};
+    std::vector<int64_t> expected_7 = {0 ,2 ,14 ,104 ,1004};
     std::vector<int64_t> result_7 = MaximumAndQueries(nums_7, queries_7);
     assert(result_7 == expected_7);
     // TEST_END
 
     // TEST 8
-    std::vector<int> nums_8 = {999999};
+    std::vector<int> nums_8 = {999};
     std::vector<int64_t> queries_8 = {999999999999999999};
-    std::vector<int64_t> expected_8 = {999999};
+    std::vector<int64_t> expected_8 = {1000000000000000998};
     std::vector<int64_t> result_8 = MaximumAndQueries(nums_8, queries_8);
     assert(result_8 == expected_8);
+    // TEST_END
+    // TEST
+    std::vector<int> nums_9 = {};
+    std::vector<int64_t> queries_9 = {999999999999999999};
+    try
+    {
+        MaximumAndQueries(nums_9, queries_9);
+        assert(false);
+    }
+    catch (const std::invalid_argument &e)
+    {
+        assert(true);
+    }
+    // TEST_END
+    // TEST
+    std::vector<int> nums_10 = {9999};
+    std::vector<int64_t> queries_10 = {999999999999999999};
+    try
+    {
+        MaximumAndQueries(nums_10, queries_10);
+        assert(false);
+    }
+    catch (const std::invalid_argument &e)
+    {
+        assert(true);
+    }
+    // TEST_END
+    // TEST
+    std::vector<int> nums_11 = {-9999};
+    std::vector<int64_t> queries_11 = {999999999999999999};
+    try
+    {
+        MaximumAndQueries(nums_11, queries_11);
+        assert(false);
+    }
+    catch (const std::invalid_argument &e)
+    {
+        assert(true);
+    }
+    // TEST_END
+    // TEST
+    std::vector<int> nums_12 = {0};
+    std::vector<int64_t> queries_12 = {-999999999999999999};
+    try
+    {
+        MaximumAndQueries(nums_12, queries_12);
+        assert(false);
+    }
+    catch (const std::invalid_argument &e)
+    {
+        assert(true);
+    }
+    // TEST_END
+    // TEST
+    std::vector<int> nums_13 = {0};
+    std::vector<int64_t> queries_13 = {};
+    try
+    {
+        MaximumAndQueries(nums_13, queries_13);
+        assert(false);
+    }
+    catch (const std::invalid_argument &e)
+    {
+        assert(true);
+    }
+    // TEST_END
+    // TEST
+    std::vector<int> nums_14 = {0};
+    std::vector<int64_t> queries_14 = {-5};
+    try
+    {
+        MaximumAndQueries(nums_14, queries_14);
+        assert(false);
+    }
+    catch (const std::invalid_argument &e)
+    {
+        assert(true);
+    }
     // TEST_END
 
     std::cout << "All test cases passed!\n";
