@@ -1,6 +1,6 @@
 https://codeforces.com/problemset/problem/1188/C
 
-Create a C++ function named RotateColumns to find the sum the maximal possible value of r1+r2+…+rn.
+Create a C++ function named ArrayBeauty to find the sum of beauty over all subsequences of the array of length exactly k
 
 Let's call beauty of an array b1,b2,…,bn (n>1)  — min1≤i<j≤n|bi−bj|.
 
