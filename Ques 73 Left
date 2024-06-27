@@ -1,0 +1,24 @@
+https://codeforces.com/problemset/problem/1768/F
+
+Create a C++ function named WonderfulJump to find answer that contain the minimum cost needed to get from index 1 to index k.
+
+You are given an array of positive integers nums[1],nums[2],…,nums[n] of length n.
+
+In one operation you can jump from index i to index j (1≤i≤j≤n) by paying min(ai,ai+1,…,aj)*(j−i)^2 cost.
+
+For all k from 1 to n , find the minimum cost needed to get from index 1 to index k.
+
+Input:
+
+A vector of integers nums.
+
+Constraints:
+
+nums.size() : ranges from 2 to 400000.
+nums : ranges from 1 to nums.size().
+
+Output:
+
+An integer answer that contain the minimum cost needed to get from index 1 to index k.
+
+Sol : https://codeforces.com/blog/entry/110901
