@@ -1,0 +1,24 @@
+https://codeforces.com/problemset/problem/1209/E2
+
+Create a C++ function named RotateColumns to find the sum the maximal possible value of r1+r2+…+rn.
+
+You are given a rectangular n × m matrix grid. In one move you can choose any column and cyclically shift elements in this column. You can perform this operation as many times as you want (possibly zero). You can perform this operation to a column multiple times.
+
+After you are done with cyclical shifts, you compute for every row the maximal value in it. Suppose that for i-th row it is equal r[i].
+What is the maximal possible value of r[1]+r[2]+…+r[n] ?
+
+Input:
+
+The vector of vector of integers grid.
+
+Constraints:
+
+grid.size() : ranges from 1 to 12.
+grid[0].size() : ranges from 1 to 2000.
+grid : ranges from 1 to 100000.
+
+Output:
+
+An integer answer the sum the maximal possible value of r1+r2+…+rn.
+
+Sol : https://codeforces.com/contest/1209/submission/158875541
