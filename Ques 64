@@ -1,3 +1,5 @@
+https://codeforces.com/problemset/problem/868/F
+
 Create a C++ function named AnotherMinimization to find an integer answer the minimum possible total cost of resulting subsegments. 
 
 You are given an array of n integers. The cost of a subsegment is defined as the number of unordered pairs of distinct indices within the subsegment that contain equal elements. Your task is to split the array into k non-intersecting, non-empty subsegments such that the sum of their costs is minimized. Each element of the array must be present in exactly one subsegment.
