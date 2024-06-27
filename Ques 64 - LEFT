@@ -1,19 +1,26 @@
+/*
+
 https://codeforces.com/problemset/problem/868/F
 
-Create a C++ function named AnotherMinimization to find an integer answer the minimum possible total cost of resulting subsegments. 
+Create a C++ function named AnotherMinimization to find an integer answer 
+the minimum possible total cost of resulting subsegments. 
 
-You are given an array of n integers. The cost of a subsegment is defined as the number of unordered pairs of distinct indices within the subsegment that contain equal elements. Your task is to split the array into k non-intersecting, non-empty subsegments such that the sum of their costs is minimized. Each element of the array must be present in exactly one subsegment.
+You are given an array of n integers. The cost of a subsegment is defined 
+as the number of unordered pairs of distinct indices within the 
+subsegment that contain equal elements. Your task is to split the array into len non-intersecting, 
+non-empty subsegments such that the sum of their costs is minimized. 
+Each element of the array must be present in exactly one subsegment.
 
 Input:
 
-An integer split the number of segments you need to split the array into.
+An integer len the number of segments you need to split the array into.
 The vector of integers nums.
 
 Constraints:
 
 nums.size() : ranges from 2 to 100000.
 nums : ranges from 1 to nums.size().
-split : ranges from 2 to min(2,nums.size()).
+len : ranges from 2 to min(2,nums.size()).
 
 
 Output:
@@ -22,3 +29,42 @@ An integer answer the minimum possible total cost of resulting subsegments.
 
 Sol : https://codeforces.com/contest/868/submission/226431258
 
+*/
+#include <bits/stdc++.h>
+using namespace std;
+
+int L = 1, R = 0;
+long long int res;
+vector<vector<long long int>> dp(21, vector<long long int>(200005));
+vector<int> c(200005);
+
+long long int calc(int gl, int gr, const vector<int>& a) {
+    while (R < gr) res += c[a[++R]]++;
+    while (L > gl) res += c[a[--L]]++;
+    while (R > gr) res -= --c[a[R--]];
+    while (L < gl) res -= --c[a[L++]];
+    return res;
+}
+
+void solve(int l, int r, int pl, int pr, int nw, const vector<int>& a) {
+    int mid = (l + r) >> 1;
+    int tl = pl, tr = min(mid, pr), p;
+    dp[nw][mid] = 1e18;
+    for (int i = tl; i <= tr; ++i) {
+        long long int va = dp[nw - 1][i - 1] + calc(i, mid, a);
+        if (va < dp[nw][mid]) dp[nw][mid] = va, p = i;
+    }
+    if (l == r) return;
+    solve(l, mid, pl, p, nw, a);
+    solve(mid + 1, r, p, pr, nw, a);
+}
+
+int main() {
+    int n, k;
+    scanf("%d%d", &n, &k);
+    vector<int> a(n + 1);
+    for (int i = 1; i <= n; ++i) cin >> a[i], dp[0][i] = 1e18;
+    for (int nw = 1; nw <= k; ++nw) solve(1, n, 1, n, nw, a);
+    cout << dp[k][n] << endl;
+    return 0;
+}
