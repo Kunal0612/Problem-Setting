@@ -1,0 +1,33 @@
+https://codeforces.com/problemset/problem/1809/G
+
+Create a C++ function named Prediction to find the answer that contain the number of ways to assign the indices to the participants so that Monocarp can predict the results of all n−1 games.
+
+The tournament will be organized as follows. First of all, organizers will assign each participant an index from 1 to n. All indices will be unique. Let pi
+be the participant who gets the index i.
+
+Then, n−1 games will be held. In the first game, participants p1 and p2 will play. In the second game, the winner of the first game will play against p3.
+In the third game, the winner of the second game will play against p4, and so on — in the last game, the winner of the (n−2)-th game will play against 
+pn.
+
+Monocarp wants to predict the results of all n−1 games (of course, he will do the prediction only after the indices of the participants are assigned). He knows for sure that, when two participants with ratings x and y play, and |x−y|>k, the participant with the higher rating wins. But if |x−y|≤k
+,any of the two participants may win.
+
+Among all n! ways to assign the indices to participants, calculate the number of ways to do this so that Monocarp can predict the results of all n−1
+games. Since the answer can be large, print it modulo 998244353.
+
+Input:
+
+A vector of integers nums.
+An integer val.
+
+Constraints:
+
+val : ranges from 0 to 10^9.
+nums.size() : ranges from 2 to 1000000.
+nums : sorted in increasing order and ranges from 0 to 10^9.
+
+Output:
+
+An integer answer that contain the number of ways to assign the indices to the participants so that Monocarp can predict the results of all n−1 games.
+
+Sol : https://codeforces.com/blog/entry/114300
