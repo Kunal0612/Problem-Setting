@@ -1,0 +1,30 @@
+https://codeforces.com/problemset/problem/1762/F
+
+Create a C++ function named Prediction GoodPairs to find the number of good pairs.
+
+You are given an array a consisting of n integers and an integer val.
+
+A pair (l,r) is good if there exists a sequence of indices i1,i2,…,im such that 
+
+-> i1=l and im=r 
+
+-> ij<ij+1 for all 1≤j<m and |aij−aij+1|≤k for all 1≤j<m.
+
+Find the number of pairs (l,r) (1≤l≤r≤n) that are good.
+
+Input:
+
+A vector of integers nums.
+An integer val.
+
+Constraints:
+
+val : ranges from 0 to 10^5.
+nums.size() : ranges from 1 to 500000.
+nums : ranges from 1 to 100000.
+
+Output:
+
+An integer answer that contain the number of good pairs.
+
+Sol : https://codeforces.com/blog/entry/110169
