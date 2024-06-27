@@ -1,0 +1,24 @@
+https://codeforces.com/problemset/problem/1043/F
+
+Create a C++ function named MakeItOne to find an integer answer the size of the smallest subset with gcd equal to 1 if there is no answer return -1. 
+
+Janusz is a businessman. He owns a company "Januszex", which produces games for teenagers. Last hit of Januszex was a cool one-person game "Make it one". The player is given a sequence of n integers nums[i].
+
+It is allowed to select any subset of them, and the score is equal to the greatest common divisor of selected elements. The goal is to take as little elements as it is possible, getting the score 1. Now Janusz wonders, for given sequence, how much elements should the player choose?
+
+Input:
+
+The vector of integers nums.
+
+Constraints:
+
+nums.size() : ranges from 1 to 300000.
+nums : ranges from 1 to 300000.
+
+
+Output:
+
+An integer answer the size of the smallest subset with gcd equal to 1 if there is no answer return -1. 
+
+Sol :https://codeforces.com/blog/entry/62797
+
