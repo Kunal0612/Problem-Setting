@@ -16,7 +16,7 @@ The integer limit.
 Constraints:
 
 limit : ranges from 1 to nums.size()
-nums.size() : ranges from nums.size() to 1000.
+nums.size() : ranges from 2 to 1000.
 nums : ranges from 0 to 100000.
 
 
