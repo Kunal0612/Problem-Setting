@@ -1,3 +1,5 @@
+/*
+
 https://codeforces.com/problemset/problem/1043/F
 
 Create a C++ function named MakeItOne to find an integer answer the size of the smallest subset with gcd equal to 1 if there is no answer return -1. 
@@ -20,5 +22,240 @@ Output:
 
 An integer answer the size of the smallest subset with gcd equal to 1 if there is no answer return -1. 
 
-Sol :https://codeforces.com/blog/entry/62797
 
+*/
+
+#include <iostream>
+#include <vector>
+#include <cassert>
+#include <cstdio>
+#include <stdexcept>
+
+int fast(int base, int exponent) {
+    const int mod = 1e9 + 7;
+    int result = 1;
+    while (exponent) {
+        if (exponent & 1)
+            result = (1LL * result * base) % mod;
+        exponent >>= 1;
+        base = (1LL * base * base) % mod;
+    }
+    return result;
+}
+
+void subtract(int &value, int sub) {
+    const int mod = 1e9 + 7;
+    value -= sub;
+    if (value < 0)
+        value += mod;
+}
+
+int MakeItOne(std::vector<int> &nums){
+    if (nums.size() < 1 || nums.size() > 300000) {
+        throw std::invalid_argument("vec length must be positive.");
+    }
+    for (int i = 0; i < nums.size(); i++) {
+        if (nums[i] < 1 || nums[i] > 300000) {
+            throw std::invalid_argument("Invalid Constraints");
+        }
+    }
+    const int mx_size = 3e5 + 7;
+    const int mod = 1e9 + 7;
+    int size=nums.size();
+    std::vector<int> factorial(mx_size, 0), count(mx_size, 0), inverse(mx_size, 0);
+    std::vector<std::vector<int>> dpp(20, std::vector<int>(mx_size, 0));
+    factorial[0] = 1;
+    for (int i = 1; i < mx_size; ++i)
+        factorial[i] = (1LL * factorial[i - 1] * i) % mod;
+    inverse[mx_size - 1] = fast(factorial[mx_size - 1], mod - 2);
+    for (int i = mx_size - 1; i >= 1; --i)
+        inverse[i - 1] = (1LL * inverse[i] * i) % mod;
+    for (int i = 1; i <= size; ++i) {
+        int element=nums[i-1];
+        count[element]++;
+    }
+    for (int i = 1; i < mx_size; ++i){
+        for (int j = i + i; j < mx_size; j += i){
+            count[i] += count[j];
+        }
+    }
+    int ans=-1;
+    for (int level = 1; level < 20; ++level) {
+        for (int idx = mx_size - 1; idx >= 1; --idx) {
+            int current_count = count[idx], current_level = level;
+            if (current_level < 0 || current_count < current_level){
+                dpp[level][idx] = 0;
+            }
+            else{
+                dpp[level][idx] = (((1LL * factorial[current_count] * inverse[current_level]) % mod) * inverse[current_count - current_level]) % mod;
+            }
+            for (int multiple = idx + idx; multiple < mx_size; multiple += idx)
+                subtract(dpp[level][idx], dpp[level][multiple]);
+        }
+        if (dpp[level][1] > 0) {
+            ans=level;
+            break;
+        }
+    }
+    return ans;
+}
+
+
+
+int main()
+{
+
+    // TEST
+    std::vector<int> nums_1 = {3, 1, 2};
+    int expected_1 = 1;
+    int result_1 = MakeItOne(nums_1);
+    assert(result_1 == expected_1);
+    // TEST_END
+
+    // TEST
+    std::vector<int> nums_2 = {4, 1, 5, 4, 1, 1};
+    int expected_2 = 1;
+    int result_2 = MakeItOne(nums_2);
+    assert(result_2 == expected_2);
+    // TEST_END
+
+    // TEST
+    std::vector<int> nums_3 = {10, 6, 15};
+    int expected_3 = 3;
+    int result_3 = MakeItOne(nums_3);
+    assert(result_3 == expected_3);
+    // TEST_END
+
+    // TEST
+    std::vector<int> nums_4 = {40, 355, 20, 10};
+    int expected_4 = -1;
+    int result_4 = MakeItOne(nums_4);
+    assert(result_4 == expected_4);
+    // TEST_END
+
+    // TEST
+    std::vector<int> nums_5 = {2, 3, 1, 5, 4, 6};
+    int expected_5 = 1;
+    int result_5 = MakeItOne(nums_5);
+    assert(result_5 == expected_5);
+    // TEST_END
+
+    // TEST
+    std::vector<int> nums_6 = {30,60,21,42,70,15,30};
+    int expected_6 = 3;
+    int result_6 = MakeItOne(nums_6);
+    assert(result_6 == expected_6);
+    // TEST_END
+
+    // TEST
+    std::vector<int> nums_7 = {1, 3, 2, 5, 4, 6, 7};
+    int expected_7 = 1;
+    int result_7 = MakeItOne(nums_7);
+    assert(result_7 == expected_7);
+    // TEST_END
+
+    // TEST
+    std::vector<int> nums_8 = {4, 2, 3, 1, 5, 6, 7, 8};
+    int expected_8 = 1;
+    int result_8 = MakeItOne(nums_8);
+    assert(result_8 == expected_8);
+    // TEST_END
+
+    // TEST
+    std::vector<int> nums_9 = {3, 2, 4, 1, 5};
+    int expected_9 = 1;
+    int result_9 = MakeItOne(nums_9);
+    assert(result_9 == expected_9);
+    // TEST_END
+
+    // TEST
+    std::vector<int> nums_10 = {2, 3, -1};
+    try
+    {
+        MakeItOne(nums_10);
+        assert(false);
+    }
+    catch (const std::invalid_argument &e)
+    {
+        assert(true);
+    }
+    // TEST_END
+
+    // TEST
+    std::vector<int> nums_11 = {2, 3, 0};
+    try
+    {
+        MakeItOne(nums_11);
+        assert(false);
+    }
+    catch (const std::invalid_argument &e)
+    {
+        assert(true);
+    }
+    // TEST_END
+
+    // TEST
+    std::vector<int> nums_12 = {2, 3, 400000};
+    try
+    {
+        MakeItOne(nums_12);
+        assert(false);
+    }
+    catch (const std::invalid_argument &e)
+    {
+        assert(true);
+    }
+    // TEST_END
+
+    // TEST
+    std::vector<int> nums_13 = {};
+    try
+    {
+        MakeItOne(nums_13);
+        assert(false);
+    }
+    catch (const std::invalid_argument &e)
+    {
+        assert(true);
+    }
+    // TEST_END
+
+    // TEST
+    std::vector<int> nums_14(300005, 1);
+    try
+    {
+        MakeItOne(nums_14);
+        assert(false);
+    }
+    catch (const std::invalid_argument &e)
+    {
+        assert(true);
+    }
+    // TEST_END
+    // TEST
+    std::vector<int> nums_15(1,-5);
+    try
+    {
+        MakeItOne(nums_15);
+        assert(false);
+    }
+    catch (const std::invalid_argument &e)
+    {
+        assert(true);
+    }
+    // TEST_END
+    // TEST
+    std::vector<int> nums_16={-5,-10};
+    try
+    {
+        MakeItOne(nums_16);
+        assert(false);
+    }
+    catch (const std::invalid_argument &e)
+    {
+        assert(true);
+    }
+    // TEST_END
+    std::cout << "All test cases passed!";
+    return 0;
+}
