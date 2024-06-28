@@ -1,3 +1,5 @@
+/*
+
 https://codeforces.com/problemset/problem/1481/E
 
 Create a C++ function named SortingBooks to find an integer answer minimum number of operations to make the shelf beautiful.
@@ -26,41 +28,208 @@ Output:
 
 An integer answer the minimum number of operations to make the shelf beautiful.
 
-Sol :
 
-#include <bits/stdc++.h>
+*/
 
-using namespace std;
+#include <iostream>
+#include <vector>
+#include <cassert>
+#include <cstdio>
+#include <stdexcept>
 
-#define all(x) (x).begin(), (x).end()
-#define fast ios::sync_with_stdio(false);cin.tie(0);
-typedef long long ll;
-typedef long double ld;
-typedef unsigned long long ull;
-mt19937 rng(chrono::steady_clock::now().time_since_epoch().count());
 
-int main(){
-	fast
-	int n;
-	cin>>n;
-	vector<int> a(n),f(n),cf(n);
-	vector<pair<int,int>> at(n,{-1,-1});
-	for(int i=0;i<n;i++){
-		cin>>a[i];
-		a[i]--;
-		f[a[i]]++;
-		if(at[a[i]].first == -1)at[a[i]] = {i,i};
-		at[a[i]].second = i;
-	}
-	vector<int> dp(n+1);
 
-	for(int i=n-1;i>=0;i--){
-		dp[i] = dp[i+1];
-		cf[a[i]]++;
-		if(i == at[a[i]].first)dp[i] = max(dp[i] , dp[at[a[i]].second + 1] + f[a[i]]);
-		else dp[i] = max(dp[i] , cf[a[i]]);
-	}
+int SortingBooks(std::vector<int> &nums){
+    if (nums.size() < 1 || nums.size() > 500000) {
+        throw std::invalid_argument("vec length must be positive.");
+    }
+    for (int i = 0; i < nums.size(); i++) {
+        if (nums[i] < 1 || nums[i] > nums.size()) {
+            throw std::invalid_argument("Invalid Constraints");
+        }
+    }
+    int num_elements=nums.size();
 
-	cout << n - dp[0] << '\n';
+    std::vector<int> freq(num_elements), current_freq(num_elements);
+    std::vector<std::pair<int, int>> first_last(num_elements, {-1, -1});
+
+    for (int i = 0; i < num_elements; ++i) {
+        nums[i]--;
+        freq[nums[i]]++;
+        if (first_last[nums[i]].first == -1)
+            first_last[nums[i]] = {i, i};
+        first_last[nums[i]].second = i;
+    }
+
+    std::vector<int> dp(num_elements + 1);
+    for (int i = num_elements - 1; i >= 0; --i) {
+        dp[i] = dp[i + 1];
+        current_freq[nums[i]]++;
+        if (i == first_last[nums[i]].first)
+            dp[i] = std::max(dp[i], dp[first_last[nums[i]].second + 1] + freq[nums[i]]);
+        else
+            dp[i] = std::max(dp[i], current_freq[nums[i]]);
+    }
+
+    int ans=num_elements - dp[0] ;
+    return ans;
 }
 
+int main()
+{
+
+    // TEST
+    std::vector<int> nums_1 = {1,2,2,1,3};
+    int expected_1 = 2;
+    int result_1 = SortingBooks(nums_1);
+    assert(result_1 == expected_1);
+    // TEST_END
+
+    // TEST
+    std::vector<int> nums_2 = {4, 1, 5, 4, 1, 1};
+    int expected_2 = 2;
+    int result_2 = SortingBooks(nums_2);
+    assert(result_2 == expected_2);
+    // TEST_END
+
+    // TEST
+    std::vector<int> nums_3 = {1, 2, 3};
+    int expected_3 = 0;
+    int result_3 = SortingBooks(nums_3);
+    assert(result_3 == expected_3);
+    // TEST_END
+
+    // TEST
+    std::vector<int> nums_4 = {4, 3, 2, 1};
+    int expected_4 = 0;
+    int result_4 = SortingBooks(nums_4);
+    assert(result_4 == expected_4);
+    // TEST_END
+
+    // TEST
+    std::vector<int> nums_5 = {2, 3, 1, 5, 4, 6};
+    int expected_5 = 0;
+    int result_5 = SortingBooks(nums_5);
+    assert(result_5 == expected_5);
+    // TEST_END
+
+    // TEST
+    std::vector<int> nums_6 = {5, 1, 2, 4, 3, 6, 7};
+    int expected_6 = 0;
+    int result_6 = SortingBooks(nums_6);
+    assert(result_6 == expected_6);
+    // TEST_END
+
+    // TEST
+    std::vector<int> nums_7 = {1, 3, 2, 5, 4, 6, 7};
+    int expected_7 = 0;
+    int result_7 = SortingBooks(nums_7);
+    assert(result_7 == expected_7);
+    // TEST_END
+
+    // TEST
+    std::vector<int> nums_8 = {4, 2, 3, 1, 5, 6, 7, 8};
+    int expected_8 = 0;
+    int result_8 = SortingBooks(nums_8);
+    assert(result_8 == expected_8);
+    // TEST_END
+
+    // TEST
+    std::vector<int> nums_9 = {3, 2, 4, 1, 5};
+    int val_9=3;
+    int expected_9 = 0;
+    int result_9 = SortingBooks(nums_9);
+    assert(result_9 == expected_9);
+    // TEST_END
+
+     // TEST
+    std::vector<int> nums_10 = {2, 3, -1};
+    try
+    {
+        SortingBooks(nums_10);
+        assert(false);
+    }
+    catch (const std::invalid_argument &e)
+    {
+        assert(true);
+    }
+    // TEST_END
+
+    // TEST
+    std::vector<int> nums_11 = {2, 3, 0};
+    try
+    {
+        SortingBooks(nums_11);
+        assert(false);
+    }
+    catch (const std::invalid_argument &e)
+    {
+        assert(true);
+    }
+    // TEST_END
+
+    // TEST
+    std::vector<int> nums_12 = {2, 3, 400000};
+    try
+    {
+        SortingBooks(nums_12);
+        assert(false);
+    }
+    catch (const std::invalid_argument &e)
+    {
+        assert(true);
+    }
+    // TEST_END
+
+    // TEST
+    std::vector<int> nums_13 = {};
+    try
+    {
+        SortingBooks(nums_13);
+        assert(false);
+    }
+    catch (const std::invalid_argument &e)
+    {
+        assert(true);
+    }
+    // TEST_END
+
+    // TEST
+    std::vector<int> nums_14(500005, 1);
+    try
+    {
+        SortingBooks(nums_14);
+        assert(false);
+    }
+    catch (const std::invalid_argument &e)
+    {
+        assert(true);
+    }
+    // TEST_END
+    // TEST
+    std::vector<int> nums_15(1,-5);
+    try
+    {
+        SortingBooks(nums_15);
+        assert(false);
+    }
+    catch (const std::invalid_argument &e)
+    {
+        assert(true);
+    }
+    // TEST_END
+    // TEST
+    std::vector<int> nums_16={-5,-10};
+    try
+    {
+        SortingBooks(nums_16);
+        assert(false);
+    }
+    catch (const std::invalid_argument &e)
+    {
+        assert(true);
+    }
+    // TEST_END
+    std::cout << "All test cases passed!";
+    return 0;
+}
