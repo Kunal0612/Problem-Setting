@@ -1,0 +1,301 @@
+/*
+
+https://codeforces.com/problemset/problem/1188/C
+
+Create a C++ function named ArrayBeauty to find the sum of beauty over all subsequences of the array of length exactly k
+
+Let's call beauty of an array b1,b2,…,bn (n>1)  — min1≤i<j≤n|bi−bj|.
+
+You're given an array nums[1],nums[2],…nums[n] and a number limit. Calculate the sum of beauty over all subsequences of the array of length exactly limit. As this number can be very large, output it modulo 998244353.
+
+A sequence a is a subsequence of an array b if a can be obtained from b by deletion of several (possibly, zero or all) elements.
+
+Input:
+
+The vector of integers nums.
+The integer limit.
+
+Constraints:
+
+limit : ranges from 1 to nums.size()
+nums.size() : ranges from 2 to 1000.
+nums : ranges from 0 to 100000.
+
+
+Output:
+
+An integer answer the sum of beauty over all subsequences of the array of length exactly limit.
+
+
+*/
+
+#include <iostream>
+#include <vector>
+#include <algorithm>
+#include <cassert>
+#include <stdexcept>
+
+
+int AddMod(int a, int b) {
+    int mod = 998244353;
+    int sum = (a + b);
+    if (sum >= mod) sum -= mod;
+    return sum;
+}
+
+int SubMod(int a, int b) {
+    int mod = 998244353;
+    int diff = a - b;
+    if (diff < 0) diff += mod;
+    return diff;
+}
+
+int MulMod(int a, int b) {
+    int mod = 998244353;
+    return (1LL * a * b) % mod;
+}
+
+const int MAX_N = 1005;
+
+struct ProblemData {
+    int array[MAX_N];
+    int num_elements, num_partitions;
+    std::vector<std::vector<int>> dp;
+    std::vector<std::vector<int>> prefix;
+    std::vector<int> left_bound;
+
+    ProblemData() : dp(MAX_N, std::vector<int>(MAX_N, 0)), prefix(MAX_N, std::vector<int>(MAX_N, 0)), left_bound(MAX_N) {}
+};
+
+int solve(int val, ProblemData &data) {
+    for (int i = 0; i <= data.num_partitions; i++) {
+        for (int j = 0; j <= data.num_elements; j++) {
+            data.dp[i][j] = 0;
+        }
+    }
+
+    data.left_bound[0] = 0;
+    for (int i = 1; i <= data.num_elements; i++) {
+        data.left_bound[i] = data.left_bound[i - 1];
+        while (data.array[i] - data.array[data.left_bound[i] + 1] >= val) data.left_bound[i]++;
+    }
+
+    data.dp[0][0] = 1;
+    for (int i = 0; i + 1 <= data.num_partitions; i++) {
+        data.prefix[i][0] = data.dp[i][0];
+        for (int j = 1; j <= data.num_elements; j++) {
+            data.prefix[i][j] = AddMod(data.prefix[i][j - 1], data.dp[i][j]);
+        }
+        for (int j = 1; j <= data.num_elements; j++) {
+            data.dp[i + 1][j] = data.prefix[i][data.left_bound[j]];
+        }
+    }
+
+    int result = 0;
+    for (int i = 1; i <= data.num_elements; i++) result = AddMod(result, data.dp[data.num_partitions][i]);
+    return result;
+}
+
+int ArrayBeauty(std::vector<int> &nums,int limit){
+    if (nums.size() < 2 || nums.size() > 1000) {
+        throw std::invalid_argument("vec length must be positive.");
+    }
+    if (limit < 1 || limit>nums.size()) {
+        throw std::invalid_argument("vec length must be positive.");
+    }
+    for (int i = 0; i < nums.size(); i++) {
+        if (nums[i] < 0 || nums[i] > 100000) {
+            throw std::invalid_argument("Invalid Constraints");
+        }
+    }
+    ProblemData data;
+
+    data.num_elements=nums.size();
+    data.num_partitions=limit;
+    for (int i = 1; i <= data.num_elements; i++) {
+        data.array[i]=nums[i-1];
+    }
+
+    std::sort(data.array + 1, data.array + data.num_elements + 1);
+
+    int answer = 0;
+    for (int value = 1; value * (data.num_partitions - 1) <= 100000 + 10; value++) {
+        answer = AddMod(answer, solve(value, data));
+    }
+    return answer;
+}
+
+int main()
+{
+
+    // TEST
+    std::vector<int> nums_1 = {1,10,100,1000,10000};
+    int limit_1=5;
+    int expected_1 = 9;
+    int result_1 = ArrayBeauty(nums_1,limit_1);
+    assert(result_1 == expected_1);
+    // TEST_END
+
+    // TEST
+    std::vector<int> nums_2 = {1,3,7,5};
+    int limit_2=3;
+    int expected_2 = 8;
+    int result_2 = ArrayBeauty(nums_2,limit_2);
+    assert(result_2 == expected_2);
+    // TEST_END
+
+    // TEST
+    std::vector<int> nums_3 = {1, 2, 3};
+    int limit_3=2;
+    int expected_3 = 4;
+    int result_3 = ArrayBeauty(nums_3,limit_3);
+    assert(result_3 == expected_3);
+    // TEST_END
+
+    // TEST
+    std::vector<int> nums_4 = {4, 3, 2, 1};
+    int limit_4=3;
+    int expected_4 = 4;
+    int result_4 = ArrayBeauty(nums_4,limit_4);
+    assert(result_4 == expected_4);
+    // TEST_END
+
+    // TEST
+    std::vector<int> nums_5 = {2, 3, 1, 5, 4, 6};
+    int expected_5 = 35;
+    int limit_5=2;
+    int result_5 = ArrayBeauty(nums_5,limit_5);
+    assert(result_5 == expected_5);
+    // TEST_END
+
+    // TEST
+    std::vector<int> nums_6 = {5, 1, 2, 4, 3, 6, 7};
+    int val_6=2;
+    int expected_6 = 56;
+    int result_6 = ArrayBeauty(nums_6,val_6);
+    assert(result_6 == expected_6);
+    // TEST_END
+
+    // TEST
+    std::vector<int> nums_7 = {1, 3, 2, 5, 4, 6, 7};
+    int limit_7=2;
+    int expected_7 = 56;
+    int result_7 = ArrayBeauty(nums_7,limit_7);
+    assert(result_7 == expected_7);
+    // TEST_END
+
+    // TEST
+    std::vector<int> nums_8 = {4, 2, 3, 1, 5, 6, 7, 8};
+    int limit_8=3;
+    int expected_8 = 80;
+    int result_8 = ArrayBeauty(nums_8,limit_8);
+    assert(result_8 == expected_8);
+    // TEST_END
+
+    // TEST
+    std::vector<int> nums_9 = {3, 2, 4, 1, 5};
+    int val_9=3;
+    int expected_9 = 11;
+    int result_9 = ArrayBeauty(nums_9,val_9);
+    assert(result_9 == expected_9);
+    // TEST_END
+
+    // TEST
+    std::vector<int> nums_10 = {2, 3, -1};
+    int limit_10 =0;
+    try
+    {
+        ArrayBeauty(nums_10,limit_10);
+        assert(false);
+    }
+    catch (const std::invalid_argument &e)
+    {
+        assert(true);
+    }
+    // TEST_END
+
+    // TEST
+    std::vector<int> nums_11 = {2, 3, 0};
+    int limit_11 =0;
+    try
+    {
+        ArrayBeauty(nums_11, limit_11);
+        assert(false);
+    }
+    catch (const std::invalid_argument &e)
+    {
+        assert(true);
+    }
+    // TEST_END
+
+    // TEST
+    std::vector<int> nums_12 = {2, 3, 4};
+    int limit_12=100;
+    try
+    {
+        ArrayBeauty(nums_12,limit_12);
+        assert(false);
+    }
+    catch (const std::invalid_argument &e)
+    {
+        assert(true);
+    }
+    // TEST_END
+
+    // TEST
+    std::vector<int> nums_13 = {};
+    int limit_13=0;
+    try
+    {
+        ArrayBeauty(nums_13,limit_13);
+        assert(false);
+    }
+    catch (const std::invalid_argument &e)
+    {
+        assert(true);
+    }
+    // TEST_END
+
+    // TEST
+    std::vector<int> nums_14(300005, 1);
+    int limit_14=0;
+    try
+    {
+        ArrayBeauty(nums_14,limit_14);
+        assert(false);
+    }
+    catch (const std::invalid_argument &e)
+    {
+        assert(true);
+    }
+    // TEST_END
+    // TEST
+    std::vector<int> nums_15(1, 1);
+    int limit_15=5;
+    try
+    {
+        ArrayBeauty(nums_15,limit_15);
+        assert(false);
+    }
+    catch (const std::invalid_argument &e)
+    {
+        assert(true);
+    }
+    // TEST_END
+    // TEST
+    std::vector<int> nums_16(1, 1);
+    int limit_16=-5;
+    try
+    {
+        ArrayBeauty(nums_16,limit_16);
+        assert(false);
+    }
+    catch (const std::invalid_argument &e)
+    {
+        assert(true);
+    }
+    // TEST_END
+    std::cout << "All test cases passed!";
+    return 0;
+}
+
