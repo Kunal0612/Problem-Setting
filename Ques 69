@@ -1,0 +1,263 @@
+/*
+
+https://codeforces.com/problemset/problem/1637/F
+
+Create a C++ function named Towers to find the minimum required number of coins.
+
+You are given a tree with n vertices numbered from 1 to n. Each vertex i has a height h_i. You can place any number of towers on the vertices, with each tower having an efficiency e. Setting up a tower with efficiency e costs e coins, where e > 0.
+
+A vertex x is considered to receive a signal if there exist two towers at vertices u and v (where u ≠ v, but x can be either u or v) with efficiencies e_u and e_v such that:
+
+min(e_u, e_v) ≥ h_x
+
+x lies on the path between u and v
+
+Your task is to determine the minimum number of coins required to place towers such that every vertex receives a signal.
+
+Input:
+
+The vector of integers height.
+A vector of pairs of integers edges.
+
+Constraints:
+
+edges : ranges from 1 to nums.size().
+edges.size() : it is of nums.size() - 1
+nums.size() : ranges from 2 to 200000.
+nums : ranges from 1 to 10^9.
+
+
+Output:
+
+An integer answer the minimum required number of coins.
+
+Towers : https://codeforces.com/blog/entry/99883
+
+*/
+
+#include <iostream>
+#include <vector>
+#include <algorithm>
+#include <set>
+#include <cassert>
+#include <map>
+
+
+int Towers(std::vector<std::vector<int>>& edges, std::vector<int>& nums) {
+    if (nums.size() <2 or nums.size()>200000) {
+        throw std::invalid_argument("nums length must be positive.");
+    }
+    if (edges.size()!=nums.size()-1) {
+        throw std::invalid_argument("nums length must be positive.");
+    }
+    for (int i = 0; i < nums.size(); ++i)
+    {
+        if (nums[i] < 1|| nums[i] > 1000000000)
+        {
+            throw std::invalid_argument("Invalid element value");
+        }
+    }
+    for(int i=0;i<edges.size();i++){
+        int node_u=edges[i][0];
+        int node_v=edges[i][1];
+        if(node_u<1 or node_u>nums.size() or node_v<1 or node_v>nums.size()){
+            throw std::invalid_argument("Invalid node value");
+        }
+    }
+    int size=nums.size();
+    int ans = 0;
+
+    std::set<std::pair<int, int>> leaves;
+    std::vector<std::pair<int, int>> srt;
+    std::vector<int> degree(size);
+
+    srt.push_back({ 0, -1 });
+    for (int i = 0; i < size; i++) {
+        degree[i] = edges[i].size();
+
+        srt.push_back({ nums[i], i });
+        if (edges[i].size() == 1) {
+            leaves.insert({ nums[i], i });
+        }
+    }
+
+    std::sort(srt.begin(), srt.end());
+
+    for (int i = 1; i <= size; i++) {
+        while (!leaves.empty() && (*leaves.begin()).first < srt[i].first) {
+            int node_v = (*leaves.begin()).second;
+            degree[node_v] = -2;
+            leaves.erase(leaves.begin());
+
+            for (auto to : edges[node_v]) {
+                degree[to]--;
+                if (degree[to] == 1 || degree[to] == 0) leaves.insert({ nums[to], to });
+            }
+        }
+
+        ans += std::max(2, int(leaves.size())) * (srt[i].first - srt[i - 1].first);
+    }
+
+    return ans;
+}
+
+int main() {
+
+    // TEST
+    std::vector<int> nums_1 = {1, 2, 1};
+    std::vector<std::vector<int>> edges_1 = {{1, 2}, {2, 3}};
+    int expected_1 = 4;
+    int result_1 = Towers(edges_1, nums_1);
+    assert(result_1 == expected_1);
+    // TEST_END
+
+    // TEST
+    std::vector<int> nums_2 = {1, 3, 3, 1, 3};
+    std::vector<std::vector<int>> edges_2 = {{1, 3}, {5, 4}, {4, 3}, {2, 3}};
+    int expected_2 = 6;
+    int result_2 = Towers(edges_2, nums_2);
+    assert(result_2 == expected_2);
+    // TEST_END
+
+    // TEST
+    std::vector<int> nums_3 = {5, 1, 5, 5, 1, 1};
+    std::vector<std::vector<int>> edges_3 = {{1, 2}, {1, 3}, {2, 4}, {2, 5}, {3, 6}};
+    int expected_3 = 10;
+    int result_3 = Towers(edges_3, nums_3);
+    assert(result_3 == expected_3);
+    // TEST_END
+
+    // TEST
+    std::vector<int> nums_4 = {1, 1, 1, 1};
+    std::vector<std::vector<int>> edges_4 = {{1, 2}, {1, 3}, {1, 4}};
+    int expected_4 = 2;
+    int result_4 = Towers(edges_4, nums_4);
+    assert(result_4 == expected_4);
+    // TEST_END
+
+    // TEST
+    std::vector<int> nums_5 = {2, 2, 2, 2, 2};
+    std::vector<std::vector<int>> edges_5 = {{1, 2}, {2, 3}, {3, 4}, {4, 5}};
+    int expected_5 = 4;
+    int result_5 = Towers(edges_5, nums_5);
+    assert(result_5 == expected_5);
+    // TEST_END
+
+    // TEST
+    std::vector<int> nums_6 = {10, 20, 30};
+    std::vector<std::vector<int>> edges_6 = {{1, 2}, {1, 3}};
+    int expected_6 = 60;
+    int result_6 = Towers(edges_6, nums_6);
+    assert(result_6 == expected_6);
+    // TEST_END
+
+    // TEST
+    std::vector<int> nums_7 = {3, 3, 3, 3, 3, 3};
+    std::vector<std::vector<int>> edges_7 = {{1, 2}, {1, 3}, {2, 4}, {2, 5}, {3, 6}};
+    int expected_7 = 6;
+    int result_7 = Towers(edges_7, nums_7);
+    assert(result_7 == expected_7);
+    // TEST_END
+
+    // TEST
+    std::vector<int> nums_8 = {1, 1, 2, 2, 1, 1};
+    std::vector<std::vector<int>> edges_8 = {{1, 2}, {1, 3}, {2, 4}, {2, 5}, {3, 6}};
+    int expected_8 = 4;
+    int result_8 = Towers(edges_8, nums_8);
+    assert(result_8 == expected_8);
+    // TEST_END
+    // TEST
+    std::vector<int> nums_9 = {};
+    std::vector<std::vector<int>> edges_9 = {{1, 2}, {1, 3}, {2, 4}, {2, 5}, {3, 6}};
+    try
+    {
+        Towers(edges_9, nums_9);
+        assert(false);
+    }
+    catch (const std::invalid_argument &e)
+    {
+        assert(true);
+    }
+    // TEST_END
+    // TEST
+    std::vector<int> nums_10 = {-1};
+    std::vector<std::vector<int>> edges_10 = {{1, 2}, {1, 3}, {2, 4}, {2, 5}, {3, 6}};
+    try
+    {
+        Towers(edges_10, nums_10);
+        assert(false);
+    }
+    catch (const std::invalid_argument &e)
+    {
+        assert(true);
+    }
+    // TEST_END
+    // TEST
+    std::vector<int> nums_11 = {0};
+    std::vector<std::vector<int>> edges_11 = {{1, 2}, {1, 3}, {2, 4}, {2, 5}, {3, 6}};
+    try
+    {
+        Towers(edges_11, nums_11);
+        assert(false);
+    }
+    catch (const std::invalid_argument &e)
+    {
+        assert(true);
+    }
+    // TEST_END
+    // TEST
+    std::vector<int> nums_12 = {100000000};
+    std::vector<std::vector<int>> edges_12 = {{1, 2}, {1, 3}, {2, 4}, {2, 5}, {3, 6}};
+    try
+    {
+        Towers(edges_12, nums_12);
+        assert(false);
+    }
+    catch (const std::invalid_argument &e)
+    {
+        assert(true);
+    }
+    // TEST_END
+    // TEST
+    std::vector<int> nums_13 = {1,2,3};
+    std::vector<std::vector<int>> edges_13 = {{1, 2}, {1, 3}, {2, 4}, {2, 5}, {3, 6}};
+    try
+    {
+        Towers(edges_13, nums_13);
+        assert(false);
+    }
+    catch (const std::invalid_argument &e)
+    {
+        assert(true);
+    }
+    // TEST_END
+    // TEST
+    std::vector<int> nums_14 = {1,2,3};
+    std::vector<std::vector<int>> edges_14 = {{}};
+    try
+    {
+        Towers(edges_14, nums_14);
+        assert(false);
+    }
+    catch (const std::invalid_argument &e)
+    {
+        assert(true);
+    }
+    // TEST_END
+    // TEST
+    std::vector<int> nums_15 = {1,2,3};
+    std::vector<std::vector<int>> edges_15 = {{-1,-1}};
+    try
+    {
+        Towers(edges_15, nums_15);
+        assert(false);
+    }
+    catch (const std::invalid_argument &e)
+    {
+        assert(true);
+    }
+    // TEST_END
+
+    std::cout << "All test cases passed!";
+    return 0;
+}
