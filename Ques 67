@@ -1,0 +1,230 @@
+/*
+
+https://codeforces.com/problemset/problem/1209/E2
+
+Create a C++ function named RotateColumns to find the sum the maximal possible value of r1+r2+…+rn.
+
+You are given a rectangular rows × cols matrix grid. In one move you can choose any column and cyclically shift elements in this column. You can perform this operation as many times as you want (possibly zero). You can perform this operation to a column multiple times.
+
+After you are done with cyclical shifts, you compute for every row the maximal value in it. Suppose that for i-th row it is equal r[i].
+What is the maximal possible value of r[1]+r[2]+…+r[rows] ?
+
+Input:
+
+The vector of vector of integers grid.
+
+Constraints:
+
+grid.size() : ranges from 1 to 12.
+grid[0].size() : ranges from 1 to 2000.
+grid : ranges from 1 to 100000.
+
+Output:
+
+An integer answer the sum the maximal possible value of r1+r2+…+rn.
+
+*/
+
+#include <iostream>
+#include <vector>
+#include <algorithm>
+#include <cstring>
+#include <climits>
+#include <cassert>
+#include <stdexcept>
+
+int RotateColumns(std::vector<std::vector<int>> grid)
+{
+	int rows=grid.size(), cols=grid[0].size();
+	if (grid.size() <1 or grid.size()>12) {
+        throw std::invalid_argument("vec length must be positive.");
+    }
+	if (grid[0].size() <1 or grid[0].size()>2000) {
+        throw std::invalid_argument("vec length must be positive.");
+    }
+	for (int i = 0; i < grid.size(); ++i)
+	{
+		for (int j = 0; j < grid[0].size(); j++)
+		{
+			if (grid[i][j]< 1 or grid[i][j] > 100000)
+			{
+				throw std::invalid_argument("Invalid value for grid elements");
+			}
+		}
+	}
+	std::vector<int> sec(cols + 1, 0);
+	std::vector<int> pec(cols + 1);
+	std::vector<std::vector<int>> mat(rows + 1, std::vector<int>(cols + 1));
+	std::vector<std::vector<int>> dpp(13, std::vector<int>(4096, INT_MIN));
+	std::vector<std::vector<int>> hash(13, std::vector<int>(4096, 0));
+
+	for (int i = 1; i <= rows; i++)
+	{
+		for (int j = 1; j <= cols; j++)
+		{
+			mat[i][j]=grid[i-1][j-1];
+			sec[j] = std::max(sec[j], mat[i][j]);
+			pec[j] = j;
+		}
+	}
+
+	sort(pec.begin() + 1, pec.begin() + cols + 1, [&sec](int x, int y)
+		 { return sec[x] > sec[y]; });
+
+	dpp[0][0] = 0;
+
+	for (int i = 1; i <= std::min(rows, cols); i++)
+	{
+		for (int j = 0; j < (1 << rows); j++)
+		{
+			for (int u = 0; u < rows; u++)
+			{
+				int now = (j << u) + (j >> (rows - u));
+				int sum = 0;
+				for (int l = 0; l < rows; l++)
+				{
+					if (now >> l & 1)
+						sum += mat[l + 1][pec[i]];
+				}
+				hash[i][j] = std::max(hash[i][j], sum);
+			}
+		}
+	}
+
+	for (int i = 1; i <= std::min(rows, cols); i++)
+	{
+		for (int j = 0; j < (1 << rows); j++)
+		{
+			for (int k = j; k >= 0; k--)
+			{
+				k &= j;
+				dpp[i][j] = std::max(dpp[i][j], dpp[i - 1][k] + hash[i][j - k]);
+			}
+		}
+	}
+
+	int answer=dpp[std::min(rows, cols)][(1 << rows) - 1];
+	return answer;
+}
+
+
+
+int main()
+{
+	// TEST
+	std::vector<std::vector<int>> grid_1 = {{2,5,7},{4,2,4}};
+	int expected_1 = 12;
+	int result_1 = RotateColumns(grid_1);
+	assert(result_1 == expected_1);
+	// TEST_END
+	// TEST
+    std::vector<std::vector<int>> grid_2 = {{1, 2}, {3, 4}};
+    int expected_2 = 7;
+    int result_2 = RotateColumns(grid_2);
+    assert(result_2 == expected_2);
+    // TEST_END
+
+    // TEST
+    std::vector<std::vector<int>> grid_3 = {{10, 20, 30}, {40, 50, 60}, {70, 80, 90}};
+    int expected_3 = 240;
+    int result_3 = RotateColumns(grid_3);
+    assert(result_3 == expected_3);
+    // TEST_END
+
+    // TEST
+    std::vector<std::vector<int>> grid_4 = {{100, 200, 300}, {400, 500, 600}};
+    int expected_4 = 1100;
+    int result_4 = RotateColumns(grid_4);
+    assert(result_4 == expected_4);
+    // TEST_END
+
+    // TEST
+    std::vector<std::vector<int>> grid_5 = {{7, 8, 9}, {4, 5, 6}, {1, 2, 3}};
+    int expected_5 = 24;
+    int result_5 = RotateColumns(grid_5);
+    assert(result_5 == expected_5);
+    // TEST_END
+
+    // TEST
+    std::vector<std::vector<int>> grid_6 = {{1, 1, 1}, {1, 1, 1}, {1, 1, 1}};
+    int expected_6 = 3;
+    int result_6 = RotateColumns(grid_6);
+    assert(result_6 == expected_6);
+    // TEST_END
+
+    // TEST
+    std::vector<std::vector<int>> grid_7 = {{1000, 2000}, {3000, 4000}, {5000, 6000}};
+    int expected_7 = 15000;
+    int result_7 = RotateColumns(grid_7);
+    assert(result_7 == expected_7);
+    // TEST_END
+
+    // TEST
+    std::vector<std::vector<int>> grid_8 = {{100, 200, 300, 400}, {500, 600, 700, 800}};
+    int expected_8 = 1500;
+    int result_8 = RotateColumns(grid_8);
+    assert(result_8 == expected_8);
+    // TEST_END
+	// TEST
+    std::vector<std::vector<int>> grid_9 = {{-2, 200, 300, 400}, {500, 600, 700, 900}};
+	try
+	{
+		RotateColumns(grid_9);
+		assert(false);
+	}
+	catch (const std::invalid_argument &e)
+	{
+		assert(true);
+	}
+	// TEST_END
+	// TEST
+    std::vector<std::vector<int>> grid_10(15,std::vector<int> (1,1));
+	try
+	{
+		RotateColumns(grid_10);
+		assert(false);
+	}
+	catch (const std::invalid_argument &e)
+	{
+		assert(true);
+	}
+	// TEST_END
+	// TEST
+    std::vector<std::vector<int>> grid_11(11,std::vector<int> (3000,1));
+	try
+	{
+		RotateColumns(grid_11);
+		assert(false);
+	}
+	catch (const std::invalid_argument &e)
+	{
+		assert(true);
+	}
+	// TEST_END
+	// TEST
+    std::vector<std::vector<int>> grid_12={{}};
+	try
+	{
+		RotateColumns(grid_12);
+		assert(false);
+	}
+	catch (const std::invalid_argument &e)
+	{
+		assert(true);
+	}
+	// TEST_END
+	// TEST
+    std::vector<std::vector<int>> grid_13={{1000000}};
+	try
+	{
+		RotateColumns(grid_13);
+		assert(false);
+	}
+	catch (const std::invalid_argument &e)
+	{
+		assert(true);
+	}
+	// TEST_END
+	std::cout << "All test cases passed!";
+    return 0;
+}
